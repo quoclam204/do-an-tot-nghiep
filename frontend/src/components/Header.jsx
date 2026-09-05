@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { IconLogIn, IconUserPlus, IconLogOut } from './icons';
 
 function Header() {
   const { user, logout } = useAuth();
@@ -21,6 +22,7 @@ function Header() {
         <nav className="nav">
           <Link to="/">Trang chủ</Link>
           <Link to="/crops">Cây trồng</Link>
+          <Link to="/farms">Nông hộ</Link>
           <Link to="/dashboard">Nhật ký</Link>
         </nav>
 
@@ -33,14 +35,21 @@ function Header() {
                 </span>
                 <span className="user-name-hdr">{user.fullName}</span>
               </Link>
-              <button className="logout-btn-hdr" onClick={handleLogout}>
-                Đăng xuất
+              <button className="logout-btn-hdr" onClick={handleLogout} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconLogOut size={15} />
+                <span>Đăng xuất</span>
               </button>
             </>
           ) : (
             <>
-              <Link className="login-btn" to="/login">Đăng nhập</Link>
-              <Link className="register-btn" to="/register">Đăng ký</Link>
+              <Link className="login-btn" to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconLogIn size={15} />
+                <span>Đăng nhập</span>
+              </Link>
+              <Link className="register-btn" to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <IconUserPlus size={15} />
+                <span>Đăng ký</span>
+              </Link>
             </>
           )}
         </div>

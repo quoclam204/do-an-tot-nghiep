@@ -1,9 +1,13 @@
+import { IconSprout } from './icons';
+
 function Footer() {
     return (
         <footer className="footer">
             <div className="container footer-container">
                 <div>
-                    <h3>🌿 DalatAgri</h3>
+                    <h3 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                        <IconSprout size={22} /> DalatAgri
+                    </h3>
                     <p>
                         Hệ thống quản lý nhật ký canh tác nông nghiệp
                     </p>
@@ -15,7 +19,7 @@ function Footer() {
                 </div>
             </div>
         </footer>
-    )
+    );
 }
 
-export default Footer
+export default Footer;

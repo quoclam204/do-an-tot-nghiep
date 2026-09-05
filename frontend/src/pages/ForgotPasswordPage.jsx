@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiForgotPassword } from '../services/api';
+import { IconCheckCircle, IconArrowLeft } from '../components/icons';
 import './AuthPage.css';
 
 function ForgotPasswordPage() {
@@ -54,8 +55,9 @@ function ForgotPasswordPage() {
                     </div>
 
                     {message ? (
-                        <div className="auth-success" style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: 500 }}>
-                            {message}
+                        <div className="auth-success" style={{ padding: '1rem', background: '#dcfce7', color: '#166534', borderRadius: '8px', marginBottom: '1.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <IconCheckCircle size={18} />
+                            <span>{message}</span>
                         </div>
                     ) : (
                         <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -96,7 +98,9 @@ function ForgotPasswordPage() {
 
                     <p className="auth-switch-text">
                         Nhớ ra mật khẩu?{' '}
-                        <Link to="/login" className="auth-link">Quay lại đăng nhập</Link>
+                        <Link to="/login" className="auth-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconArrowLeft size={14} /> Quay lại đăng nhập
+                        </Link>
                     </p>
                 </div>
             </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { apiGetMyFarms, apiCreateFarm, apiDeleteFarm } from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { IconPlus, IconTrash, IconMapPin, IconRuler, IconSprout } from "../components/icons";
 import "./FarmsPage.css";
 
 export default function FarmsPage() {
@@ -67,8 +68,8 @@ export default function FarmsPage() {
               Quản lý các trang trại và lô trồng để bắt đầu ghi nhật ký mùa vụ.
             </p>
           </div>
-          <button className="primary-button" onClick={() => setShowModal(true)}>
-            + Thêm nông hộ
+          <button className="primary-button" onClick={() => setShowModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <IconPlus size={16} strokeWidth={2.2} /> Thêm nông hộ
           </button>
         </section>
 
@@ -86,14 +87,20 @@ export default function FarmsPage() {
               <Link to={`/farms/${farm.id}`} key={farm.id} className="farm-card">
                 <div className="farm-card-header">
                   <h3>{farm.name}</h3>
-                  <button className="delete-btn" onClick={(e) => handleDelete(farm.id, e)}>
-                    Xóa
+                  <button className="delete-btn" onClick={(e) => handleDelete(farm.id, e)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <IconTrash size={14} /> Xóa
                   </button>
                 </div>
-                <p>📍 {farm.location}</p>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <IconMapPin size={15} strokeWidth={2} /> {farm.location}
+                </p>
                 <div className="farm-card-stats">
-                  <span>📐 {farm.totalArea} ha</span>
-                  <span>🌱 {farm.plots?.length || 0} Lô trồng</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <IconRuler size={14} /> {farm.totalArea} ha
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <IconSprout size={14} /> {farm.plots?.length || 0} Lô trồng
+                  </span>
                 </div>
               </Link>
             ))}

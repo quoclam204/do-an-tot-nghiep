@@ -748,6 +748,7 @@
   flex-shrink: 0;
   color: #1e804d;
   background: #e7f4ea;
+  border-radius: 8px;
 }
 .activity-row > div:nth-child(2) {
   min-width: 0;

@@ -1,304 +1,451 @@
-import '../styles/HomePage.css'
-
-const features = [
-  {
-    icon: '📋',
-    title: 'Nhật ký canh tác',
-    desc: 'Ghi chép chi tiết mọi hoạt động canh tác theo từng vụ mùa. Theo dõi tiến độ cây trồng từ khi gieo hạt đến thu hoạch.',
-    color: '#1e804d',
-    bg: 'rgba(30, 128, 77, 0.08)',
-  },
-  {
-    icon: '🌿',
-    title: 'Quản lý vật tư',
-    desc: 'Kiểm soát tồn kho phân bón, thuốc bảo vệ thực vật và giống cây. Cảnh báo khi vật tư sắp cạn.',
-    color: '#0ea5e9',
-    bg: 'rgba(14, 165, 233, 0.08)',
-  },
-  {
-    icon: '💰',
-    title: 'Chi phí & Lợi nhuận',
-    desc: 'Tính toán chi phí đầu tư và lợi nhuận theo từng vụ. Biết ngay hiệu quả kinh tế của từng loại cây trồng.',
-    color: '#f59e0b',
-    bg: 'rgba(245, 158, 11, 0.08)',
-  },
-  {
-    icon: '📊',
-    title: 'Báo cáo & Thống kê',
-    desc: 'Biểu đồ trực quan theo tháng, quý, năm. Phân tích xu hướng để đưa ra quyết định canh tác tốt hơn.',
-    color: '#8b5cf6',
-    bg: 'rgba(139, 92, 246, 0.08)',
-  },
-  {
-    icon: '📡',
-    title: 'Offline-First',
-    desc: 'Hoạt động ngay cả khi mất kết nối internet. Dữ liệu tự động đồng bộ khi có mạng trở lại.',
-    color: '#ef4444',
-    bg: 'rgba(239, 68, 68, 0.08)',
-  },
-  {
-    icon: '🔒',
-    title: 'Bảo mật dữ liệu',
-    desc: 'Dữ liệu được mã hóa và bảo vệ an toàn. Chỉ bạn mới có quyền truy cập thông tin nông trại của mình.',
-    color: '#10b981',
-    bg: 'rgba(16, 185, 129, 0.08)',
-  },
-]
-
-const steps = [
-  {
-    step: '01',
-    title: 'Tạo tài khoản',
-    desc: 'Đăng ký miễn phí trong vòng 1 phút. Không cần kỹ năng công nghệ.',
-  },
-  {
-    step: '02',
-    title: 'Thêm nông trại',
-    desc: 'Nhập thông tin vườn, loại cây trồng và diện tích canh tác của bạn.',
-  },
-  {
-    step: '03',
-    title: 'Ghi nhật ký',
-    desc: 'Ghi chép hàng ngày về hoạt động, vật tư sử dụng và chi phí phát sinh.',
-  },
-  {
-    step: '04',
-    title: 'Xem báo cáo',
-    desc: 'Phân tích dữ liệu, theo dõi lợi nhuận và tối ưu hóa quy trình canh tác.',
-  },
-]
-
-const stats = [
-  { value: '500+', label: 'Nông hộ sử dụng' },
-  { value: '10,000+', label: 'Nhật ký được ghi' },
-  { value: '98%', label: 'Hài lòng với dịch vụ' },
-  { value: '24/7', label: 'Hỗ trợ người dùng' },
-]
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  IconSprout,
+  IconZoomIn,
+  IconPenLine,
+  IconWarehouse,
+  IconLogIn,
+  IconUserPlus,
+  IconCheckCircle,
+  IconWifiOff,
+  IconShieldCheck,
+  IconClipboardList,
+  IconLeaf,
+  IconFlask,
+  IconCalculator,
+  IconBookOpen,
+  IconCircleDollar,
+  IconArrowRight,
+  IconSmartphone,
+  IconLineChart,
+  IconFileText,
+  IconXCircle,
+  IconHelpCircle,
+  IconHeadphones,
+  IconPhoneCall,
+  IconMapPin,
+} from '../components/icons';
+import { useAuth } from '../context/AuthContext';
+import '../styles/HomePage.css';
 
 function HomePage() {
+  const { user } = useAuth();
+  const [isLargeFont, setIsLargeFont] = useState(false);
+
   return (
-    <div className="home-page">
-      {/* ── HERO ── */}
-      <section className="hero-section">
-        <div className="hero-bg-shapes">
-          <div className="shape shape-1" />
-          <div className="shape shape-2" />
-          <div className="shape shape-3" />
-        </div>
-
-        <div className="container hero-content">
-          <div className="hero-badge">
-            <span className="badge-dot" />
-            Nền tảng nông nghiệp số cho Đà Lạt
-          </div>
-
-          <h1 className="hero-title">
-            Quản lý nông trại
-            <br />
-            <span className="hero-title-highlight">thông minh & hiệu quả</span>
-          </h1>
-
-          <p className="hero-desc">
-            DalatAgri giúp nông hộ số hóa toàn bộ nhật ký canh tác, vật tư và
-            chi phí. Từ vườn rau đến vườn cây ăn trái — tất cả trong một ứng
-            dụng duy nhất.
-          </p>
-
-          <div className="hero-actions">
-            <button className="btn-primary" id="hero-cta-start">
-              Bắt đầu miễn phí
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
+    <div className={`elder-home-page ${isLargeFont ? 'font-large' : ''}`}>
+      {/* ── THANH TIỆN ÍCH ĐẦU TRANG ── */}
+      <div className="elder-top-bar">
+        <div className="container elder-top-inner">
+          <span className="elder-top-badge">
+            <IconSprout size={18} strokeWidth={2.2} className="top-badge-icon" />
+            <span>Hệ thống quản lý nhật ký canh tác nông nghiệp Đà Lạt</span>
+          </span>
+          <div className="font-size-toggle">
+            <span className="toggle-label">Cỡ chữ:</span>
+            <button
+              type="button"
+              className={`toggle-btn ${!isLargeFont ? 'active' : ''}`}
+              onClick={() => setIsLargeFont(false)}
+              aria-label="Cỡ chữ vừa vặn"
+            >
+              Vừa vặn
             </button>
-            <button className="btn-secondary" id="hero-cta-demo">
-              Xem demo
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" />
-              </svg>
+            <button
+              type="button"
+              className={`toggle-btn btn-big ${isLargeFont ? 'active' : ''}`}
+              onClick={() => setIsLargeFont(true)}
+              aria-label="Cỡ chữ to dễ đọc"
+            >
+              <IconZoomIn size={16} strokeWidth={2.2} />
+              <span>Chữ to dễ đọc</span>
             </button>
           </div>
-
-          <div className="hero-trust">
-            <div className="trust-avatars">
-              {['👨‍🌾', '👩‍🌾', '🧑‍🌾', '👨‍🌾'].map((e, i) => (
-                <span key={i} className="trust-avatar">{e}</span>
-              ))}
-            </div>
-            <p className="trust-text">
-              <strong>500+ nông hộ</strong> tại Đà Lạt đang dùng DalatAgri
-            </p>
-          </div>
         </div>
+      </div>
 
-        <div className="container hero-dashboard-preview">
-          <div className="dashboard-mockup">
-            <div className="mockup-header">
-              <div className="mockup-dots">
-                <span /><span /><span />
-              </div>
-              <span className="mockup-title">DalatAgri Dashboard</span>
+      {/* ── PHẦN ĐẦU TRANG (HERO) ── */}
+      <section className="elder-hero">
+        <div className="container elder-hero-container">
+          <div className="elder-hero-content">
+            <div className="welcome-tag">
+              <IconSprout size={16} strokeWidth={2.2} />
+              <span>Sổ Tay Nông Nghiệp Đà Lạt</span>
             </div>
-            <div className="mockup-body">
-              <div className="mockup-sidebar">
-                {['🏠 Tổng quan', '🌿 Nông trại', '📋 Nhật ký', '💊 Vật tư', '💰 Chi phí', '📊 Báo cáo'].map((item, i) => (
-                  <div key={i} className={`sidebar-item ${i === 0 ? 'active' : ''}`}>{item}</div>
-                ))}
-              </div>
-              <div className="mockup-main">
-                <div className="mockup-stats">
-                  {[
-                    { label: 'Vườn đang canh tác', val: '3', icon: '🌱', color: '#1e804d' },
-                    { label: 'Nhật ký tháng này', val: '24', icon: '📝', color: '#0ea5e9' },
-                    { label: 'Chi phí tháng', val: '4.2M', icon: '💸', color: '#f59e0b' },
-                  ].map((s, i) => (
-                    <div key={i} className="stat-card" style={{ '--card-color': s.color }}>
-                      <span className="stat-icon">{s.icon}</span>
-                      <div>
-                        <div className="stat-val">{s.val}</div>
-                        <div className="stat-lbl">{s.label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mockup-chart">
-                  <div className="chart-title">📈 Chi phí theo tháng</div>
-                  <div className="chart-bars">
-                    {[55, 70, 45, 80, 65, 90, 75].map((h, i) => (
-                      <div key={i} className="chart-bar-wrap">
-                        <div className="chart-bar" style={{ height: `${h}%` }} />
-                        <span className="chart-label">{['T2','T3','T4','T5','T6','T7','T8'][i]}</span>
-                      </div>
-                    ))}
-                  </div>
+
+            {user ? (
+              <div className="user-welcome-box">
+                <h1 className="elder-hero-title">
+                  Xin chào, <span>{user.fullName}</span>!
+                </h1>
+                <p className="elder-hero-desc">
+                  Chúc bạn một ngày làm việc thuận lợi và mùa màng bội thu. Bạn có thể kiểm tra vườn tược hoặc ghi chép các công việc hôm nay.
+                </p>
+                <div className="elder-hero-actions">
+                  <Link to="/dashboard" className="elder-btn elder-btn-primary">
+                    <IconPenLine size={20} strokeWidth={2.2} />
+                    <span>Mở Sổ Ghi Nhật Ký Hôm Nay</span>
+                  </Link>
+                  <Link to="/farms" className="elder-btn elder-btn-secondary">
+                    <IconWarehouse size={20} strokeWidth={2.2} />
+                    <span>Xem Vườn Canh Tác</span>
+                  </Link>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── STATS ── */}
-      <section className="stats-section">
-        <div className="container stats-grid">
-          {stats.map((s, i) => (
-            <div key={i} className="stats-item" id={`stat-${i}`}>
-              <div className="stats-value">{s.value}</div>
-              <div className="stats-label">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURES ── */}
-      <section className="features-section" id="features">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-tag">Tính năng</span>
-            <h2 className="section-title">Mọi thứ bạn cần để<br />quản lý nông trại hiệu quả</h2>
-            <p className="section-desc">
-              Từ ghi chép nhật ký đến phân tích báo cáo — DalatAgri cung cấp
-              đầy đủ công cụ để giúp bạn canh tác thông minh hơn.
-            </p>
-          </div>
-
-          <div className="features-grid">
-            {features.map((f, i) => (
-              <div key={i} className="feature-card" id={`feature-${i}`}
-                style={{ '--feature-color': f.color, '--feature-bg': f.bg }}>
-                <div className="feature-icon-wrap">
-                  <span className="feature-icon">{f.icon}</span>
-                </div>
-                <h3 className="feature-title">{f.title}</h3>
-                <p className="feature-desc">{f.desc}</p>
-                <div className="feature-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" strokeWidth="2.5">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section className="how-section" id="how-it-works">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-tag">Hướng dẫn</span>
-            <h2 className="section-title">Bắt đầu chỉ trong<br />4 bước đơn giản</h2>
-            <p className="section-desc">
-              Không cần kiến thức công nghệ. Giao diện đơn giản, dễ dùng cho
-              mọi nông dân.
-            </p>
-          </div>
-
-          <div className="steps-grid">
-            {steps.map((s, i) => (
-              <div key={i} className="step-card" id={`step-${i}`}>
-                <div className="step-number">{s.step}</div>
-                {i < steps.length - 1 && <div className="step-connector" />}
-                <h3 className="step-title">{s.title}</h3>
-                <p className="step-desc">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIAL ── */}
-      <section className="testimonial-section">
-        <div className="container">
-          <div className="testimonial-card">
-            <div className="testimonial-quote">"</div>
-            <p className="testimonial-text">
-              Trước đây tôi phải ghi chép bằng sổ tay, rất dễ mất và khó tra
-              cứu. Từ khi dùng DalatAgri, tôi theo dõi được toàn bộ chi phí
-              và lợi nhuận của vườn cà phê một cách rõ ràng. Năm ngoái tôi đã
-              tiết kiệm được gần 20% chi phí vật tư!
-            </p>
-            <div className="testimonial-author">
-              <span className="author-avatar">👨‍🌾</span>
+            ) : (
               <div>
-                <div className="author-name">Nguyễn Văn Minh</div>
-                <div className="author-role">Nông dân tại Lâm Đồng • Vườn cà phê 5ha</div>
+                <h1 className="elder-hero-title">
+                  Sổ ghi chép nông trại <span>đơn giản, dễ dùng</span>
+                </h1>
+                <p className="elder-hero-desc">
+                  Ghi lại lịch bón phân, tưới nước, xịt thuốc và chi tiêu vụ mùa hàng ngày. Chữ to, nút bấm lớn, thao tác dễ dàng và quản lý rõ ràng.
+                </p>
+
+                <div className="elder-hero-actions">
+                  <Link to="/login" className="elder-btn elder-btn-primary">
+                    <IconLogIn size={20} strokeWidth={2.2} />
+                    <span>Bấm Vào Đây Để Đăng Nhập</span>
+                  </Link>
+                  <Link to="/register" className="elder-btn elder-btn-secondary">
+                    <IconUserPlus size={20} strokeWidth={2.2} />
+                    <span>Đăng Ký Tài Khoản Mới</span>
+                  </Link>
+                </div>
+
+                <div className="elder-reassurance">
+                  <span className="reassure-item">
+                    <IconCheckCircle size={18} strokeWidth={2.2} className="reassure-icon" />
+                    <span>Miễn phí sử dụng</span>
+                  </span>
+                  <span className="reassure-item">
+                    <IconWifiOff size={18} strokeWidth={2.2} className="reassure-icon" />
+                    <span>Mất mạng vẫn ghi chép được</span>
+                  </span>
+                  <span className="reassure-item">
+                    <IconShieldCheck size={18} strokeWidth={2.2} className="reassure-icon" />
+                    <span>Dữ liệu an toàn không lo mất sổ</span>
+                  </span>
+                </div>
               </div>
-              <div className="testimonial-stars">⭐⭐⭐⭐⭐</div>
+            )}
+          </div>
+
+          <div className="elder-hero-highlight-card">
+            <div className="card-header-simple">
+              <IconClipboardList size={20} strokeWidth={2.2} className="header-simple-icon" />
+              <strong>Sổ Tay Hôm Nay Có Gì?</strong>
+            </div>
+            <ul className="quick-checklist">
+              <li>
+                <div className="check-icon-wrap">
+                  <IconLeaf size={22} strokeWidth={2} />
+                </div>
+                <div>
+                  <strong>Theo dõi vườn & luống rau</strong>
+                  <p>Biết rõ luống nào vừa tỉa cành, luống nào sắp thu hoạch</p>
+                </div>
+              </li>
+              <li>
+                <div className="check-icon-wrap">
+                  <IconFlask size={22} strokeWidth={2} />
+                </div>
+                <div>
+                  <strong>Quản lý phân bón & thuốc</strong>
+                  <p>Nhớ chính xác ngày xịt thuốc để cách ly an toàn trước khi hái</p>
+                </div>
+              </li>
+              <li>
+                <div className="check-icon-wrap">
+                  <IconCalculator size={22} strokeWidth={2} />
+                </div>
+                <div>
+                  <strong>Tự tính tiền lời - chi tiêu</strong>
+                  <p>Hệ thống tự động cộng chi phí vật tư, không cần tính toán thủ công</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4 Ô LỐI TẮT CHỨC NĂNG CHÍNH ── */}
+      <section className="elder-features-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            <h2 className="elder-section-title">Chọn Công Việc Cần Thực Hiện</h2>
+            <p className="elder-section-desc">
+              Bấm trực tiếp vào các mục bên dưới để truy cập nhanh chức năng:
+            </p>
+          </div>
+
+          <div className="elder-cards-grid">
+            <Link to="/dashboard" className="elder-card card-journal">
+              <div className="card-top">
+                <div className="elder-card-icon">
+                  <IconBookOpen size={28} strokeWidth={2} />
+                </div>
+                <span className="card-badge">Hay dùng nhất</span>
+              </div>
+              <h3 className="elder-card-title">Ghi Chép Nhật Ký Mùa Vụ</h3>
+              <p className="elder-card-desc">
+                Hôm nay tưới nước bao lâu, bón loại phân gì, xịt thuốc sâu nào. Ghi nhanh chỉ mất 1 phút.
+              </p>
+              <div className="elder-card-action">
+                <span>Vào ghi sổ ngay</span>
+                <IconArrowRight size={18} strokeWidth={2.4} className="arrow-sym" />
+              </div>
+            </Link>
+
+            <Link to="/farms" className="elder-card card-farm">
+              <div className="card-top">
+                <div className="elder-card-icon">
+                  <IconWarehouse size={28} strokeWidth={2} />
+                </div>
+                <span className="card-badge">Vườn tược</span>
+              </div>
+              <h3 className="elder-card-title">Quản Lý Vườn & Thửa Đất</h3>
+              <p className="elder-card-desc">
+                Xem danh sách các mảnh vườn, nhà kính, diện tích canh tác của nông trại tại Đà Lạt.
+              </p>
+              <div className="elder-card-action">
+                <span>Xem danh sách vườn</span>
+                <IconArrowRight size={18} strokeWidth={2.4} className="arrow-sym" />
+              </div>
+            </Link>
+
+            <Link to="/crops" className="elder-card card-crop">
+              <div className="card-top">
+                <div className="elder-card-icon">
+                  <IconSprout size={28} strokeWidth={2} />
+                </div>
+                <span className="card-badge">Cây giống</span>
+              </div>
+              <h3 className="elder-card-title">Danh Mục Các Cây Trồng</h3>
+              <p className="elder-card-desc">
+                Danh sách các loại rau hoa quen thuộc: Cà phê, súp lơ, dâu tây, ớt chuông, atisô...
+              </p>
+              <div className="elder-card-action">
+                <span>Tra cứu cây trồng</span>
+                <IconArrowRight size={18} strokeWidth={2.4} className="arrow-sym" />
+              </div>
+            </Link>
+
+            <Link to="/dashboard" className="elder-card card-money">
+              <div className="card-top">
+                <div className="elder-card-icon">
+                  <IconCircleDollar size={28} strokeWidth={2} />
+                </div>
+                <span className="card-badge">Sổ thu chi</span>
+              </div>
+              <h3 className="elder-card-title">Tính Tiền Lời & Chi Phí</h3>
+              <p className="elder-card-desc">
+                Biết vụ mùa này đã chi bao nhiêu tiền phân thuốc, thu hoạch bán được bao nhiêu, lời hay lỗ.
+              </p>
+              <div className="elder-card-action">
+                <span>Xem sổ thu chi</span>
+                <IconArrowRight size={18} strokeWidth={2.4} className="arrow-sym" />
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3 BƯỚC SỬ DỤNG ── */}
+      <section className="elder-steps-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            <h2 className="elder-section-title">Chỉ Với 3 Bước Đơn Giản</h2>
+            <p className="elder-section-desc">
+              Giao diện trực quan, rõ ràng, dễ dàng sử dụng ngay từ lần đầu:
+            </p>
+          </div>
+
+          <div className="elder-steps-grid">
+            <div className="elder-step-box">
+              <div className="step-circle">1</div>
+              <div className="step-illustration">
+                <IconSmartphone size={32} strokeWidth={2} />
+              </div>
+              <h3 className="step-title">Mở Ứng Dụng & Đăng Nhập</h3>
+              <p className="step-text">
+                Đăng nhập bằng tài khoản hoặc số điện thoại. Ứng dụng tự động lưu phiên để không cần nhập lại nhiều lần.
+              </p>
+            </div>
+
+            <div className="elder-step-box">
+              <div className="step-circle">2</div>
+              <div className="step-illustration">
+                <IconPenLine size={32} strokeWidth={2} />
+              </div>
+              <h3 className="step-title">Bấm Nút "Ghi Nhật Ký"</h3>
+              <p className="step-text">
+                Chọn mảnh vườn đang làm, chọn hoạt động (Bón phân, Tưới nước, Thu hoạch) rồi bấm Lưu.
+              </p>
+            </div>
+
+            <div className="elder-step-box">
+              <div className="step-circle">3</div>
+              <div className="step-illustration">
+                <IconLineChart size={32} strokeWidth={2} />
+              </div>
+              <h3 className="step-title">Xem Lại Bất Cứ Lúc Nào</h3>
+              <p className="step-text">
+                Dữ liệu được lưu trữ an toàn. Cuối vụ chỉ cần mở ra là thấy toàn bộ thu chi và sản lượng.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="cta-section">
-        <div className="cta-bg-shapes">
-          <div className="cta-shape-1" />
-          <div className="cta-shape-2" />
+      {/* ── SO SÁNH: SỔ GIẤY VÀ DALATAGRI ── */}
+      <section className="elder-comparison-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            <h2 className="elder-section-title">Lợi Ích Khi Dùng DalatAgri Thay Cho Sổ Giấy</h2>
+          </div>
+
+          <div className="comparison-grid">
+            <div className="compare-card old-way">
+              <div className="compare-header">
+                <div className="compare-icon-wrap old">
+                  <IconFileText size={24} strokeWidth={2} />
+                </div>
+                <h3>Dùng Sổ Giấy Truyền Thống</h3>
+              </div>
+              <ul className="compare-list">
+                <li>
+                  <IconXCircle size={18} strokeWidth={2.2} className="compare-bullet old" />
+                  <span>Sổ dễ bị ướt mưa khi mang ra vườn, bị rách hay thất lạc.</span>
+                </li>
+                <li>
+                  <IconXCircle size={18} strokeWidth={2.2} className="compare-bullet old" />
+                  <span>Đến cuối vụ phải ngồi bấm máy tính cộng từng trang rất mỏi mắt.</span>
+                </li>
+                <li>
+                  <IconXCircle size={18} strokeWidth={2.2} className="compare-bullet old" />
+                  <span>Muốn tìm lại vụ năm ngoái bón phân gì vào tháng nào rất khó tra cứu.</span>
+                </li>
+                <li>
+                  <IconXCircle size={18} strokeWidth={2.2} className="compare-bullet old" />
+                  <span>Khó chia sẻ sổ sách cho các thành viên trong gia đình cùng theo dõi.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="compare-card new-way">
+              <div className="compare-header">
+                <div className="compare-icon-wrap new">
+                  <IconCheckCircle size={24} strokeWidth={2} />
+                </div>
+                <h3>Dùng Sổ Điện Tử DalatAgri</h3>
+              </div>
+              <ul className="compare-list">
+                <li>
+                  <IconCheckCircle size={18} strokeWidth={2.2} className="compare-bullet new" />
+                  <span>Luôn nằm gọn trong điện thoại, không sợ rách, không lo mất dữ liệu.</span>
+                </li>
+                <li>
+                  <IconCheckCircle size={18} strokeWidth={2.2} className="compare-bullet new" />
+                  <span>Ứng dụng tự động cộng tổng tiền phân thuốc và sản lượng thu hoạch.</span>
+                </li>
+                <li>
+                  <IconCheckCircle size={18} strokeWidth={2.2} className="compare-bullet new" />
+                  <span>Mất sóng internet ngoài đồi vẫn ghi được, khi có mạng máy tự lưu.</span>
+                </li>
+                <li>
+                  <IconCheckCircle size={18} strokeWidth={2.2} className="compare-bullet new" />
+                  <span>Chữ to, giao diện tiếng Việt rõ ràng, dễ đọc và dễ dùng.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <div className="container cta-content">
-          <h2 className="cta-title">Sẵn sàng số hóa<br />nông trại của bạn?</h2>
-          <p className="cta-desc">
-            Tham gia cùng hàng trăm nông hộ Đà Lạt đang quản lý nông trại
-            thông minh hơn với DalatAgri.
-          </p>
-          <div className="cta-actions">
-            <button className="btn-white" id="cta-register">
-              Đăng ký miễn phí ngay
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-            <button className="btn-outline-white" id="cta-login">
-              Đã có tài khoản? Đăng nhập
-            </button>
+      </section>
+
+      {/* ── CÂU HỎI THƯỜNG GẶP (FAQ) ── */}
+      <section className="elder-faq-section">
+        <div className="container">
+          <div className="section-title-wrap">
+            <h2 className="elder-section-title">Giải Đáp Thắc Mắc Thường Gặp</h2>
+            <p className="elder-section-desc">Một số câu hỏi thường gặp khi bắt đầu sử dụng:</p>
+          </div>
+
+          <div className="faq-list">
+            <div className="faq-item">
+              <div className="faq-q-row">
+                <IconHelpCircle size={22} strokeWidth={2.2} className="faq-icon" />
+                <h3 className="faq-question">Giao diện có dễ đọc và dễ nhìn không?</h3>
+              </div>
+              <p className="faq-answer">
+                Ứng dụng được thiết kế phông chữ to, độ tương phản cao, các nút bấm lớn giúp thao tác dễ dàng. Bạn cũng có thể bấm nút <strong>"Chữ to dễ đọc"</strong> ở đầu trang để phóng to thêm bất cứ lúc nào.
+              </p>
+            </div>
+
+            <div className="faq-item">
+              <div className="faq-q-row">
+                <IconHelpCircle size={22} strokeWidth={2.2} className="faq-icon" />
+                <h3 className="faq-question">Nếu bấm nhầm hoặc ghi sai thì có sửa được không?</h3>
+              </div>
+              <p className="faq-answer">
+                Hoàn toàn được. Mọi dòng nhật ký đã ghi đều có nút <strong>"Sửa"</strong> hoặc <strong>"Xóa"</strong> để cập nhật lại thông tin đúng bất cứ lúc nào.
+              </p>
+            </div>
+
+            <div className="faq-item">
+              <div className="faq-q-row">
+                <IconHelpCircle size={22} strokeWidth={2.2} className="faq-icon" />
+                <h3 className="faq-question">Nếu quên mật khẩu thì phải làm sao?</h3>
+              </div>
+              <p className="faq-answer">
+                Ở trang Đăng nhập có mục <strong>"Quên mật khẩu"</strong>, chỉ cần nhập email đăng ký để nhận liên kết đặt lại mật khẩu mới nhanh chóng.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── KHUNG TRỢ GIÚP & LIÊN HỆ ── */}
+      <section className="elder-support-section">
+        <div className="container">
+          <div className="support-card">
+            <div className="support-icon-wrap">
+              <IconHeadphones size={40} strokeWidth={2} />
+            </div>
+            <div className="support-content">
+              <h3 className="support-title">Bạn Cần Hỗ Trợ Kỹ Thuật?</h3>
+              <p className="support-desc">
+                Nếu gặp khó khăn khi đăng ký, ghi nhật ký hoặc cần hướng dẫn chi tiết từng bước, đội ngũ DalatAgri luôn sẵn sàng đồng hành hỗ trợ.
+              </p>
+              <div className="support-contact-badges">
+                <span className="contact-badge">
+                  <IconPhoneCall size={15} strokeWidth={2.2} />
+                  <span>Hỗ trợ kỹ thuật: Dự án Đồ án tốt nghiệp DalatAgri</span>
+                </span>
+                <span className="contact-badge">
+                  <IconMapPin size={15} strokeWidth={2.2} />
+                  <span>Thành phố Đà Lạt, Lâm Đồng</span>
+                </span>
+              </div>
+            </div>
+            <div className="support-action">
+              {user ? (
+                <Link to="/dashboard" className="elder-btn elder-btn-primary">
+                  <span>Vào Ghi Sổ Ngay</span>
+                  <IconArrowRight size={18} strokeWidth={2.4} />
+                </Link>
+              ) : (
+                <Link to="/login" className="elder-btn elder-btn-primary">
+                  <span>Bắt Đầu Dùng Ngay</span>
+                  <IconArrowRight size={18} strokeWidth={2.4} />
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default HomePage
+export default HomePage;

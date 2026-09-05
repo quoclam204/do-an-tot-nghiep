@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { apiGetFarm, apiCreatePlot, apiDeletePlot, apiUpdatePlot } from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { IconArrowLeft, IconMapPin, IconRuler, IconPlus, IconPenLine, IconTrash } from "../components/icons";
 import "./FarmsPage.css"; // Reuse modal styles
 
 export default function FarmDetailPage() {
@@ -82,20 +83,32 @@ export default function FarmDetailPage() {
       <Header />
       <main className="main container">
         <div className="breadcrumb">
-          <Link to="/farms">← Quay lại danh sách</Link>
+          <Link to="/farms" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <IconArrowLeft size={16} /> Quay lại danh sách
+          </Link>
         </div>
         
         <section className="farm-detail-header">
           <div>
             <h1>{farm.name}</h1>
-            <p>📍 {farm.location} | 📐 Tổng diện tích: {farm.totalArea} ha</p>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <IconMapPin size={15} /> {farm.location}
+              </span>
+              <span>•</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <IconRuler size={15} /> Tổng diện tích: {farm.totalArea} ha
+              </span>
+            </p>
           </div>
         </section>
 
         <section className="plots-section">
           <div className="section-header">
             <h2>Danh sách Lô trồng</h2>
-            <button className="primary-button" onClick={openAddModal}>+ Thêm lô</button>
+            <button className="primary-button" onClick={openAddModal} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconPlus size={16} /> Thêm lô
+            </button>
           </div>
 
           {!farm.plots || farm.plots.length === 0 ? (
@@ -109,8 +122,12 @@ export default function FarmDetailPage() {
                     <p>Diện tích: {plot.area} ha</p>
                   </div>
                   <div className="plot-actions">
-                    <button onClick={() => openEditModal(plot)}>Sửa</button>
-                    <button className="delete-text" onClick={() => handleDeletePlot(plot.id)}>Xóa</button>
+                    <button onClick={() => openEditModal(plot)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <IconPenLine size={13} /> Sửa
+                    </button>
+                    <button className="delete-text" onClick={() => handleDeletePlot(plot.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <IconTrash size={13} /> Xóa
+                    </button>
                   </div>
                 </div>
               ))}

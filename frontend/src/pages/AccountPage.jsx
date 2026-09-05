@@ -15,13 +15,29 @@ import {
 } from '../services/api';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import {
+    IconUser,
+    IconWarehouse,
+    IconSettings,
+    IconCheckCircle,
+    IconXCircle,
+    IconPlus,
+    IconPenLine,
+    IconTrash,
+    IconMapPin,
+    IconSprout,
+    IconSearch,
+    IconLock,
+    IconUnlock,
+    IconLogOut,
+} from '../components/icons';
 import './AccountPage.css';
 
 // ── Tabs ──────────────────────────────────────────────────────
 const TABS = [
-    { id: 'profile', label: '👤 Hồ sơ cá nhân' },
-    { id: 'farms', label: '🌾 Nông hộ của tôi' },
-    { id: 'admin', label: '⚙️ Quản lý người dùng', adminOnly: true },
+    { id: 'profile', label: 'Hồ sơ cá nhân', icon: IconUser },
+    { id: 'farms', label: 'Nông hộ của tôi', icon: IconWarehouse },
+    { id: 'admin', label: 'Quản lý người dùng', icon: IconSettings, adminOnly: true },
 ];
 
 // ── Profile Tab ────────────────────────────────────────────────
@@ -105,8 +121,8 @@ function ProfileTab({ currentUser, onUpdate }) {
                         </div>
                     </div>
 
-                    {success && <div className="feedback-success">✅ {success}</div>}
-                    {error && <div className="feedback-error">❌ {error}</div>}
+                    {success && <div className="feedback-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconCheckCircle size={16} /> {success}</div>}
+                    {error && <div className="feedback-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconXCircle size={16} /> {error}</div>}
 
                     <button type="submit" className="btn-primary" disabled={loading}>
                         {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
@@ -213,10 +229,12 @@ function FarmsTab() {
         <div className="tab-content">
             <div className="tab-header-row">
                 <h2>Nông hộ của tôi</h2>
-                <button className="btn-primary" onClick={openCreate}>+ Thêm nông hộ</button>
+                <button className="btn-primary" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <IconPlus size={16} /> Thêm nông hộ
+                </button>
             </div>
 
-            {error && <div className="feedback-error">❌ {error}</div>}
+            {error && <div className="feedback-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconXCircle size={16} /> {error}</div>}
 
             {showForm && (
                 <div className="modal-overlay" onClick={() => setShowForm(false)}>
@@ -281,32 +299,36 @@ function FarmsTab() {
                 <div className="tab-loading">Đang tải nông hộ...</div>
             ) : farms.length === 0 ? (
                 <div className="empty-state-box">
-                    <span className="empty-icon">🌾</span>
+                    <span className="empty-icon"><IconWarehouse size={36} /></span>
                     <h3>Chưa có nông hộ nào</h3>
                     <p>Hãy thêm nông hộ đầu tiên của bạn để bắt đầu quản lý.</p>
-                    <button className="btn-primary" onClick={openCreate}>+ Thêm nông hộ</button>
+                    <button className="btn-primary" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <IconPlus size={16} /> Thêm nông hộ
+                    </button>
                 </div>
             ) : (
                 <div className="farms-grid">
                     {farms.map((farm) => (
                         <div key={farm.id} className="farm-card">
                             <div className="farm-card-header">
-                                <div className="farm-icon">🏡</div>
+                                <div className="farm-icon"><IconWarehouse size={22} /></div>
                                 <div className="farm-actions">
                                     <button
                                         className="btn-icon"
                                         onClick={() => openEdit(farm)}
                                         title="Chỉnh sửa"
-                                    >✏️</button>
+                                    ><IconPenLine size={15} /></button>
                                     <button
                                         className="btn-icon btn-danger"
                                         onClick={() => handleDelete(farm.id)}
                                         title="Xóa"
-                                    >🗑️</button>
+                                    ><IconTrash size={15} /></button>
                                 </div>
                             </div>
                             <h3 className="farm-name">{farm.name}</h3>
-                            <p className="farm-location">📍 {farm.location}</p>
+                            <p className="farm-location" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <IconMapPin size={15} /> {farm.location}
+                            </p>
                             <div className="farm-stats">
                                 <div className="farm-stat">
                                     <span className="stat-label">Diện tích</span>
@@ -404,7 +426,7 @@ function AdminTab() {
             </div>
 
             <div className="search-bar-wrapper">
-                <span className="search-icon">🔍</span>
+                <span className="search-icon"><IconSearch size={16} /></span>
                 <input
                     id="admin-search"
                     type="text"
@@ -415,7 +437,7 @@ function AdminTab() {
                 />
             </div>
 
-            {error && <div className="feedback-error">❌ {error}</div>}
+            {error && <div className="feedback-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconXCircle size={16} /> {error}</div>}
 
             {loading ? (
                 <div className="tab-loading">Đang tải danh sách người dùng...</div>
@@ -455,8 +477,8 @@ function AdminTab() {
                                             <option value="WORKER">Nhân viên</option>
                                         </select>
                                     </td>
-                                    <td className="farms-count">
-                                        🌾 {user.farms?.length || 0} nông hộ
+                                    <td className="farms-count" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <IconSprout size={15} /> {user.farms?.length || 0} nông hộ
                                     </td>
                                     <td>
                                         <span className={`status-pill ${user.isActive ? 'active' : 'inactive'}`}>
@@ -474,14 +496,14 @@ function AdminTab() {
                                             onClick={() => handleToggleActive(user.id)}
                                             title={user.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
                                         >
-                                            {user.isActive ? '🔒' : '🔓'}
+                                            {user.isActive ? <IconLock size={15} /> : <IconUnlock size={15} />}
                                         </button>
                                         <button
                                             className="btn-action btn-danger-sm"
                                             onClick={() => handleDelete(user.id)}
                                             title="Xóa tài khoản"
                                         >
-                                            🗑️
+                                            <IconTrash size={15} />
                                         </button>
                                     </td>
                                 </tr>
@@ -537,18 +559,23 @@ function AccountPage() {
                             </div>
                         </div>
                         <nav className="sidebar-nav">
-                            {visibleTabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    className={`sidebar-nav-item ${activeTab === tab.id ? 'active' : ''}`}
-                                    onClick={() => setActiveTab(tab.id)}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
+                            {visibleTabs.map((tab) => {
+                                const TabIcon = tab.icon;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        className={`sidebar-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                                    >
+                                        {TabIcon && <TabIcon size={16} />}
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
                         </nav>
-                        <button className="sidebar-logout-btn" onClick={logout}>
-                            🚪 Đăng xuất
+                        <button className="sidebar-logout-btn" onClick={logout} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <IconLogOut size={16} /> <span>Đăng xuất</span>
                         </button>
                     </aside>
 

@@ -21,6 +21,7 @@ import Footer from "./components/Footer";
 import CatalogPanel from "./components/CatalogPanel";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { IconRotateCw, IconCheckCircle, IconArrowRight } from "./components/icons";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -419,8 +420,8 @@ function DashboardPage() {
                 placeholder="Thời tiết, tình trạng cây, công việc cần theo dõi..."
               />
             </label>
-            <button className="primary-button" type="submit">
-              Lưu nhật ký <span>→</span>
+            <button className="primary-button" type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              Lưu nhật ký <IconArrowRight size={16} />
             </button>
           </form>
 
@@ -527,8 +528,9 @@ function DashboardPage() {
               className="sync-button"
               onClick={syncLogs}
               disabled={!isOnline || pendingCount === 0}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              ↻ Đồng bộ {pendingCount ? `(${pendingCount})` : ""}
+              <IconRotateCw size={14} /> Đồng bộ {pendingCount ? `(${pendingCount})` : ""}
             </button>
           </div>
           {logs.length === 0 ? (
@@ -539,7 +541,9 @@ function DashboardPage() {
             <div className="activity-list">
               {logs.slice(0, 5).map((log) => (
                 <div className="activity-row" key={log.id}>
-                  <span className="activity-icon">✦</span>
+                  <span className="activity-icon">
+                    <IconCheckCircle size={16} />
+                  </span>
                   <div>
                     <strong>{log.activity}</strong>
                     <small>

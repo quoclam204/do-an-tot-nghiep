@@ -1,4 +1,14 @@
 import { useEffect, useState } from "react";
+import {
+  IconSprout,
+  IconWarehouse,
+  IconLeaf,
+  IconBookOpen,
+  IconLineChart,
+  IconPenLine,
+  IconTrash,
+  IconRotateCw,
+} from "./icons";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const emptyCycle = {
@@ -157,11 +167,11 @@ function CatalogPanel({ user, initialTab = "crops" }) {
     });
   };
   const tabs = [
-    ["crops", "Cây trồng", data.crops.length],
-    ["farms", "Vườn", data.farms.length],
-    ["plots", "Lô trồng", data.plots.length],
-    ["seasons", "Mùa vụ", data.seasons.length],
-    ["cycles", "Chu kỳ", data.cycles.length],
+    ["crops", "Cây trồng", data.crops.length, IconSprout],
+    ["farms", "Vườn", data.farms.length, IconWarehouse],
+    ["plots", "Lô trồng", data.plots.length, IconLeaf],
+    ["seasons", "Mùa vụ", data.seasons.length, IconBookOpen],
+    ["cycles", "Chu kỳ", data.cycles.length, IconLineChart],
   ];
   const formProps = (type, collection, path, body, reset) => ({
     method: editing?.type === type ? "PATCH" : "POST",
@@ -180,12 +190,12 @@ function CatalogPanel({ user, initialTab = "crops" }) {
             Thiết lập một lần, dùng xuyên suốt mùa vụ.
           </p>
         </div>
-        <button className="sync-button" type="button" onClick={loadData} disabled={loading}>
-          {loading ? "Đang tải..." : "Làm mới"}
+        <button className="sync-button" type="button" onClick={loadData} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <IconRotateCw size={14} /> {loading ? "Đang tải..." : "Làm mới"}
         </button>
       </div>
       <div className="catalog-tabs" role="tablist">
-        {tabs.map(([value, label, count]) => (
+        {tabs.map(([value, label, count, TabIcon]) => (
           <button
             role="tab"
             aria-selected={tab === value}
@@ -196,8 +206,10 @@ function CatalogPanel({ user, initialTab = "crops" }) {
               setTab(value);
               cancelEdit();
             }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            {label}
+            {TabIcon && <TabIcon size={15} />}
+            <span>{label}</span>
             <span>{count}</span>
           </button>
         ))}
@@ -744,11 +756,11 @@ function Actions({ editing, label, onCancel, disabled }) {
 function ItemActions({ onEdit, onDelete }) {
   return (
     <div className="catalog-actions">
-      <button className="text-button" type="button" onClick={onEdit}>
-        Sửa
+      <button className="text-button" type="button" onClick={onEdit} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <IconPenLine size={13} /> Sửa
       </button>
-      <button className="text-button danger" type="button" onClick={onDelete}>
-        Xóa
+      <button className="text-button danger" type="button" onClick={onDelete} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+        <IconTrash size={13} /> Xóa
       </button>
     </div>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiLogin } from '../services/api';
+import { IconEye, IconEyeOff } from '../components/icons';
 import './AuthPage.css';
 
 function LoginPage() {
@@ -108,7 +109,7 @@ function LoginPage() {
                                     onClick={() => setShowPassword(!showPassword)}
                                     aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                                 >
-                                    {showPassword ? '🙈' : '👁️'}
+                                    {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                                 </button>
                             </div>
                         </div>

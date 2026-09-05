@@ -838,3 +838,34 @@
         padding-top: 0.75rem;
     }
 }
+
+/* ── SVG Icon Helper Styles ── */
+.farm-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #eaf5ee;
+    color: #1e804d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #eaf5ee;
+    color: #1e804d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.btn-icon,
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}

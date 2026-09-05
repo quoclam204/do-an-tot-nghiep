@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { apiResetPassword } from '../services/api';
+import { IconEye, IconEyeOff } from '../components/icons';
 import './AuthPage.css';
 
 function ResetPasswordPage() {
@@ -109,7 +110,7 @@ function ResetPasswordPage() {
                                         aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                                         disabled={!token}
                                     >
-                                        {showPassword ? '🙈' : '👁️'}
+                                        {showPassword ? <IconEyeOff size={18} /> : <IconEye size={18} />}
                                     </button>
                                 </div>
                             </div>
