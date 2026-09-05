@@ -150,6 +150,7 @@ model CropCycle {
 model Material {
   id            String    @id @default(uuid()) @db.Uuid
   name          String
+  type          String    @default("PHAN_BON") // PHAN_BON, THUOC_BVTV, GIONG, KHAC
   unit          String
   defaultPrice  Float
 
@@ -184,11 +185,21 @@ model ActivityLog {
   notes           String?
   syncStatus      String    // VD: PENDING, SYNCED, CONFLICT
 
-  // Dành cho loại hình công việc có tính phí (nhân công / thuê máy móc)
+  // Quản lý chi phí nhân công (tự làm hay thuê ngoài)
+  isHiredLabor    Boolean   @default(false)
+  laborWorkers    Int?      // Số nhân công thuê
+  laborWagePerDay Float?    // Tiền công trên mỗi nhân công / ngày
+  laborCost       Float?    // Tổng tiền nhân công = laborWorkers * laborWagePerDay
+
+  // Chi phí máy móc / phát sinh khác
+  otherCosts      Float?
+
+  // Tổng chi phí của hoạt động = laborCost + otherCosts + tổng chi phí vật tư
   cost            Float?
   
   // Dành riêng cho loại hình THU_HOACH
-  harvestQuantity Float?    // Sản lượng thu được trong lần thu hoạch này
+  harvestQuantity Float?    // Sản lượng thu được trong lần thu hoạch này (kg)
+  unitPrice       Float?    // Đơn giá bán (VNĐ/kg)
   revenue         Float?    // Doanh thu ước tính/thực tế của đợt thu hoạch
 
   createdAt       DateTime  @default(now())

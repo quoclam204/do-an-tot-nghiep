@@ -10,7 +10,7 @@ import {
   IconRotateCw,
 } from "./icons";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
 const emptyCycle = {
   cropId: "",
   name: "",
@@ -19,8 +19,13 @@ const emptyCycle = {
 };
 
 async function request(path, options = {}) {
+  const token = localStorage.getItem('token') || localStorage.getItem('dalat-agri-token');
   const response = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
     ...options,
   });
   const data = await response.json().catch(() => null);
@@ -292,11 +297,15 @@ function CatalogPanel({ user, initialTab = "crops" }) {
           <form
             className="catalog-form"
             onSubmit={(event) => {
+              const currentUserId =
+                user?.id ||
+                JSON.parse(localStorage.getItem("user") || "{}")?.id ||
+                JSON.parse(localStorage.getItem("dalat-agri-user") || "{}")?.id;
               const f = formProps(
                 "farm",
                 data.farms,
                 "/catalog/farms",
-                { ...farmForm, userId: user?.id },
+                { ...farmForm, userId: currentUserId },
                 () => setFarmForm({ name: "", location: "", totalArea: "" }),
               );
               save(event, f.path, f.body, f.reset, f.method);

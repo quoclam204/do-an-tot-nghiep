@@ -33,18 +33,30 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
+      const frontendEnv = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
       const allowedOrigins = [
-        process.env.FRONTEND_URL,
+        frontendEnv,
+        'https://dalatagri.vercel.app',
         'http://localhost:5173',
         'http://localhost:5174',
       ].filter(Boolean);
-      if (!origin || allowedOrigins.includes(origin)) callback(null, true);
-      else callback(new Error('Origin không được phép'));
+
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.includes('localhost')
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error('Origin không được phép'));
+      }
     },
     credentials: true,
   });
 
-  await app.listen(3000);
-  console.log(`🚀 Backend đang chạy tại http://localhost:3000`);
+  const port = process.env.PORT || 3000;
+  await app.listen(port);
+  console.log(`🚀 Backend đang chạy tại cổng ${port}`);
 }
 bootstrap();

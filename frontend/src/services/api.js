@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 // ── Axios instance với interceptor tự động gắn token ──────────
 export const api = axios.create({ baseURL: BASE_URL });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || localStorage.getItem('dalat-agri-token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
 });
@@ -136,6 +136,68 @@ export const apiUpdatePlot = async (farmId, plotId, data) => {
 /** Xóa lô trồng */
 export const apiDeletePlot = async (farmId, plotId) => {
     const response = await api.delete(`/farms/${farmId}/plots/${plotId}`);
+    return response.data;
+};
+
+// ── Catalog & Agriculture APIs (Cây trồng, Lô, Mùa vụ, Vật tư, Nhật ký) ──────
+
+/** Lấy danh sách cây trồng */
+export const apiGetCrops = async () => {
+    const response = await api.get('/catalog/crops');
+    return response.data;
+};
+
+/** Lấy danh sách mùa vụ / chu kỳ canh tác */
+export const apiGetSeasons = async () => {
+    const response = await api.get('/catalog/seasons');
+    return response.data;
+};
+
+/** Tạo mùa vụ mới */
+export const apiCreateSeason = async (data) => {
+    const response = await api.post('/catalog/seasons', data);
+    return response.data;
+};
+
+/** Lấy danh mục vật tư (phân bón, thuốc BVTV) */
+export const apiGetMaterials = async () => {
+    const response = await api.get('/catalog/materials');
+    return response.data;
+};
+
+/** Tạo vật tư mới */
+export const apiCreateMaterial = async (data) => {
+    const response = await api.post('/catalog/materials', data);
+    return response.data;
+};
+
+/** Lấy danh sách nhật ký canh tác */
+export const apiGetActivityLogs = async (cropCycleId) => {
+    const response = await api.get('/catalog/activity-logs', { params: { cropCycleId } });
+    return response.data;
+};
+
+/** Tạo nhật ký canh tác mới */
+export const apiCreateActivityLog = async (data) => {
+    const response = await api.post('/catalog/activity-logs', data);
+    return response.data;
+};
+
+/** Xóa nhật ký canh tác */
+export const apiDeleteActivityLog = async (id) => {
+    const response = await api.delete(`/catalog/activity-logs/${id}`);
+    return response.data;
+};
+
+/** Lấy báo cáo kinh tế / tài chính */
+export const apiGetFinancialReport = async (cropCycleId) => {
+    const response = await api.get('/catalog/financial-report', { params: { cropCycleId } });
+    return response.data;
+};
+
+/** Seed dữ liệu đặc thù Lâm Đồng (Cà phê, Sầu riêng, Mắc-ca & Phân thuốc) */
+export const apiSeedLamDong = async () => {
+    const response = await api.post('/catalog/seed-lamdong');
     return response.data;
 };
 

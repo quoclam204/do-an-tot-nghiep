@@ -257,6 +257,406 @@ export class CatalogService {
     return this.softDelete(this.prisma.cropCycle, id);
   }
 
+  /** Chi tiết 1 vụ mùa */
+  async findOneSeason(id: string) {
+    const season = await this.prisma.cropCycle.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        plot: { include: { farm: true } },
+        crop: true,
+        growthCycle: { include: { stages: { orderBy: { sequence: 'asc' } } } },
+        activityLogs: {
+          where: { deletedAt: null },
+          include: { materials: { include: { material: true } } },
+          orderBy: { activityDate: 'desc' },
+        },
+      },
+    });
+    if (!season) throw new NotFoundException('Không tìm thấy mùa vụ');
+    return season;
+  }
+
+  /** Cập nhật trạng thái vụ mùa */
+  async updateCropCycleStatus(id: string, status: string) {
+    const validStatuses = ['PLANNED', 'ACTIVE', 'PAUSED', 'COMPLETED', 'CANCELLED'];
+    if (!validStatuses.includes(status))
+      throw new BadRequestException(`Trạng thái phải là: ${validStatuses.join(', ')}`);
+    const season = await this.prisma.cropCycle.findFirst({ where: { id, deletedAt: null } });
+    if (!season) throw new NotFoundException('Không tìm thấy mùa vụ');
+    return this.prisma.cropCycle.update({
+      where: { id },
+      data: {
+        status,
+        ...(status === 'COMPLETED' ? { actualEndDate: new Date() } : {}),
+      },
+    });
+  }
+
+  // ==================== QUẢN LÝ VẬT TƯ (MATERIALS) ====================
+  findMaterials() {
+    return this.prisma.material.findMany({
+      where: { deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createMaterial(input: any) {
+    this.requirePositive(input.defaultPrice, 'defaultPrice');
+    return this.prisma.material.create({
+      data: {
+        name: this.text(input.name, 'name'),
+        type: input.type || 'PHAN_BON',
+        unit: this.text(input.unit, 'unit'),
+        defaultPrice: Number(input.defaultPrice),
+      },
+    });
+  }
+
+  async updateMaterial(id: string, input: any) {
+    if (input.defaultPrice !== undefined) {
+      this.requirePositive(input.defaultPrice, 'defaultPrice');
+    }
+    return this.prisma.material.update({
+      where: { id },
+      data: {
+        ...(input.name && { name: input.name.trim() }),
+        ...(input.type && { type: input.type }),
+        ...(input.unit && { unit: input.unit.trim() }),
+        ...(input.defaultPrice !== undefined && {
+          defaultPrice: Number(input.defaultPrice),
+        }),
+      },
+    });
+  }
+
+  deleteMaterial(id: string) {
+    return this.softDelete(this.prisma.material, id);
+  }
+
+  // ==================== NHẬT KÝ CANH TÁC & CHI PHÍ ====================
+  async findActivityLogs(cropCycleId?: string) {
+    return this.prisma.activityLog.findMany({
+      where: {
+        deletedAt: null,
+        ...(cropCycleId && { cropCycleId }),
+      },
+      include: {
+        cropCycle: {
+          include: {
+            crop: true,
+            plot: { include: { farm: true } },
+          },
+        },
+        materials: {
+          include: { material: true },
+        },
+      },
+      orderBy: { activityDate: 'desc' },
+    });
+  }
+
+  async createActivityLog(input: any) {
+    const cropCycle = await this.prisma.cropCycle.findFirst({
+      where: { id: input.cropCycleId, deletedAt: null },
+    });
+    if (!cropCycle) throw new NotFoundException('Không tìm thấy mùa vụ canh tác');
+
+    const activityDate = input.activityDate ? new Date(input.activityDate) : new Date();
+    const isHiredLabor = Boolean(input.isHiredLabor);
+    const laborWorkers = isHiredLabor ? Number(input.laborWorkers || 0) : 0;
+    const laborWagePerDay = isHiredLabor ? Number(input.laborWagePerDay || 0) : 0;
+    const laborCost = laborWorkers * laborWagePerDay;
+
+    const otherCosts = Number(input.otherCosts || 0);
+
+    // Tính chi phí vật tư
+    let totalMaterialCost = 0;
+    const materialsData: any[] = [];
+    if (Array.isArray(input.materials) && input.materials.length > 0) {
+      for (const item of input.materials) {
+        const material = await this.prisma.material.findFirst({
+          where: { id: item.materialId, deletedAt: null },
+        });
+        if (material) {
+          const qty = Number(item.quantityUsed || 0);
+          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * material.defaultPrice;
+          totalMaterialCost += itemCost;
+          materialsData.push({
+            materialId: material.id,
+            quantityUsed: qty,
+            cost: itemCost,
+          });
+        }
+      }
+    }
+
+    const totalCost = laborCost + otherCosts + totalMaterialCost;
+
+    // Doanh thu khi thu hoạch
+    let harvestQty: number | null = null;
+    let unitPrice: number | null = null;
+    let revenue: number | null = null;
+
+    if (input.activityType === 'THU_HOACH') {
+      harvestQty = input.harvestQuantity ? Number(input.harvestQuantity) : null;
+      unitPrice = input.unitPrice ? Number(input.unitPrice) : null;
+      revenue = input.revenue ? Number(input.revenue) : (harvestQty && unitPrice ? harvestQty * unitPrice : null);
+    }
+
+    const result = await this.prisma.activityLog.create({
+      data: {
+        cropCycleId: input.cropCycleId,
+        activityType: this.text(input.activityType, 'activityType'),
+        activityDate,
+        notes: input.notes?.trim() || null,
+        syncStatus: input.syncStatus || 'SYNCED',
+        isHiredLabor,
+        laborWorkers: isHiredLabor ? laborWorkers : null,
+        laborWagePerDay: isHiredLabor ? laborWagePerDay : null,
+        laborCost,
+        otherCosts,
+        cost: totalCost,
+        harvestQuantity: harvestQty,
+        unitPrice,
+        revenue,
+        materials: {
+          create: materialsData,
+        },
+      },
+      include: {
+        materials: { include: { material: true } },
+        cropCycle: { include: { crop: true, plot: true } },
+      },
+    });
+
+    // Tự động cập nhật totalYield khi thu hoạch
+    if (input.activityType === 'THU_HOACH' && harvestQty) {
+      const allHarvests = await this.prisma.activityLog.aggregate({
+        where: { cropCycleId: input.cropCycleId, activityType: 'THU_HOACH', deletedAt: null },
+        _sum: { harvestQuantity: true },
+      });
+      await this.prisma.cropCycle.update({
+        where: { id: input.cropCycleId },
+        data: { totalYield: allHarvests._sum.harvestQuantity || 0 },
+      });
+    }
+
+    return result;
+  }
+
+  deleteActivityLog(id: string) {
+    return this.softDelete(this.prisma.activityLog, id);
+  }
+
+  /** Cập nhật nhật ký canh tác */
+  async updateActivityLog(id: string, input: any) {
+    const log = await this.prisma.activityLog.findFirst({ where: { id, deletedAt: null } });
+    if (!log) throw new NotFoundException('Không tìm thấy nhật ký canh tác');
+
+    const isHiredLabor = input.isHiredLabor !== undefined ? Boolean(input.isHiredLabor) : log.isHiredLabor;
+    const laborWorkers = isHiredLabor ? Number(input.laborWorkers ?? log.laborWorkers ?? 0) : 0;
+    const laborWagePerDay = isHiredLabor ? Number(input.laborWagePerDay ?? log.laborWagePerDay ?? 0) : 0;
+    const laborCost = laborWorkers * laborWagePerDay;
+    const otherCosts = Number(input.otherCosts ?? log.otherCosts ?? 0);
+
+    // Cập nhật vật tư nếu có
+    let totalMaterialCost = 0;
+    if (Array.isArray(input.materials)) {
+      await this.prisma.activityMaterial.deleteMany({ where: { activityLogId: id } });
+      for (const item of input.materials) {
+        const material = await this.prisma.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
+        if (material) {
+          const qty = Number(item.quantityUsed || 0);
+          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * material.defaultPrice;
+          totalMaterialCost += itemCost;
+          await this.prisma.activityMaterial.create({
+            data: { activityLogId: id, materialId: material.id, quantityUsed: qty, cost: itemCost },
+          });
+        }
+      }
+    } else {
+      const existingMats = await this.prisma.activityMaterial.findMany({ where: { activityLogId: id } });
+      totalMaterialCost = existingMats.reduce((sum, m) => sum + (m.cost || 0), 0);
+    }
+
+    const totalCost = laborCost + otherCosts + totalMaterialCost;
+
+    const updateData: any = {
+      ...(input.activityType && { activityType: input.activityType }),
+      ...(input.activityDate && { activityDate: new Date(input.activityDate) }),
+      ...(input.notes !== undefined && { notes: input.notes?.trim() || null }),
+      isHiredLabor,
+      laborWorkers: isHiredLabor ? laborWorkers : null,
+      laborWagePerDay: isHiredLabor ? laborWagePerDay : null,
+      laborCost,
+      otherCosts,
+      cost: totalCost,
+    };
+
+    if (input.activityType === 'THU_HOACH' || log.activityType === 'THU_HOACH') {
+      updateData.harvestQuantity = input.harvestQuantity !== undefined ? Number(input.harvestQuantity) : log.harvestQuantity;
+      updateData.unitPrice = input.unitPrice !== undefined ? Number(input.unitPrice) : log.unitPrice;
+      updateData.revenue = input.revenue !== undefined ? Number(input.revenue)
+        : (updateData.harvestQuantity && updateData.unitPrice ? updateData.harvestQuantity * updateData.unitPrice : log.revenue);
+    }
+
+    return this.prisma.activityLog.update({
+      where: { id },
+      data: updateData,
+      include: { materials: { include: { material: true } }, cropCycle: { include: { crop: true, plot: true } } },
+    });
+  }
+
+  // ==================== BÁO CÁO KINH TẾ (FINANCIAL REPORT) ====================
+  async getFinancialReport(query: { cropCycleId?: string; farmId?: string; plotId?: string; startDate?: string; endDate?: string }) {
+    const { cropCycleId, farmId, plotId, startDate, endDate } = query || {};
+
+    // Xây dựng filter
+    const where: any = { deletedAt: null };
+    if (cropCycleId) where.cropCycleId = cropCycleId;
+    if (farmId || plotId) {
+      where.cropCycle = { deletedAt: null };
+      if (plotId) where.cropCycle.plotId = plotId;
+      if (farmId) where.cropCycle = { ...where.cropCycle, plot: { farmId } };
+    }
+    if (startDate || endDate) {
+      where.activityDate = {};
+      if (startDate) where.activityDate.gte = new Date(startDate);
+      if (endDate) where.activityDate.lte = new Date(endDate);
+    }
+
+    const logs = await this.prisma.activityLog.findMany({
+      where,
+      include: {
+        materials: { include: { material: true } },
+        cropCycle: { include: { crop: true, plot: { include: { farm: true } } } },
+      },
+      orderBy: { activityDate: 'asc' },
+    });
+
+    let totalLaborCost = 0;
+    let totalMaterialCost = 0;
+    let totalOtherCosts = 0;
+    let totalRevenue = 0;
+    let totalHarvestQty = 0;
+
+    const breakdownByActivity: Record<string, number> = {};
+    const breakdownByMaterialType: Record<string, number> = {};
+    const costByMonth: Record<string, { labor: number; material: number; other: number; revenue: number }> = {};
+    const materialConsumption: Record<string, { name: string; unit: string; totalQty: number; totalCost: number }> = {};
+
+    logs.forEach((log) => {
+      totalLaborCost += log.laborCost || 0;
+      totalOtherCosts += log.otherCosts || 0;
+      totalRevenue += log.revenue || 0;
+      totalHarvestQty += log.harvestQuantity || 0;
+
+      // Chi phí theo tháng
+      const monthKey = new Date(log.activityDate).toISOString().slice(0, 7); // YYYY-MM
+      if (!costByMonth[monthKey]) costByMonth[monthKey] = { labor: 0, material: 0, other: 0, revenue: 0 };
+      costByMonth[monthKey].labor += log.laborCost || 0;
+      costByMonth[monthKey].other += log.otherCosts || 0;
+      costByMonth[monthKey].revenue += log.revenue || 0;
+
+      let logMatCost = 0;
+      log.materials.forEach((m) => {
+        logMatCost += m.cost || 0;
+        // Phân loại theo loại vật tư
+        const matType = m.material?.type || 'KHAC';
+        breakdownByMaterialType[matType] = (breakdownByMaterialType[matType] || 0) + (m.cost || 0);
+        // Lượng vật tư tiêu thụ
+        const matId = m.materialId;
+        if (!materialConsumption[matId]) {
+          materialConsumption[matId] = { name: m.material?.name || '', unit: m.material?.unit || '', totalQty: 0, totalCost: 0 };
+        }
+        materialConsumption[matId].totalQty += m.quantityUsed || 0;
+        materialConsumption[matId].totalCost += m.cost || 0;
+      });
+      totalMaterialCost += logMatCost;
+      costByMonth[monthKey].material += logMatCost;
+
+      const actTotal = log.cost || 0;
+      breakdownByActivity[log.activityType] = (breakdownByActivity[log.activityType] || 0) + actTotal;
+    });
+
+    const totalExpense = totalLaborCost + totalMaterialCost + totalOtherCosts;
+    const netProfit = totalRevenue - totalExpense;
+    const roiPercentage = totalExpense > 0 ? (netProfit / totalExpense) * 100 : 0;
+
+    // Chuyển costByMonth thành mảng sắp xếp theo thời gian
+    const costTrends = Object.entries(costByMonth)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([month, data]) => ({ month, ...data, total: data.labor + data.material + data.other }));
+
+    return {
+      totalExpense,
+      totalLaborCost,
+      totalMaterialCost,
+      totalOtherCosts,
+      totalRevenue,
+      totalHarvestQty,
+      netProfit,
+      roiPercentage: Number(roiPercentage.toFixed(2)),
+      breakdownByActivity,
+      breakdownByMaterialType,
+      costTrends,
+      materialConsumption: Object.values(materialConsumption),
+      logsCount: logs.length,
+    };
+  }
+
+  // ==================== SEED DỮ LIỆU ĐẶC THÙ LÂM ĐỒNG ====================
+  async seedLamDongData() {
+    // 1. Tạo các loại cây đặc thù Lâm Đồng
+    const crops = [
+      { name: 'Cà phê Robusta (Lâm Hà)', type: 'Cây công nghiệp lâu năm' },
+      { name: 'Cà phê Arabica (Cầu Đất)', type: 'Cây công nghiệp lâu năm' },
+      { name: 'Sầu riêng Ri6 (Đạ Huoai)', type: 'Cây ăn trái lâu năm' },
+      { name: 'Sầu riêng Monthong Dona', type: 'Cây ăn trái lâu năm' },
+      { name: 'Mắc-ca ghép (Đơn Dương)', type: 'Cây hạt dinh dưỡng lâu năm' },
+      { name: 'Bơ 034 (Bảo Lộc)', type: 'Cây ăn trái lâu năm' },
+    ];
+
+    const createdCrops: any[] = [];
+    for (const c of crops) {
+      let crop = await this.prisma.crop.findFirst({
+        where: { name: c.name, deletedAt: null },
+      });
+      if (!crop) {
+        crop = await this.prisma.crop.create({ data: c });
+      }
+      createdCrops.push(crop);
+    }
+
+    // 2. Tạo danh mục vật tư thông dụng
+    const materials = [
+      { name: 'Phân NPK 20-20-15 Đầu Trâu', type: 'PHAN_BON', unit: 'Bao 50kg', defaultPrice: 850000 },
+      { name: 'Phân hữu cơ nở nhập khẩu Bỉ', type: 'PHAN_BON', unit: 'Bao 25kg', defaultPrice: 420000 },
+      { name: 'Phân chuồng ủ hoai mục', type: 'PHAN_BON', unit: 'Tấn', defaultPrice: 1500000 },
+      { name: 'Vôi bột nông nghiệp khử phèn', type: 'PHAN_BON', unit: 'Bao 40kg', defaultPrice: 80000 },
+      { name: 'Thuốc trừ sâu sinh học Emamectin', type: 'THUOC_BVTV', unit: 'Chai 500ml', defaultPrice: 180000 },
+      { name: 'Thuốc trừ nấm xì mủ Ridomil Gold', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 320000 },
+      { name: 'Chế phẩm Trichoderma đối kháng', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 95000 },
+    ];
+
+    const createdMaterials: any[] = [];
+    for (const m of materials) {
+      let mat = await this.prisma.material.findFirst({
+        where: { name: m.name, deletedAt: null },
+      });
+      if (!mat) {
+        mat = await this.prisma.material.create({ data: m });
+      }
+      createdMaterials.push(mat);
+    }
+
+    return {
+      message: 'Khởi tạo thành công danh mục đặc thù Lâm Đồng!',
+      crops: createdCrops,
+      materials: createdMaterials,
+    };
+  }
+
   private text(value: any, field: string) {
     if (typeof value !== 'string' || !value.trim())
       throw new BadRequestException(`${field} là bắt buộc`);

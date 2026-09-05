@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 
@@ -101,5 +102,54 @@ export class CatalogController {
   @Delete('seasons/:id')
   deleteSeason(@Param('id') id: string) {
     return this.catalogService.deleteSeason(id);
+  }
+
+  // ==================== MATERIALS (VẬT TƯ: PHÂN, THUỐC BVTV) ====================
+  @Get('materials')
+  findMaterials() {
+    return this.catalogService.findMaterials();
+  }
+
+  @Post('materials')
+  createMaterial(@Body() body: any) {
+    return this.catalogService.createMaterial(body);
+  }
+
+  @Patch('materials/:id')
+  updateMaterial(@Param('id') id: string, @Body() body: any) {
+    return this.catalogService.updateMaterial(id, body);
+  }
+
+  @Delete('materials/:id')
+  deleteMaterial(@Param('id') id: string) {
+    return this.catalogService.deleteMaterial(id);
+  }
+
+  // ==================== ACTIVITY LOGS ====================
+  @Get('activity-logs')
+  findActivityLogs(@Query('cropCycleId') cropCycleId?: string) {
+    return this.catalogService.findActivityLogs(cropCycleId);
+  }
+
+  @Post('activity-logs')
+  createActivityLog(@Body() body: any) {
+    return this.catalogService.createActivityLog(body);
+  }
+
+  @Delete('activity-logs/:id')
+  deleteActivityLog(@Param('id') id: string) {
+    return this.catalogService.deleteActivityLog(id);
+  }
+
+  // ==================== FINANCIAL REPORT ====================
+  @Get('financial-report')
+  getFinancialReport(@Query('cropCycleId') cropCycleId?: string) {
+    return this.catalogService.getFinancialReport(cropCycleId);
+  }
+
+  // ==================== SEED LÂM ĐỒNG ====================
+  @Post('seed-lamdong')
+  seedLamDong() {
+    return this.catalogService.seedLamDongData();
   }
 }
