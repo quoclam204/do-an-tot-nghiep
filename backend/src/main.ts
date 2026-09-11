@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
-import express from 'express';
+import * as express from 'express';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -20,7 +20,10 @@ async function bootstrap() {
 
   const frontendDist = join(process.cwd(), '..', 'frontend', 'dist');
   if (existsSync(frontendDist)) {
-    app.getHttpAdapter().getInstance().use(express.static(frontendDist));
+    const serveStatic = (express as any).static || (express as any).default?.static;
+    if (serveStatic) {
+      app.getHttpAdapter().getInstance().use(serveStatic(frontendDist));
+    }
     app.getHttpAdapter().getInstance().use((request: any, response: any, next: any) => {
       const apiPaths = ['/catalog', '/auth', '/users', '/farms'];
       if (request.method === 'GET' && !apiPaths.some((path) => request.path.startsWith(path))) {
@@ -57,6 +60,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 Backend đang chạy tại cổng ${port}`);
+  console.log(`🚀 DalatAgri Backend đang chạy tại cổng ${port}`);
 }
 bootstrap();

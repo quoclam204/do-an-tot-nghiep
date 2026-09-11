@@ -36,6 +36,45 @@ export class AuthService {
     };
   }
 
+  /** Đăng nhập hoặc Đăng ký qua Google */
+  async googleLogin(credential: string) {
+    if (!credential) {
+      throw new BadRequestException('Google credential không hợp lệ');
+    }
+
+    let payload: any;
+    try {
+      const response = await fetch(
+        `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`,
+      );
+      if (!response.ok) {
+        throw new Error('Google token validation failed');
+      }
+      payload = await response.json();
+    } catch (err) {
+      throw new UnauthorizedException('Xác thực tài khoản Google thất bại hoặc phiên đăng nhập đã hết hạn');
+    }
+
+    if (!payload || !payload.email) {
+      throw new UnauthorizedException('Không thể lấy thông tin email từ tài khoản Google');
+    }
+
+    const configuredClientId = process.env.GOOGLE_CLIENT_ID;
+    if (configuredClientId && payload.aud && payload.aud !== configuredClientId) {
+      throw new UnauthorizedException('Google Client ID không khớp với hệ thống');
+    }
+
+    const user = await this.usersService.findOrCreateGoogleUser({
+      email: payload.email,
+      name: payload.name || payload.given_name || 'Người dùng Google',
+    });
+
+    return {
+      message: 'Đăng nhập Google thành công',
+      ...this.usersService.createSession(user),
+    };
+  }
+
   /** Quên mật khẩu */
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.usersService.findByEmail(dto.email);

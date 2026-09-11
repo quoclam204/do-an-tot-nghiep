@@ -1,0 +1,121 @@
+/* HarvestPage.css */
+
+.harvest-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary, #f8fafc);
+  color: var(--text-primary, #1e293b);
+}
+
+.harvest-main {
+  flex: 1;
+  padding-top: 2rem;
+  padding-bottom: 3rem;
+}
+
+/* Toast */
+.harvest-toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.harvest-toast.success {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.harvest-toast.error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.bg-purple { background-color: #f3e8ff; color: #7e22ce; }
+.bg-yellow { background-color: #fef9c3; color: #a16207; }
+.text-green { color: #059669 !important; }
+
+/* Table */
+.harvest-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.harvest-table th {
+  background-color: #f8fafc;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.harvest-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.harvest-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.crop-tag {
+  background-color: #ecfdf5;
+  color: #047857;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.qty-tag {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.revenue-val {
+  color: #059669;
+  font-size: 1.05rem;
+}
+
+.notes-text {
+  font-size: 0.85rem;
+  color: #64748b;
+  max-width: 250px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-action-btn {
+  background: none;
+  border: 1px solid #cbd5e1;
+  padding: 0.4rem;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.15s;
+}
+
+.delete-action-btn:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}

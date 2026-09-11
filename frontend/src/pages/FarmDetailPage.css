@@ -1,101 +1,739 @@
-.breadcrumb {
+/* ================= FARM DETAIL PAGE CSS ================= */
+.farm-detail-page-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f7fbf8;
+  color: #133321;
+  font-family: inherit;
+}
+
+.farm-detail-content {
+  flex: 1;
+  padding-top: 1.5rem;
+  padding-bottom: 3.5rem;
+}
+
+/* Breadcrumb */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 1.5rem;
+  font-size: 0.9rem;
 }
 
-.breadcrumb a {
-  color: var(--color-primary);
+.back-link {
+  color: #1e804d;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
 }
 
-.farm-detail-header {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+.back-link:hover {
+  color: #14532d;
+  text-decoration: underline;
 }
 
-.farm-detail-header h1 {
-  margin-top: 0;
-  color: var(--color-primary);
+.breadcrumb-sep {
+  color: #94a3b8;
 }
 
-.farm-detail-header p {
-  color: #555;
-  font-size: 1.1rem;
-  margin-bottom: 0;
+.breadcrumb-current {
+  color: #475569;
+  font-weight: 600;
 }
 
-.section-header {
+/* Summary Header */
+.farm-summary-header {
+  background: #ffffff;
+  border: 2px solid #d4ebd8;
+  border-radius: 20px;
+  padding: 1.75rem 2rem;
+  box-shadow: 0 4px 16px rgba(25, 46, 34, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.farm-summary-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  gap: 1.5rem;
 }
 
-.section-header h2 {
-  margin: 0;
-}
-
-.plots-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+.farm-summary-main {
+  display: flex;
+  align-items: center;
   gap: 1.25rem;
 }
 
-.plot-card {
-  background: white;
-  border: 1px solid #eee;
-  border-radius: 8px;
-  padding: 1.25rem;
+.farm-summary-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #edf8f1;
+  border: 2px solid #d2ecd9;
+  color: #1e804d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.farm-summary-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  margin-bottom: 0.4rem;
+}
+
+.farm-summary-text h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #133321;
+  margin: 0 0 0.4rem 0;
+  line-height: 1.25;
+}
+
+.farm-summary-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #4b6255;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.meta-item strong {
+  color: #1e804d;
+}
+
+.meta-dot {
+  color: #cbd5e1;
+}
+
+.add-plot-btn {
+  background: #1e804d;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.8rem 1.4rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(30, 128, 77, 0.28);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.add-plot-btn:hover {
+  background: #166534;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(30, 128, 77, 0.35);
+}
+
+/* Allocation Card (Thống kê diện tích) */
+.farm-allocation-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.allocation-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.alloc-stat-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+  border: 1.5px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alloc-stat-box.total {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.alloc-stat-box.used {
+  border-color: #bfdbfe;
+  background: #f8fafc;
+}
+
+.alloc-stat-box.remaining {
+  border-color: #dcfce7;
+  background: #ffffff;
+}
+
+.alloc-stat-box.remaining.danger {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.alloc-stat-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.alloc-stat-box.total .alloc-stat-label { color: #166534; }
+.alloc-stat-box.remaining.danger .alloc-stat-label { color: #dc2626; }
+
+.alloc-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.alloc-stat-box.total .alloc-stat-value { color: #15803d; }
+.alloc-stat-box.remaining.danger .alloc-stat-value { color: #dc2626; }
+
+.alloc-stat-value small {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.alloc-stat-sub {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.alloc-stat-box.remaining.danger .alloc-stat-sub {
+  color: #b91c1c;
+}
+
+.allocation-progress-wrapper {
+  margin-top: 0.25rem;
+}
+
+.allocation-progress-bar-bg {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.allocation-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border-radius: 999px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.allocation-progress-bar-fill.danger {
+  background: #ef4444;
+}
+
+.allocation-warning-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #991b1b;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin-top: 0.35rem;
+}
+
+/* Plots List Section */
+.plots-list-section {
+  margin-top: 1rem;
+}
+
+.plots-section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.plots-section-title-row h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #133321;
+  margin: 0 0 0.3rem 0;
+}
+
+.section-subtitle {
+  font-size: 0.9rem;
+  color: #4b6255;
+  margin: 0;
+}
+
+.plots-count-badge {
+  background: #edf8f1;
+  border: 1.5px solid #d4ebd8;
+  color: #15803d;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 10px;
+}
+
+/* Plots Grid Layout */
+.plots-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.plot-card-box {
+  background: #ffffff;
+  border: 2px solid #d4ebd8;
+  border-radius: 16px;
+  padding: 1.35rem;
+  box-shadow: 0 4px 12px rgba(25, 46, 34, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+}
+
+.plot-card-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(30, 128, 77, 0.1);
+  border-color: #1e804d;
+}
+
+.plot-card-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: box-shadow 0.2s;
+  margin-bottom: 1rem;
 }
 
-.plot-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.plot-info h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-}
-
-.plot-info p {
-  margin: 0;
-  color: #666;
-}
-
-.plot-actions {
+.plot-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #edf8f1;
+  border: 1.5px solid #d2ecd9;
+  color: #1e804d;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
 }
 
-.plot-actions button {
-  background: #f0f0f0;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+.plot-actions-box {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon-action {
+  border: 1.5px solid #d4ebd8;
+  background: #f7fcf8;
+  color: #334155;
+  border-radius: 10px;
+  padding: 0.5rem;
+  min-width: 38px;
+  min-height: 38px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
 }
 
-.plot-actions button:hover {
-  background: #e0e0e0;
+.btn-icon-action.edit:hover {
+  background: #edf8f1;
+  color: #1e804d;
+  border-color: #1e804d;
 }
 
-.plot-actions button.delete-text {
-  background: #ffebee;
-  color: #e53935;
+.btn-icon-action.delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 
-.plot-actions button.delete-text:hover {
-  background: #ffcdd2;
+.plot-box-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #133321;
+  margin: 0 0 0.65rem 0;
+  line-height: 1.35;
 }
+
+.plot-area-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f9f3;
+  border: 1px solid #d4ebd8;
+  color: #2b543b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+  width: fit-content;
+  margin-bottom: 1.25rem;
+}
+
+.plot-area-badge strong {
+  color: #1e804d;
+  font-size: 0.95rem;
+}
+
+.plot-card-footer {
+  margin-top: auto;
+  border-top: 1px solid #edf5ef;
+  padding-top: 0.85rem;
+}
+
+.plot-link-journal {
+  color: #1e804d;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.plot-link-journal:hover {
+  color: #14532d;
+  text-decoration: underline;
+}
+
+/* Empty & Loading */
+.plots-empty-state {
+  background: #ffffff;
+  border: 2px dashed #d4ebd8;
+  border-radius: 20px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  color: #4b6255;
+}
+
+.plots-empty-state h3 {
+  font-size: 1.35rem;
+  color: #133321;
+  font-weight: 800;
+  margin: 0 0 0.5rem 0;
+}
+
+.plots-empty-state p {
+  font-size: 0.95rem;
+  max-width: 480px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.plots-loading-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #4b6255;
+}
+
+.plots-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #1e804d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 1rem auto;
+}
+
+.plots-error-alert {
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  color: #b91c1c;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* ================= MODAL & UNIT SWITCH STYLES ================= */
+.form-label-with-unit {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.form-label-with-unit label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #133321;
+  margin: 0;
+}
+
+.unit-selector-bar {
+  display: inline-flex;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px;
+  border-radius: 10px;
+  gap: 3px;
+}
+
+.unit-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  padding: 0.35rem 0.75rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.unit-btn:hover {
+  color: #1e293b;
+}
+
+.unit-btn.active {
+  background: #166534;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(22, 101, 52, 0.28);
+}
+
+.area-input-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.area-text-input {
+  width: 100%;
+  padding-right: 58px !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+}
+
+.area-unit-badge {
+  position: absolute;
+  right: 12px;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  pointer-events: none;
+}
+
+.area-helper-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #15803d;
+  font-weight: 600;
+  background: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.area-helper-hint.warning {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.scrollable-chips {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scrollable-chips::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================= MOBILE RESPONSIVE (MAX-WIDTH 768px) ================= */
+@media (max-width: 768px) {
+  .farm-detail-content {
+    padding-top: 1rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .farm-summary-header {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .farm-summary-top-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.15rem;
+  }
+
+  .farm-summary-main {
+    align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .farm-summary-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+  }
+
+  .farm-summary-text h1 {
+    font-size: 1.35rem;
+  }
+
+  .farm-summary-meta {
+    font-size: 0.82rem;
+    gap: 6px;
+  }
+
+  .add-plot-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    height: 48px;
+  }
+
+  .farm-allocation-card {
+    padding: 1rem;
+    border-radius: 14px;
+  }
+
+  .allocation-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .alloc-stat-box {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .alloc-stat-value {
+    font-size: 1.3rem;
+  }
+
+  .plots-section-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .plots-grid-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .plot-card-box {
+    padding: 1.15rem 1rem;
+    border-radius: 14px;
+  }
+
+  .btn-icon-action {
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  /* Modal on Mobile */
+  .farm-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .farm-modal-dialog {
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+    border-bottom: none;
+    max-width: 100%;
+  }
+
+  .farm-modal-header {
+    padding: 1.25rem 1rem;
+  }
+
+  .farm-modal-form {
+    padding: 1.25rem 1rem;
+  }
+
+  .form-label-with-unit {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .unit-selector-bar {
+    width: 100%;
+  }
+
+  .unit-btn {
+    flex: 1;
+    text-align: center;
+    padding: 0.45rem 0;
+  }
+
+  .farm-modal-actions {
+    flex-direction: column-reverse;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+  }
+
+  .farm-modal-actions button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 0.95rem;
+  }
+}
+

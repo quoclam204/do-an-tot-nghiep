@@ -31,47 +31,16 @@ import '../styles/HomePage.css';
 
 function HomePage() {
   const { user } = useAuth();
-  const [isLargeFont, setIsLargeFont] = useState(false);
 
   return (
-    <div className={`elder-home-page ${isLargeFont ? 'font-large' : ''}`}>
-      {/* ── THANH TIỆN ÍCH ĐẦU TRANG ── */}
-      <div className="elder-top-bar">
-        <div className="container elder-top-inner">
-          <span className="elder-top-badge">
-            <IconSprout size={18} strokeWidth={2.2} className="top-badge-icon" />
-            <span>Hệ thống quản lý nhật ký canh tác nông nghiệp Đà Lạt</span>
-          </span>
-          <div className="font-size-toggle">
-            <span className="toggle-label">Cỡ chữ:</span>
-            <button
-              type="button"
-              className={`toggle-btn ${!isLargeFont ? 'active' : ''}`}
-              onClick={() => setIsLargeFont(false)}
-              aria-label="Cỡ chữ vừa vặn"
-            >
-              Vừa vặn
-            </button>
-            <button
-              type="button"
-              className={`toggle-btn btn-big ${isLargeFont ? 'active' : ''}`}
-              onClick={() => setIsLargeFont(true)}
-              aria-label="Cỡ chữ to dễ đọc"
-            >
-              <IconZoomIn size={16} strokeWidth={2.2} />
-              <span>Chữ to dễ đọc</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="elder-home-page">
       {/* ── PHẦN ĐẦU TRANG (HERO) ── */}
       <section className="elder-hero">
         <div className="container elder-hero-container">
           <div className="elder-hero-content">
             <div className="welcome-tag">
               <IconSprout size={16} strokeWidth={2.2} />
-              <span>Sổ Tay Nông Nghiệp Đà Lạt</span>
+              <span>Sổ Tay Nông Nghiệp Thông Minh</span>
             </div>
 
             {user ? (
@@ -206,7 +175,7 @@ function HomePage() {
               </div>
               <h3 className="elder-card-title">Quản Lý Vườn & Thửa Đất</h3>
               <p className="elder-card-desc">
-                Xem danh sách các mảnh vườn, nhà kính, diện tích canh tác của nông trại tại Đà Lạt.
+                Xem danh sách các mảnh vườn, nhà kính, diện tích canh tác của nông trại ở mọi vùng miền.
               </p>
               <div className="elder-card-action">
                 <span>Xem danh sách vườn</span>
@@ -223,7 +192,7 @@ function HomePage() {
               </div>
               <h3 className="elder-card-title">Danh Mục Các Cây Trồng</h3>
               <p className="elder-card-desc">
-                Danh sách các loại rau hoa quen thuộc: Cà phê, súp lơ, dâu tây, ớt chuông, atisô...
+                Quản lý quy trình các loại cây dài ngày chủ lực: Cà phê Robusta, Sầu riêng Ri6, Mắc ca, Bơ 034...
               </p>
               <div className="elder-card-action">
                 <span>Tra cứu cây trồng</span>
@@ -420,11 +389,11 @@ function HomePage() {
               <div className="support-contact-badges">
                 <span className="contact-badge">
                   <IconPhoneCall size={15} strokeWidth={2.2} />
-                  <span>Hỗ trợ kỹ thuật: Dự án Đồ án tốt nghiệp DalatAgri</span>
+                  <span>Hỗ trợ kỹ thuật: Nền tảng DalatAgri</span>
                 </span>
                 <span className="contact-badge">
                   <IconMapPin size={15} strokeWidth={2.2} />
-                  <span>Thành phố Đà Lạt, Lâm Đồng</span>
+                  <span>Phục vụ bà con nông dân trên toàn quốc</span>
                 </span>
               </div>
             </div>

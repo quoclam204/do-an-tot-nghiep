@@ -31,6 +31,12 @@ import AccountPage from "./pages/AccountPage";
 import FarmsPage from "./pages/FarmsPage";
 import FarmDetailPage from "./pages/FarmDetailPage";
 import FarmingLogPage from "./pages/FarmingLogPage";
+import CropsPage from "./pages/CropsPage";
+import MaterialsPage from "./pages/MaterialsPage";
+import InventoryPage from "./pages/InventoryPage";
+import SeasonsPage from "./pages/SeasonsPage";
+import ReportsPage from "./pages/ReportsPage";
+import HarvestPage from "./pages/HarvestPage";
 
 function DashboardPage() {
   const supplies = [
@@ -572,29 +578,6 @@ function DashboardPage() {
   );
 }
 
-function CropsPage() {
-  const { user } = useAuth();
-
-  return (
-    <div className="app">
-      <Header />
-      <main className="main container">
-        <section className="page-intro">
-          <div>
-            <p className="eyebrow">DANH MỤC SẢN XUẤT</p>
-            <h1>Quản lý cây trồng</h1>
-            <p className="intro-copy">
-              Thêm, theo dõi và cập nhật các loại cây đang được canh tác.
-            </p>
-          </div>
-        </section>
-        <CatalogPanel user={user} initialTab="crops" />
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -618,8 +601,27 @@ function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/farms" element={<ProtectedRoute><FarmsPage /></ProtectedRoute>} />
           <Route path="/farms/:id" element={<ProtectedRoute><FarmDetailPage /></ProtectedRoute>} />
+          <Route path="/seasons" element={<ProtectedRoute><SeasonsPage /></ProtectedRoute>} />
+          <Route path="/materials" element={<ProtectedRoute><MaterialsPage /></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
+          <Route path="/harvest" element={<ProtectedRoute><HarvestPage /></ProtectedRoute>} />
+          <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
           <Route
             path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <div className="app">
+                  <Header />
+                  <main className="main container">
+                    <FarmingLogPage />
+                  </main>
+                  <Footer />
+                </div>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/logs"
             element={
               <ProtectedRoute>
                 <div className="app">

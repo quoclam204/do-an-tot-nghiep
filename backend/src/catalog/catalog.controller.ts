@@ -136,6 +136,11 @@ export class CatalogController {
     return this.catalogService.createActivityLog(body);
   }
 
+  @Patch('activity-logs/:id')
+  updateActivityLog(@Param('id') id: string, @Body() body: any) {
+    return this.catalogService.updateActivityLog(id, body);
+  }
+
   @Delete('activity-logs/:id')
   deleteActivityLog(@Param('id') id: string) {
     return this.catalogService.deleteActivityLog(id);
@@ -143,8 +148,29 @@ export class CatalogController {
 
   // ==================== FINANCIAL REPORT ====================
   @Get('financial-report')
-  getFinancialReport(@Query('cropCycleId') cropCycleId?: string) {
-    return this.catalogService.getFinancialReport(cropCycleId);
+  getFinancialReport(@Query() query: { cropCycleId?: string; farmId?: string; plotId?: string; startDate?: string; endDate?: string }) {
+    return this.catalogService.getFinancialReport(query);
+  }
+
+  // ==================== INVENTORY ====================
+  @Get('inventory')
+  findInventory(@Query('farmId') farmId?: string) {
+    return this.catalogService.findInventory(farmId);
+  }
+
+  @Post('inventory')
+  createInventory(@Body() body: any) {
+    return this.catalogService.createInventory(body);
+  }
+
+  @Patch('inventory/:id')
+  updateInventory(@Param('id') id: string, @Body() body: any) {
+    return this.catalogService.updateInventory(id, body);
+  }
+
+  @Delete('inventory/:id')
+  deleteInventory(@Param('id') id: string) {
+    return this.catalogService.deleteInventory(id);
   }
 
   // ==================== SEED LÂM ĐỒNG ====================

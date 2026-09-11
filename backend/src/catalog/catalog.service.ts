@@ -4,11 +4,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   findFarms() {
     return this.prisma.farm.findMany({
@@ -17,32 +18,42 @@ export class CatalogService {
     });
   }
   async createFarm(input: any) {
-    this.requirePositive(input.totalArea, 'totalArea');
+    let totalArea = Number(input.totalArea);
+    if (input.unit === 'm2' || input.unit === 'm²') {
+      totalArea = Number((totalArea / 10000).toFixed(4));
+    }
+    this.requirePositive(totalArea, 'totalArea');
     await this.requireUser(input.userId);
     return this.prisma.farm.create({
       data: {
         userId: input.userId,
         name: this.text(input.name, 'name'),
         location: this.text(input.location, 'location'),
-        totalArea: Number(input.totalArea),
+        totalArea,
       },
     });
   }
   async updateFarm(id: string, input: any) {
+    const dataToUpdate: any = this.pick(input, ['name', 'location']);
     if (input.totalArea !== undefined) {
-      this.requirePositive(input.totalArea, 'totalArea');
+      let totalArea = Number(input.totalArea);
+      if (input.unit === 'm2' || input.unit === 'm²') {
+        totalArea = Number((totalArea / 10000).toFixed(4));
+      }
+      this.requirePositive(totalArea, 'totalArea');
       const usedArea = await this.prisma.plot.aggregate({
         where: { farmId: id, deletedAt: null },
         _sum: { area: true },
       });
-      if ((usedArea._sum.area || 0) > Number(input.totalArea))
+      if ((usedArea._sum.area || 0) > totalArea)
         throw new BadRequestException(
           'Diện tích vườn không đủ cho các lô hiện có',
         );
+      dataToUpdate.totalArea = totalArea;
     }
     return this.prisma.farm.update({
       where: { id },
-      data: this.pick(input, ['name', 'location', 'totalArea']),
+      data: dataToUpdate,
     });
   }
   async deleteFarm(id: string) {
@@ -58,7 +69,11 @@ export class CatalogService {
     });
   }
   async createPlot(input: any) {
-    this.requirePositive(input.area, 'area');
+    let area = Number(input.area);
+    if (input.unit === 'm2' || input.unit === 'm²') {
+      area = Number((area / 10000).toFixed(4));
+    }
+    this.requirePositive(area, 'area');
     const farm = await this.prisma.farm.findFirst({
       where: { id: input.farmId, deletedAt: null },
     });
@@ -67,21 +82,26 @@ export class CatalogService {
       where: { farmId: input.farmId, deletedAt: null },
       _sum: { area: true },
     });
-    if ((usedArea._sum.area || 0) + Number(input.area) > farm.totalArea)
+    if ((usedArea._sum.area || 0) + area > farm.totalArea + 0.0001)
       throw new BadRequestException(
-        'Tổng diện tích các lô vượt quá diện tích vườn',
+        `Tổng diện tích các lô vượt quá diện tích vườn (${farm.totalArea} ha)`,
       );
     return this.prisma.plot.create({
       data: {
         farmId: input.farmId,
         name: this.text(input.name, 'name'),
-        area: Number(input.area),
+        area,
       },
     });
   }
   async updatePlot(id: string, input: any) {
+    const dataToUpdate: any = this.pick(input, ['name']);
     if (input.area !== undefined) {
-      this.requirePositive(input.area, 'area');
+      let area = Number(input.area);
+      if (input.unit === 'm2' || input.unit === 'm²') {
+        area = Number((area / 10000).toFixed(4));
+      }
+      this.requirePositive(area, 'area');
       const plot = await this.prisma.plot.findUnique({ where: { id } });
       if (!plot) throw new NotFoundException('Không tìm thấy lô trồng');
       const farm = await this.prisma.farm.findUnique({
@@ -93,15 +113,16 @@ export class CatalogService {
       });
       if (
         farm &&
-        (otherArea._sum.area || 0) + Number(input.area) > farm.totalArea
+        (otherArea._sum.area || 0) + area > farm.totalArea + 0.0001
       )
         throw new BadRequestException(
-          'Tổng diện tích các lô vượt quá diện tích vườn',
+          `Tổng diện tích các lô vượt quá diện tích vườn (${farm.totalArea} ha)`,
         );
+      dataToUpdate.area = area;
     }
     return this.prisma.plot.update({
       where: { id },
-      data: this.pick(input, ['name', 'area']),
+      data: dataToUpdate,
     });
   }
   async deletePlot(id: string) {
@@ -302,7 +323,7 @@ export class CatalogService {
 
   async createMaterial(input: any) {
     this.requirePositive(input.defaultPrice, 'defaultPrice');
-    return this.prisma.material.create({
+    return (this.prisma.material as any).create({
       data: {
         name: this.text(input.name, 'name'),
         type: input.type || 'PHAN_BON',
@@ -316,7 +337,7 @@ export class CatalogService {
     if (input.defaultPrice !== undefined) {
       this.requirePositive(input.defaultPrice, 'defaultPrice');
     }
-    return this.prisma.material.update({
+    return (this.prisma.material as any).update({
       where: { id },
       data: {
         ...(input.name && { name: input.name.trim() }),
@@ -374,11 +395,12 @@ export class CatalogService {
     const materialsData: any[] = [];
     if (Array.isArray(input.materials) && input.materials.length > 0) {
       for (const item of input.materials) {
+        if (!item.materialId || !isUUID(item.materialId)) continue;
         const material = await this.prisma.material.findFirst({
           where: { id: item.materialId, deletedAt: null },
         });
         if (material) {
-          const qty = Number(item.quantityUsed || 0);
+          const qty = Math.max(0, Number(item.quantityUsed || 0));
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * material.defaultPrice;
           totalMaterialCost += itemCost;
           materialsData.push({
@@ -403,7 +425,7 @@ export class CatalogService {
       revenue = input.revenue ? Number(input.revenue) : (harvestQty && unitPrice ? harvestQty * unitPrice : null);
     }
 
-    const result = await this.prisma.activityLog.create({
+    const result = await (this.prisma.activityLog as any).create({
       data: {
         cropCycleId: input.cropCycleId,
         activityType: this.text(input.activityType, 'activityType'),
@@ -431,13 +453,13 @@ export class CatalogService {
 
     // Tự động cập nhật totalYield khi thu hoạch
     if (input.activityType === 'THU_HOACH' && harvestQty) {
-      const allHarvests = await this.prisma.activityLog.aggregate({
+      const allHarvests = await (this.prisma.activityLog as any).aggregate({
         where: { cropCycleId: input.cropCycleId, activityType: 'THU_HOACH', deletedAt: null },
         _sum: { harvestQuantity: true },
       });
-      await this.prisma.cropCycle.update({
+      await (this.prisma.cropCycle as any).update({
         where: { id: input.cropCycleId },
-        data: { totalYield: allHarvests._sum.harvestQuantity || 0 },
+        data: { totalYield: allHarvests._sum?.harvestQuantity || 0 },
       });
     }
 
@@ -450,7 +472,7 @@ export class CatalogService {
 
   /** Cập nhật nhật ký canh tác */
   async updateActivityLog(id: string, input: any) {
-    const log = await this.prisma.activityLog.findFirst({ where: { id, deletedAt: null } });
+    const log: any = await (this.prisma.activityLog as any).findFirst({ where: { id, deletedAt: null } });
     if (!log) throw new NotFoundException('Không tìm thấy nhật ký canh tác');
 
     const isHiredLabor = input.isHiredLabor !== undefined ? Boolean(input.isHiredLabor) : log.isHiredLabor;
@@ -500,7 +522,7 @@ export class CatalogService {
         : (updateData.harvestQuantity && updateData.unitPrice ? updateData.harvestQuantity * updateData.unitPrice : log.revenue);
     }
 
-    return this.prisma.activityLog.update({
+    return (this.prisma.activityLog as any).update({
       where: { id },
       data: updateData,
       include: { materials: { include: { material: true } }, cropCycle: { include: { crop: true, plot: true } } },
@@ -525,7 +547,7 @@ export class CatalogService {
       if (endDate) where.activityDate.lte = new Date(endDate);
     }
 
-    const logs = await this.prisma.activityLog.findMany({
+    const logs: any[] = await (this.prisma.activityLog as any).findMany({
       where,
       include: {
         materials: { include: { material: true } },
@@ -545,7 +567,7 @@ export class CatalogService {
     const costByMonth: Record<string, { labor: number; material: number; other: number; revenue: number }> = {};
     const materialConsumption: Record<string, { name: string; unit: string; totalQty: number; totalCost: number }> = {};
 
-    logs.forEach((log) => {
+    logs.forEach((log: any) => {
       totalLaborCost += log.laborCost || 0;
       totalOtherCosts += log.otherCosts || 0;
       totalRevenue += log.revenue || 0;
@@ -559,7 +581,7 @@ export class CatalogService {
       costByMonth[monthKey].revenue += log.revenue || 0;
 
       let logMatCost = 0;
-      log.materials.forEach((m) => {
+      log.materials?.forEach((m: any) => {
         logMatCost += m.cost || 0;
         // Phân loại theo loại vật tư
         const matType = m.material?.type || 'KHAC';
@@ -605,16 +627,18 @@ export class CatalogService {
     };
   }
 
-  // ==================== SEED DỮ LIỆU ĐẶC THÙ LÂM ĐỒNG ====================
+  // ==================== SEED DỮ LIỆU CÂY TRỒNG & VẬT TƯ MẪU ====================
   async seedLamDongData() {
-    // 1. Tạo các loại cây đặc thù Lâm Đồng
+    // 1. Danh mục giống cây trồng phổ biến toàn quốc (cây lâu năm, cây công nghiệp, cây ăn trái)
     const crops = [
-      { name: 'Cà phê Robusta (Lâm Hà)', type: 'Cây công nghiệp lâu năm' },
-      { name: 'Cà phê Arabica (Cầu Đất)', type: 'Cây công nghiệp lâu năm' },
-      { name: 'Sầu riêng Ri6 (Đạ Huoai)', type: 'Cây ăn trái lâu năm' },
+      { name: 'Cà phê Robusta cao sản', type: 'Cây công nghiệp lâu năm' },
+      { name: 'Cà phê Arabica chọn lọc', type: 'Cây công nghiệp lâu năm' },
+      { name: 'Sầu riêng Ri6 cơm vàng', type: 'Cây ăn trái lâu năm' },
       { name: 'Sầu riêng Monthong Dona', type: 'Cây ăn trái lâu năm' },
-      { name: 'Mắc-ca ghép (Đơn Dương)', type: 'Cây hạt dinh dưỡng lâu năm' },
-      { name: 'Bơ 034 (Bảo Lộc)', type: 'Cây ăn trái lâu năm' },
+      { name: 'Mắc-ca ghép thương phẩm', type: 'Cây hạt dinh dưỡng lâu năm' },
+      { name: 'Bơ 034 sáp dẻo', type: 'Cây ăn trái lâu năm' },
+      { name: 'Hồ tiêu Vĩnh Linh', type: 'Cây công nghiệp lâu năm' },
+      { name: 'Bưởi da xanh ruột hồng', type: 'Cây ăn trái lâu năm' },
     ];
 
     const createdCrops: any[] = [];
@@ -628,15 +652,15 @@ export class CatalogService {
       createdCrops.push(crop);
     }
 
-    // 2. Tạo danh mục vật tư thông dụng
+    // 2. Tạo danh mục vật tư thông dụng toàn quốc
     const materials = [
       { name: 'Phân NPK 20-20-15 Đầu Trâu', type: 'PHAN_BON', unit: 'Bao 50kg', defaultPrice: 850000 },
-      { name: 'Phân hữu cơ nở nhập khẩu Bỉ', type: 'PHAN_BON', unit: 'Bao 25kg', defaultPrice: 420000 },
-      { name: 'Phân chuồng ủ hoai mục', type: 'PHAN_BON', unit: 'Tấn', defaultPrice: 1500000 },
+      { name: 'Phân hữu cơ nở nhập khẩu', type: 'PHAN_BON', unit: 'Bao 25kg', defaultPrice: 420000 },
+      { name: 'Phân chuồng ủ hoai mục vi sinh', type: 'PHAN_BON', unit: 'Tấn', defaultPrice: 1500000 },
       { name: 'Vôi bột nông nghiệp khử phèn', type: 'PHAN_BON', unit: 'Bao 40kg', defaultPrice: 80000 },
       { name: 'Thuốc trừ sâu sinh học Emamectin', type: 'THUOC_BVTV', unit: 'Chai 500ml', defaultPrice: 180000 },
       { name: 'Thuốc trừ nấm xì mủ Ridomil Gold', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 320000 },
-      { name: 'Chế phẩm Trichoderma đối kháng', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 95000 },
+      { name: 'Chế phẩm nấm Trichoderma đối kháng', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 95000 },
     ];
 
     const createdMaterials: any[] = [];
@@ -645,13 +669,13 @@ export class CatalogService {
         where: { name: m.name, deletedAt: null },
       });
       if (!mat) {
-        mat = await this.prisma.material.create({ data: m });
+        mat = await (this.prisma.material as any).create({ data: m });
       }
       createdMaterials.push(mat);
     }
 
     return {
-      message: 'Khởi tạo thành công danh mục đặc thù Lâm Đồng!',
+      message: 'Khởi tạo thành công danh mục cây trồng & vật tư mẫu!',
       crops: createdCrops,
       materials: createdMaterials,
     };
@@ -700,9 +724,61 @@ export class CatalogService {
       throw new NotFoundException('Không tìm thấy người dùng');
   }
   private async hasChildren(model: any, where: any) {
-    return (await model.count({ where: { ...where, deletedAt: null } })) > 0;
+    const delegate = typeof model === 'string' ? (this.prisma as any)[model] : model;
+    return (await delegate.count({ where: { ...where, deletedAt: null } })) > 0;
   }
-  private softDelete(model: any, id: string) {
-    return model.update({ where: { id }, data: { deletedAt: new Date() } });
+  private async softDelete(model: any, id: string) {
+    const delegate = typeof model === 'string' ? (this.prisma as any)[model] : model;
+    return delegate.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+  // ==================== INVENTORY ====================
+  async findInventory(farmId?: string) {
+    const where: any = { deletedAt: null };
+    if (farmId) where.farmId = farmId;
+    return this.prisma.inventory.findMany({
+      where,
+      include: {
+        material: true,
+        farm: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+  }
+
+  async createInventory(data: { farmId: string; materialId: string; quantity: number; totalCost: number }) {
+    this.requirePositive(data.quantity, 'quantity');
+    return this.prisma.inventory.create({
+      data: {
+        farmId: data.farmId,
+        materialId: data.materialId,
+        quantity: Number(data.quantity),
+        totalCost: Number(data.totalCost || 0),
+      },
+      include: {
+        material: true,
+        farm: true,
+      },
+    });
+  }
+
+  async updateInventory(id: string, data: { quantity?: number; totalCost?: number }) {
+    const updateData: any = {};
+    if (data.quantity !== undefined) updateData.quantity = Number(data.quantity);
+    if (data.totalCost !== undefined) updateData.totalCost = Number(data.totalCost);
+    return this.prisma.inventory.update({
+      where: { id },
+      data: updateData,
+      include: {
+        material: true,
+        farm: true,
+      },
+    });
+  }
+
+  async deleteInventory(id: string) {
+    return this.softDelete(this.prisma.inventory, id);
   }
 }

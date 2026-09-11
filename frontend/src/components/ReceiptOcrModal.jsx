@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import './ReceiptOcrModal.css';
+import {
+  IconFileText,
+  IconSearch,
+  IconCheckCircle,
+  IconX,
+  IconLeaf,
+  IconFlask,
+  IconSprout,
+  IconZap,
+} from './icons';
 
-// Dữ liệu mẫu hóa đơn thực tế tại Lâm Đồng để demo nhanh hoặc test
+// Dữ liệu mẫu hóa đơn thực tế nông nghiệp để demo nhanh hoặc test
 const SAMPLE_RECEIPTS = [
   {
     id: 'sample-1',
-    title: 'Hóa đơn Đại lý VTNN Bảo Lộc (Phân NPK & Hữu cơ)',
+    title: 'Hóa đơn Đại lý Vật tư Nông nghiệp (Phân NPK & Hữu cơ)',
     previewImg: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80',
     extracted: {
       activityType: 'BON_PHAN',
@@ -23,7 +33,7 @@ const SAMPLE_RECEIPTS = [
   },
   {
     id: 'sample-2',
-    title: 'Hóa đơn Thuốc BVTV Trừ Nấm Đạ Huoai (Sầu riêng)',
+    title: 'Hóa đơn Thuốc BVTV Trừ Nấm Bệnh (Cây ăn trái)',
     previewImg: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80',
     extracted: {
       activityType: 'PHUN_THUOC',
@@ -41,7 +51,7 @@ const SAMPLE_RECEIPTS = [
   },
   {
     id: 'sample-3',
-    title: 'Phiếu thu hoạch & Cân Cà phê Robusta Lâm Hà',
+    title: 'Phiếu thu hoạch & Cân nông sản (Cà phê)',
     previewImg: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=600&q=80',
     extracted: {
       activityType: 'THU_HOACH',
@@ -133,13 +143,20 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
     <div className="ocr-modal-backdrop" onClick={onClose}>
       <div className="ocr-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="ocr-modal-header">
-          <div>
-            <h3>📷 Số Hóa Hóa Đơn / Tài Liệu Bằng OCR</h3>
-            <p className="ocr-modal-subtitle">
-              Chụp hoặc tải ảnh hóa đơn mua phân, thuốc BVTV, phiếu thu hoạch để AI tự động trích xuất thông tin
-            </p>
+          <div className="ocr-title-wrap">
+            <div className="ocr-header-icon-box">
+              <IconFileText size={22} strokeWidth={2} />
+            </div>
+            <div>
+              <h3>Số Hóa Hóa Đơn / Tài Liệu Bằng OCR</h3>
+              <p className="ocr-modal-subtitle">
+                Chụp hoặc tải ảnh hóa đơn mua phân, thuốc BVTV, phiếu thu hoạch để AI tự động trích xuất thông tin
+              </p>
+            </div>
           </div>
-          <button className="ocr-btn-close" onClick={onClose}>✕</button>
+          <button className="ocr-btn-close" onClick={onClose} title="Đóng">
+            <IconX size={18} strokeWidth={2.2} />
+          </button>
         </div>
 
         <div className="ocr-modal-body">
@@ -158,7 +175,9 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                 </div>
               ) : (
                 <div className="ocr-placeholder">
-                  <span className="ocr-icon">📄</span>
+                  <div className="ocr-icon">
+                    <IconFileText size={44} strokeWidth={1.8} />
+                  </div>
                   <p>Chọn ảnh hóa đơn từ máy hoặc kéo thả vào đây</p>
                   <label className="ocr-upload-btn">
                     Tải ảnh lên
@@ -170,31 +189,18 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
 
             {previewUrl && !isScanning && !result && (
               <button className="ocr-btn-primary" onClick={handleStartCustomScan}>
-                🔍 Bắt đầu Quét OCR
+                <IconSearch size={16} strokeWidth={2.2} />
+                <span>Bắt đầu Quét OCR</span>
               </button>
             )}
-
-            {/* Mục hóa đơn mẫu để thử nghiệm nhanh */}
-            <div className="ocr-samples-section">
-              <span className="ocr-samples-label">Hoặc thử nhanh với mẫu hóa đơn thực tế:</span>
-              <div className="ocr-samples-list">
-                {SAMPLE_RECEIPTS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className="ocr-sample-chip"
-                    onClick={() => handleSelectSample(s)}
-                  >
-                    📑 {s.title}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Cột phải: Kết quả trích xuất OCR */}
           <div className="ocr-result-column">
-            <h4>📋 Dữ liệu AI/OCR trích xuất được</h4>
+            <div className="ocr-result-header">
+              <IconFileText size={18} strokeWidth={2} />
+              <h4>Dữ liệu AI/OCR trích xuất được</h4>
+            </div>
             {!result ? (
               <div className="ocr-empty-result">
                 {isScanning ? (
@@ -204,7 +210,7 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                   </div>
                 ) : (
                   <p className="ocr-hint-text">
-                    👈 Hãy chọn ảnh hóa đơn vật tư hoặc bấm vào một trong các hóa đơn mẫu bên cạnh để xem kết quả trích xuất.
+                    Hãy chọn ảnh hóa đơn vật tư hoặc bấm vào một trong các hóa đơn mẫu bên cạnh để xem kết quả trích xuất.
                   </p>
                 )}
               </div>
@@ -213,11 +219,19 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                 <div className="ocr-field-group">
                   <label>Loại hoạt động:</label>
                   <span className="ocr-badge">
-                    {result.activityType === 'BON_PHAN'
-                      ? '🌿 Bón phân'
-                      : result.activityType === 'PHUN_THUOC'
-                      ? '🛡️ Phun thuốc BVTV'
-                      : '🧺 Thu hoạch nông sản'}
+                    {result.activityType === 'BON_PHAN' ? (
+                      <>
+                        <IconLeaf size={14} strokeWidth={2} /> Bón phân
+                      </>
+                    ) : result.activityType === 'PHUN_THUOC' ? (
+                      <>
+                        <IconFlask size={14} strokeWidth={2} /> Phun thuốc BVTV
+                      </>
+                    ) : (
+                      <>
+                        <IconSprout size={14} strokeWidth={2} /> Thu hoạch nông sản
+                      </>
+                    )}
                   </span>
                 </div>
 
@@ -314,7 +328,8 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
 
                 <div className="ocr-action-footer">
                   <button className="ocr-btn-apply" onClick={handleApply}>
-                    ✅ Áp dụng vào Form Nhật Ký
+                    <IconCheckCircle size={16} strokeWidth={2.4} />
+                    <span>Áp dụng vào Form Nhật Ký</span>
                   </button>
                 </div>
               </div>

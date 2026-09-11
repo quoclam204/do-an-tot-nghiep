@@ -164,7 +164,7 @@ function FarmsTab() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingFarm, setEditingFarm] = useState(null);
-    const [form, setForm] = useState({ name: '', location: '', totalArea: '' });
+    const [form, setForm] = useState({ name: '', location: '', totalArea: '', unit: 'ha' });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
@@ -176,7 +176,7 @@ function FarmsTab() {
         try {
             setLoading(true);
             const data = await apiGetMyFarms();
-            setFarms(data);
+            setFarms(data || []);
         } catch {
             setError('Không thể tải danh sách nông hộ');
         } finally {
@@ -186,13 +186,13 @@ function FarmsTab() {
 
     const openCreate = () => {
         setEditingFarm(null);
-        setForm({ name: '', location: '', totalArea: '' });
+        setForm({ name: '', location: '', totalArea: '', unit: 'ha' });
         setShowForm(true);
     };
 
     const openEdit = (farm) => {
         setEditingFarm(farm);
-        setForm({ name: farm.name, location: farm.location, totalArea: String(farm.totalArea) });
+        setForm({ name: farm.name, location: farm.location, totalArea: String(farm.totalArea), unit: farm.unit || 'ha' });
         setShowForm(true);
     };
 
@@ -200,7 +200,12 @@ function FarmsTab() {
         e.preventDefault();
         setSaving(true);
         try {
-            const payload = { ...form, totalArea: Number(form.totalArea) };
+            const payload = {
+                name: form.name.trim(),
+                location: form.location.trim(),
+                totalArea: Number(form.totalArea),
+                unit: form.unit || 'ha',
+            };
             if (editingFarm) {
                 await apiUpdateFarm(editingFarm.id, payload);
             } else {
@@ -264,23 +269,42 @@ function FarmsTab() {
                                     value={form.location}
                                     onChange={(e) => setForm({ ...form, location: e.target.value })}
                                     className="form-input"
-                                    placeholder="VD: Xã Lát, huyện Lạc Dương, Lâm Đồng"
+                                    placeholder="VD: Huyện Cư M'gar, Đắk Lắk hoặc Di Linh, Lâm Đồng..."
                                     required
                                 />
                             </div>
                             <div className="form-group">
-                                <label htmlFor="farm-area">Tổng diện tích (ha)</label>
-                                <input
-                                    id="farm-area"
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={form.totalArea}
-                                    onChange={(e) => setForm({ ...form, totalArea: e.target.value })}
-                                    className="form-input"
-                                    placeholder="VD: 2.5"
-                                    required
-                                />
+                                <label htmlFor="farm-area">Tổng diện tích nông hộ</label>
+                                <div style={{ display: 'flex', alignItems: 'stretch' }}>
+                                    <input
+                                        id="farm-area"
+                                        type="number"
+                                        step="any"
+                                        min="0"
+                                        value={form.totalArea}
+                                        onChange={(e) => setForm({ ...form, totalArea: e.target.value })}
+                                        className="form-input"
+                                        placeholder={form.unit === 'ha' ? 'VD: 2.5 (hecta)' : 'VD: 25000 (m²)'}
+                                        required
+                                        style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 'none', flex: 1 }}
+                                    />
+                                    <select
+                                        value={form.unit}
+                                        onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                                        className="form-input"
+                                        style={{ width: '130px', borderTopLeftRadius: 0, borderBottomLeftRadius: 0, background: '#f0fdf4', color: '#15803d', fontWeight: 700, cursor: 'pointer' }}
+                                    >
+                                        <option value="ha">ha (Hecta)</option>
+                                        <option value="m2">m² (Mét vuông)</option>
+                                    </select>
+                                </div>
+                                {Number(form.totalArea) > 0 && (
+                                    <div style={{ fontSize: '0.82rem', color: '#15803d', fontWeight: 600, background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: '8px', padding: '0.4rem 0.75rem', marginTop: '0.45rem' }}>
+                                        💡 Quy đổi: {form.unit === 'ha'
+                                            ? `${form.totalArea} ha = ${new Intl.NumberFormat('vi-VN').format(Math.round(Number(form.totalArea) * 10000))} m²`
+                                            : `${new Intl.NumberFormat('vi-VN').format(Number(form.totalArea))} m² = ${(Number(form.totalArea) / 10000).toFixed(4)} ha`}
+                                    </div>
+                                )}
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="btn-ghost" onClick={() => setShowForm(false)}>
@@ -330,9 +354,14 @@ function FarmsTab() {
                                 <IconMapPin size={15} /> {farm.location}
                             </p>
                             <div className="farm-stats">
-                                <div className="farm-stat">
+                                <div className="farm-stat" title="1 ha = 10.000 m²">
                                     <span className="stat-label">Diện tích</span>
-                                    <span className="stat-value">{farm.totalArea} ha</span>
+                                    <span className="stat-value">
+                                        {farm.totalArea} ha
+                                        <small style={{ display: 'block', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
+                                            ({new Intl.NumberFormat('vi-VN').format(Math.round(farm.totalArea * 10000))} m²)
+                                        </small>
+                                    </span>
                                 </div>
                                 <div className="farm-stat">
                                     <span className="stat-label">Khu đất</span>

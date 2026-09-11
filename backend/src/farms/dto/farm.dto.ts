@@ -12,6 +12,10 @@ export class CreateFarmDto {
   @IsNumber({}, { message: 'Diện tích phải là số' })
   @Min(0, { message: 'Diện tích phải lớn hơn 0' })
   totalArea: number;
+
+  @IsOptional()
+  @IsString()
+  unit?: string; // 'ha' | 'm2' | 'm²'
 }
 
 export class UpdateFarmDto {
@@ -27,4 +31,8 @@ export class UpdateFarmDto {
   @IsNumber()
   @Min(0)
   totalArea?: number;
+
+  @IsOptional()
+  @IsString()
+  unit?: string; // 'ha' | 'm2' | 'm²'
 }

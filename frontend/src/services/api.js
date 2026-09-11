@@ -25,6 +25,12 @@ export const apiLogin = async (data) => {
     return response.data;
 };
 
+/** Đăng nhập hoặc đăng ký bằng Google */
+export const apiGoogleLogin = async (credential) => {
+    const response = await api.post('/auth/google', { credential });
+    return response.data;
+};
+
 /** Quên mật khẩu */
 export const apiForgotPassword = async (email) => {
     const response = await api.post('/auth/forgot-password', { email });
@@ -147,6 +153,36 @@ export const apiGetCrops = async () => {
     return response.data;
 };
 
+/** Tạo cây trồng mới */
+export const apiCreateCrop = async (data) => {
+    const response = await api.post('/catalog/crops', data);
+    return response.data;
+};
+
+/** Cập nhật cây trồng */
+export const apiUpdateCrop = async (id, data) => {
+    const response = await api.patch(`/catalog/crops/${id}`, data);
+    return response.data;
+};
+
+/** Xóa cây trồng */
+export const apiDeleteCrop = async (id) => {
+    const response = await api.delete(`/catalog/crops/${id}`);
+    return response.data;
+};
+
+/** Lấy danh sách chu kỳ sinh trưởng */
+export const apiGetGrowthCycles = async () => {
+    const response = await api.get('/catalog/growth-cycles');
+    return response.data;
+};
+
+/** Tạo chu kỳ sinh trưởng mới */
+export const apiCreateGrowthCycle = async (data) => {
+    const response = await api.post('/catalog/growth-cycles', data);
+    return response.data;
+};
+
 /** Lấy danh sách mùa vụ / chu kỳ canh tác */
 export const apiGetSeasons = async () => {
     const response = await api.get('/catalog/seasons');
@@ -159,6 +195,18 @@ export const apiCreateSeason = async (data) => {
     return response.data;
 };
 
+/** Cập nhật mùa vụ */
+export const apiUpdateSeason = async (id, data) => {
+    const response = await api.patch(`/catalog/seasons/${id}`, data);
+    return response.data;
+};
+
+/** Xóa mùa vụ */
+export const apiDeleteSeason = async (id) => {
+    const response = await api.delete(`/catalog/seasons/${id}`);
+    return response.data;
+};
+
 /** Lấy danh mục vật tư (phân bón, thuốc BVTV) */
 export const apiGetMaterials = async () => {
     const response = await api.get('/catalog/materials');
@@ -168,6 +216,43 @@ export const apiGetMaterials = async () => {
 /** Tạo vật tư mới */
 export const apiCreateMaterial = async (data) => {
     const response = await api.post('/catalog/materials', data);
+    return response.data;
+};
+
+/** Cập nhật vật tư */
+export const apiUpdateMaterial = async (id, data) => {
+    const response = await api.patch(`/catalog/materials/${id}`, data);
+    return response.data;
+};
+
+/** Xóa vật tư */
+export const apiDeleteMaterial = async (id) => {
+    const response = await api.delete(`/catalog/materials/${id}`);
+    return response.data;
+};
+
+// ── Tồn kho (Inventory) APIs ──────────────────────────────────
+/** Lấy danh sách tồn kho */
+export const apiGetInventory = async (farmId) => {
+    const response = await api.get('/catalog/inventory', { params: farmId ? { farmId } : {} });
+    return response.data;
+};
+
+/** Nhập kho vật tư */
+export const apiCreateInventory = async (data) => {
+    const response = await api.post('/catalog/inventory', data);
+    return response.data;
+};
+
+/** Cập nhật tồn kho / điều chỉnh */
+export const apiUpdateInventory = async (id, data) => {
+    const response = await api.patch(`/catalog/inventory/${id}`, data);
+    return response.data;
+};
+
+/** Xóa bản ghi tồn kho */
+export const apiDeleteInventory = async (id) => {
+    const response = await api.delete(`/catalog/inventory/${id}`);
     return response.data;
 };
 
@@ -195,7 +280,7 @@ export const apiGetFinancialReport = async (cropCycleId) => {
     return response.data;
 };
 
-/** Seed dữ liệu đặc thù Lâm Đồng (Cà phê, Sầu riêng, Mắc-ca & Phân thuốc) */
+/** Seed dữ liệu mẫu cây trồng lâu năm, vật tư & phân thuốc phổ biến */
 export const apiSeedLamDong = async () => {
     const response = await api.post('/catalog/seed-lamdong');
     return response.data;

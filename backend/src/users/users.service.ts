@@ -96,6 +96,43 @@ export class UsersService {
     });
   }
 
+  /** Tìm hoặc tạo người dùng từ Google payload */
+  async findOrCreateGoogleUser(payload: { email: string; name?: string }) {
+    const email = payload.email.trim().toLowerCase();
+    let user = await this.prisma.user.findFirst({
+      where: { email, deletedAt: null },
+    });
+
+    if (user) {
+      if (!user.isActive) {
+        throw new UnauthorizedException('Tài khoản này đã bị vô hiệu hóa');
+      }
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: true,
+          failedLoginAttempts: 0,
+          lastLoginAt: new Date(),
+        },
+      });
+      return user;
+    }
+
+    const randomPassword = randomBytes(32).toString('hex');
+    const passwordHash = await this.hashPassword(randomPassword);
+
+    return this.prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        fullName: (payload.name && payload.name.trim()) || 'Người dùng Google',
+        role: UserRole.OWNER,
+        emailVerified: true,
+        lastLoginAt: new Date(),
+      },
+    });
+  }
+
   /** Cập nhật thông tin cá nhân (chỉ owner hoặc ADMIN) */
   async updateProfile(id: string, dto: UpdateUserDto) {
     const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });

@@ -336,7 +336,7 @@ function CatalogPanel({ user, initialTab = "crops" }) {
                 onChange={(e) =>
                   setFarmForm({ ...farmForm, location: e.target.value })
                 }
-                placeholder="Đà Lạt"
+                placeholder="VD: Đắk Lắk, Lâm Đồng, Tiền Giang..."
               />
             </label>
             <label>

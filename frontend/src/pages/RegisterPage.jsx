@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { apiRegister } from '../services/api';
+import { apiRegister, apiGoogleLogin } from '../services/api';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 import { IconEye, IconEyeOff } from '../components/icons';
 import './AuthPage.css';
 
@@ -35,6 +36,20 @@ function RegisterPage() {
             navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credential) => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await apiGoogleLogin(credential);
+            login(res.accessToken, res.user);
+            navigate('/');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Đăng ký bằng Google thất bại');
         } finally {
             setLoading(false);
         }
@@ -197,6 +212,16 @@ function RegisterPage() {
                             )}
                         </button>
                     </form>
+
+                    <div className="auth-divider">
+                        <span>Hoặc tiếp tục với</span>
+                    </div>
+
+                    <GoogleLoginButton
+                        isRegister
+                        onSuccess={handleGoogleSuccess}
+                        onError={(msg) => setError(msg)}
+                    />
 
                     <p className="auth-switch-text">
                         Đã có tài khoản?{' '}

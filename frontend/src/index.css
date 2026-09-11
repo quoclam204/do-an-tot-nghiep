@@ -52,6 +52,17 @@
 
 body {
   margin: 0;
+  width: 100%;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Vô hiệu hóa nút con mắt mặc định của trình duyệt (Edge/IE) để tránh đè với icon ứng dụng */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 #root {
@@ -103,4 +114,10 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* Đảm bảo các input/select co giãn linh hoạt, không bị vỡ layout khi nội dung dài */
+input, select, textarea {
+  box-sizing: border-box;
+  max-width: 100%;
 }
