@@ -119,3 +119,28 @@
   color: #dc2626;
   border-color: #fca5a5;
 }
+
+/* ── Mobile Responsive for Harvest ── */
+@media (max-width: 768px) {
+  .harvest-main {
+    padding-top: 1rem !important;
+    padding-bottom: 90px !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .harvest-table {
+    min-width: 580px !important;
+  }
+
+  .delete-action-btn {
+    min-width: 40px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

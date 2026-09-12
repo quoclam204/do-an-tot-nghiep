@@ -368,9 +368,8 @@ export default function FarmingLogPage() {
             </div>
           </div>
           <span
-            className={`kpi-value ${
-              (financials?.netProfit || 0) >= 0 ? 'text-green' : 'text-red'
-            }`}
+            className={`kpi-value ${(financials?.netProfit || 0) >= 0 ? 'text-green' : 'text-red'
+              }`}
           >
             {(financials?.netProfit || 0).toLocaleString()} <small>đ</small>
           </span>
