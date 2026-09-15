@@ -15,12 +15,15 @@ import {
   IconClock,
   IconMapPin,
   IconWarehouse,
+  IconCircleDollar,
+  IconTrendingUp,
 } from '../components/icons';
 import {
   apiGetSeasons,
   apiCreateSeason,
   apiGetCrops,
   apiGetGrowthCycles,
+  apiGetSeasonFinancialSummary,
 } from '../services/api';
 import { api } from '../services/api';
 import './SeasonsPage.css';
@@ -38,6 +41,7 @@ const emptyForm = {
   name: '',
   startDate: '',
   expectedEndDate: '',
+  isIntercropped: false,
 };
 
 export default function SeasonsPage() {
@@ -52,6 +56,11 @@ export default function SeasonsPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  // Báo cáo tài chính & kinh tế vụ mùa
+  const [financeModalOpen, setFinanceModalOpen] = useState(false);
+  const [selectedSeasonData, setSelectedSeasonData] = useState(null);
+  const [financeLoading, setFinanceLoading] = useState(false);
 
   const loadData = async () => {
     try {
@@ -140,8 +149,23 @@ export default function SeasonsPage() {
       name: item.name,
       startDate: item.startDate?.slice(0, 10) || '',
       expectedEndDate: item.expectedEndDate?.slice(0, 10) || '',
+      isIntercropped: Boolean(item.isIntercropped),
     });
     setShowModal(true);
+  };
+
+  const handleOpenFinanceModal = async (season) => {
+    try {
+      setFinanceLoading(true);
+      setFinanceModalOpen(true);
+      const data = await apiGetSeasonFinancialSummary(season.id);
+      setSelectedSeasonData(data);
+    } catch (err) {
+      alert('Lỗi tải báo cáo kinh tế mùa vụ: ' + (err.response?.data?.message || err.message));
+      setFinanceModalOpen(false);
+    } finally {
+      setFinanceLoading(false);
+    }
   };
 
   const closeModal = () => {
@@ -324,7 +348,12 @@ export default function SeasonsPage() {
                   <div className="season-card" key={season.id}>
                     <div className="season-card-top">
                       <div className="season-card-info">
-                        <h3>{season.name}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <h3>{season.name}</h3>
+                          {season.isIntercropped && (
+                            <span className="season-intercrop-tag">🌿 Xen canh</span>
+                          )}
+                        </div>
                         <div className="season-card-meta">
                           <IconSprout size={14} strokeWidth={2} />
                           <span>{season.crop?.name || '—'}</span>
@@ -383,6 +412,14 @@ export default function SeasonsPage() {
 
                     {/* Actions */}
                     <div className="season-card-actions">
+                      <button
+                        className="btn-season-finance"
+                        onClick={() => handleOpenFinanceModal(season)}
+                        title="Xem thống kê vốn đầu tư, tiền nhân công thuê, doanh thu & lợi nhuận"
+                      >
+                        <IconCircleDollar size={15} strokeWidth={2.2} />
+                        <span>Báo cáo kinh tế</span>
+                      </button>
                       <button className="btn-season-edit" onClick={() => openEditModal(season)}>
                         <IconPenLine size={14} strokeWidth={2} />
                         Sửa
@@ -503,6 +540,21 @@ export default function SeasonsPage() {
                     />
                   </div>
                 </div>
+
+                {/* Tùy chọn trồng xen canh */}
+                <div style={{ background: '#f0fdf4', padding: '12px 14px', borderRadius: '8px', border: '1px solid #bbf7d0', marginTop: '10px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: '600', color: '#166534', margin: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={form.isIntercropped}
+                      onChange={(e) => setForm({ ...form, isIntercropped: e.target.checked })}
+                    />
+                    <span>🌿 Trồng xen canh trên lô đất này (Ví dụ: Cà phê xen Sầu riêng)</span>
+                  </label>
+                  <small style={{ color: '#15803d', display: 'block', marginTop: '4px', fontSize: '0.82rem' }}>
+                    Cho phép tạo nhiều vụ mùa cho các loại cây khác nhau cùng hoạt động song song trên một Lô đất mà không bị báo trùng lịch.
+                  </small>
+                </div>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn-modal-cancel" onClick={closeModal}>
@@ -514,6 +566,198 @@ export default function SeasonsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL BÁO CÁO KINH TẾ & HIỆU QUẢ VỤ MÙA */}
+      {financeModalOpen && (
+        <div className="seasons-modal-overlay" onClick={() => setFinanceModalOpen(false)}>
+          <div className="seasons-modal finance-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <IconCircleDollar size={20} strokeWidth={2} />
+                Báo Cáo Kinh Tế & Hiệu Quả Vụ Mùa
+              </h3>
+              <button className="modal-close-btn" onClick={() => setFinanceModalOpen(false)}>
+                <IconX size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div className="modal-body finance-modal-body">
+              {financeLoading || !selectedSeasonData ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+                  <div className="plots-spinner" style={{ margin: '0 auto 12px' }} />
+                  <p>Đang tổng hợp dữ liệu chi phí, nhân công và doanh thu vụ mùa...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="finance-season-header">
+                    <div>
+                      <h2>{selectedSeasonData.season?.name}</h2>
+                      <div className="finance-meta-tags">
+                        <span>🌱 Cây trồng: <strong>{selectedSeasonData.season?.cropName}</strong></span>
+                        <span>•</span>
+                        <span>📍 Lô: <strong>{selectedSeasonData.season?.plotName}</strong> ({selectedSeasonData.season?.farmName})</span>
+                        {selectedSeasonData.season?.isIntercropped && (
+                          <>
+                            <span>•</span>
+                            <span style={{ color: '#15803d', fontWeight: '600' }}>🌿 Trồng xen canh</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 4 THẺ KPI CHÍNH */}
+                  <div className="finance-kpi-grid">
+                    <div className="finance-kpi-card cost">
+                      <span className="kpi-label">Tổng vốn đầu tư vụ mùa</span>
+                      <span className="kpi-value">
+                        {selectedSeasonData.summary?.totalInvestment.toLocaleString()} <small>VNĐ</small>
+                      </span>
+                      <span className="kpi-sub">
+                        Vật tư: {selectedSeasonData.summary?.totalMaterialCost.toLocaleString()} đ | Khác: {selectedSeasonData.summary?.totalOtherCosts.toLocaleString()} đ
+                      </span>
+                    </div>
+
+                    <div className="finance-kpi-card labor">
+                      <span className="kpi-label">Thuê nhân công ngoài?</span>
+                      <span className="kpi-value">
+                        {selectedSeasonData.summary?.hasHiredLabor ? 'CÓ THUÊ' : 'TỰ LÀM'}
+                      </span>
+                      <span className="kpi-sub">
+                        {selectedSeasonData.summary?.hasHiredLabor
+                          ? `${selectedSeasonData.summary?.totalWorkers} ngày công • ${selectedSeasonData.summary?.totalLaborCost.toLocaleString()} VNĐ`
+                          : 'Không phát sinh tiền công thuê ngoài'}
+                      </span>
+                    </div>
+
+                    <div className="finance-kpi-card revenue">
+                      <span className="kpi-label">Tổng doanh thu bán hàng</span>
+                      <span className="kpi-value">
+                        {selectedSeasonData.summary?.totalRevenue.toLocaleString()} <small>VNĐ</small>
+                      </span>
+                      <span className="kpi-sub">
+                        Sản lượng thu hoạch: {selectedSeasonData.summary?.totalHarvestQty.toLocaleString()} kg
+                      </span>
+                    </div>
+
+                    <div className={`finance-kpi-card profit ${selectedSeasonData.summary?.isProfitable ? 'positive' : 'negative'}`}>
+                      <span className="kpi-label">Lợi nhuận ròng</span>
+                      <span className="kpi-value">
+                        {selectedSeasonData.summary?.netProfit > 0 ? '+' : ''}
+                        {selectedSeasonData.summary?.netProfit.toLocaleString()} <small>VNĐ</small>
+                      </span>
+                      <span className="kpi-sub">
+                        ROI: {selectedSeasonData.summary?.roiPercentage}% • {selectedSeasonData.summary?.isProfitable ? 'Có lãi' : 'Đang đầu tư / Chưa hòa vốn'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* CHI TIẾT VẬT TƯ ĐÃ DÙNG */}
+                  <div className="finance-section-block">
+                    <h4>📦 Chi phí vật tư đã xuất dùng (Phân bón, Thuốc BVTV, Giống)</h4>
+                    {selectedSeasonData.materialsUsed?.length === 0 ? (
+                      <p className="no-data-hint">Chưa ghi nhận vật tư nào xuất dùng trong vụ mùa này.</p>
+                    ) : (
+                      <div className="finance-table-wrap">
+                        <table className="finance-table">
+                          <thead>
+                            <tr>
+                              <th>Tên vật tư</th>
+                              <th>Loại</th>
+                              <th>Số lượng đã dùng</th>
+                              <th style={{ textAlign: 'right' }}>Thành tiền (VNĐ)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedSeasonData.materialsUsed?.map((m, idx) => (
+                              <tr key={idx}>
+                                <td><strong>{m.name}</strong></td>
+                                <td><span className="badge-type">{m.type}</span></td>
+                                <td>{m.quantity.toLocaleString()} {m.unit}</td>
+                                <td style={{ textAlign: 'right', fontWeight: '600' }}>{m.cost.toLocaleString()} đ</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CHI TIẾT NHÂN CÔNG */}
+                  {selectedSeasonData.laborLogs?.length > 0 && (
+                    <div className="finance-section-block">
+                      <h4>👷 Chi tiết các đợt thuê nhân công ngoài</h4>
+                      <div className="finance-table-wrap">
+                        <table className="finance-table">
+                          <thead>
+                            <tr>
+                              <th>Ngày làm</th>
+                              <th>Công việc</th>
+                              <th>Số nhân công</th>
+                              <th>Tiền công / người / ngày</th>
+                              <th style={{ textAlign: 'right' }}>Tổng tiền công</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedSeasonData.laborLogs.map((l) => (
+                              <tr key={l.id}>
+                                <td>{new Date(l.date).toLocaleDateString('vi-VN')}</td>
+                                <td><strong>{l.activityType}</strong></td>
+                                <td>{l.workers} người</td>
+                                <td>{l.wagePerDay.toLocaleString()} đ</td>
+                                <td style={{ textAlign: 'right', fontWeight: '700', color: '#b45309' }}>
+                                  {l.totalCost.toLocaleString()} đ
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* CHI TIẾT THU HOẠCH */}
+                  {selectedSeasonData.harvestLogs?.length > 0 && (
+                    <div className="finance-section-block">
+                      <h4>🌾 Chi tiết các đợt thu hoạch & Doanh thu bán hàng</h4>
+                      <div className="finance-table-wrap">
+                        <table className="finance-table">
+                          <thead>
+                            <tr>
+                              <th>Ngày thu hoạch</th>
+                              <th>Sản lượng</th>
+                              <th>Đơn giá bán</th>
+                              <th style={{ textAlign: 'right' }}>Doanh thu</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedSeasonData.harvestLogs.map((h) => (
+                              <tr key={h.id}>
+                                <td>{new Date(h.date).toLocaleDateString('vi-VN')}</td>
+                                <td><strong>{h.quantity.toLocaleString()} kg</strong></td>
+                                <td>{h.unitPrice.toLocaleString()} đ/kg</td>
+                                <td style={{ textAlign: 'right', fontWeight: '700', color: '#15803d' }}>
+                                  {h.revenue.toLocaleString()} đ
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button type="button" className="btn-modal-cancel" onClick={() => setFinanceModalOpen(false)}>
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

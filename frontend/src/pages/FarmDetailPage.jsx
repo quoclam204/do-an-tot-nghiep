@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { apiGetFarm, apiCreatePlot, apiDeletePlot, apiUpdatePlot } from "../services/api";
+import {
+  apiGetFarm,
+  apiCreatePlot,
+  apiDeletePlot,
+  apiUpdatePlot,
+  apiAddFarmMember,
+  apiRemoveFarmMember,
+} from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import {
@@ -14,6 +21,8 @@ import {
   IconSprout,
   IconX,
   IconCheckCircle,
+  IconUsers,
+  IconUserPlus,
 } from "../components/icons";
 import "./FarmDetailPage.css";
 
@@ -30,10 +39,22 @@ export default function FarmDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [activeTab, setActiveTab] = useState("plots"); // "plots" | "members"
+
   const [showPlotModal, setShowPlotModal] = useState(false);
   const [editingPlot, setEditingPlot] = useState(null);
   const [plotForm, setPlotForm] = useState({ name: "", area: "", unit: "ha" });
   const [saving, setSaving] = useState(false);
+
+  // Quản lý thành viên nông hộ
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [memberForm, setMemberForm] = useState({
+    emailOrPhone: "",
+    role: "WORKER",
+    canEditLog: true,
+    canManageInventory: true,
+  });
+  const [savingMember, setSavingMember] = useState(false);
 
   useEffect(() => {
     loadFarm();
@@ -139,6 +160,37 @@ export default function FarmDetailPage() {
     }
   };
 
+  const handleSaveMember = async (e) => {
+    e.preventDefault();
+    if (!memberForm.emailOrPhone.trim()) return alert("Vui lòng nhập email hoặc số điện thoại của nông dân!");
+    setSavingMember(true);
+    try {
+      await apiAddFarmMember(id, memberForm);
+      setShowMemberModal(false);
+      setMemberForm({
+        emailOrPhone: "",
+        role: "WORKER",
+        canEditLog: true,
+        canManageInventory: true,
+      });
+      loadFarm();
+    } catch (err) {
+      alert("Lỗi thêm nông dân: " + (err.response?.data?.message || err.message));
+    } finally {
+      setSavingMember(false);
+    }
+  };
+
+  const handleDeleteMember = async (memberId, memberName) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa tài khoản nông dân "${memberName || 'thành viên'}" khỏi trang trại này?`)) return;
+    try {
+      await apiRemoveFarmMember(id, memberId);
+      loadFarm();
+    } catch (err) {
+      alert("Lỗi xóa thành viên: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   if (loading) {
     return (
       <div className="farm-detail-page-container">
@@ -225,14 +277,28 @@ export default function FarmDetailPage() {
                     <IconSprout size={15} strokeWidth={2} />
                     <span>Tổng: <strong>{plots.length} lô đất</strong></span>
                   </span>
+                  <span className="meta-dot">•</span>
+                  <span className="meta-item">
+                    <IconUsers size={15} strokeWidth={2} />
+                    <span>Nông dân phụ trách: <strong>{(farm.members || []).length || 1} người</strong></span>
+                  </span>
                 </div>
               </div>
             </div>
 
-            <button className="add-plot-btn" onClick={openAddModal}>
-              <IconPlus size={18} strokeWidth={2.4} />
-              <span>Thêm Lô Trồng Mới</span>
-            </button>
+            <div className="farm-header-actions-group">
+              {activeTab === "plots" ? (
+                <button className="add-plot-btn" onClick={openAddModal}>
+                  <IconPlus size={18} strokeWidth={2.4} />
+                  <span>Thêm Lô Trồng Mới</span>
+                </button>
+              ) : (
+                <button className="add-plot-btn member-btn" onClick={() => setShowMemberModal(true)}>
+                  <IconUserPlus size={18} strokeWidth={2.4} />
+                  <span>Thêm Nông Dân Vào Vườn</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Allocation Details Card */}
@@ -294,79 +360,181 @@ export default function FarmDetailPage() {
           </div>
         </section>
 
-        {/* Plots List Section */}
-        <section className="plots-list-section">
-          <div className="plots-section-title-row">
-            <div>
-              <h2>Danh Sách Các Lô Đất Canh Tác</h2>
-              <p className="section-subtitle">
-                Mỗi lô đất tương ứng với một khu vườn chuyên canh cây dài ngày để áp dụng quy trình và hạch toán kinh tế riêng.
-              </p>
-            </div>
-            <span className="plots-count-badge">{plots.length} Lô đất</span>
-          </div>
+        {/* Navigation Tabs */}
+        <div className="farm-detail-nav-tabs">
+          <button
+            type="button"
+            className={`farm-nav-tab-btn ${activeTab === "plots" ? "active" : ""}`}
+            onClick={() => setActiveTab("plots")}
+          >
+            <IconSprout size={18} strokeWidth={2} />
+            <span>Lô Đất Canh Tác ({plots.length})</span>
+          </button>
+          <button
+            type="button"
+            className={`farm-nav-tab-btn ${activeTab === "members" ? "active" : ""}`}
+            onClick={() => setActiveTab("members")}
+          >
+            <IconUsers size={18} strokeWidth={2} />
+            <span>Nông Dân Phụ Trách ({(farm.members || []).length || 1})</span>
+          </button>
+        </div>
 
-          {plots.length === 0 ? (
-            <div className="plots-empty-state">
-              <div className="empty-icon-wrap">
-                <IconSprout size={44} strokeWidth={1.8} />
+        {/* Plots List Section */}
+        {activeTab === "plots" && (
+          <section className="plots-list-section">
+            <div className="plots-section-title-row">
+              <div>
+                <h2>Danh Sách Các Lô Đất Canh Tác</h2>
+                <p className="section-subtitle">
+                  Mỗi lô đất tương ứng với một khu vườn chuyên canh cây dài ngày để áp dụng quy trình và hạch toán kinh tế riêng.
+                </p>
               </div>
-              <h3>Chưa có lô trồng nào trong nông hộ này</h3>
-              <p>Phân chia các lô đất (Lô Cà phê, Lô Sầu riêng, Lô Mắc ca) để bắt đầu ghi nhật ký mùa vụ.</p>
-              <button className="add-plot-btn" onClick={openAddModal}>
-                <IconPlus size={18} strokeWidth={2.4} />
-                <span>Thêm Lô Đất Đầu Tiên</span>
+              <span className="plots-count-badge">{plots.length} Lô đất</span>
+            </div>
+
+            {plots.length === 0 ? (
+              <div className="plots-empty-state">
+                <div className="empty-icon-wrap">
+                  <IconSprout size={44} strokeWidth={1.8} />
+                </div>
+                <h3>Chưa có lô trồng nào trong nông hộ này</h3>
+                <p>Phân chia các lô đất (Lô Cà phê, Lô Sầu riêng, Lô Mắc ca) để bắt đầu ghi nhật ký mùa vụ.</p>
+                <button className="add-plot-btn" onClick={openAddModal}>
+                  <IconPlus size={18} strokeWidth={2.4} />
+                  <span>Thêm Lô Đất Đầu Tiên</span>
+                </button>
+              </div>
+            ) : (
+              <div className="plots-grid-layout">
+                {plots.map((plot) => (
+                  <div key={plot.id} className="plot-card-box">
+                    <div className="plot-card-top">
+                      <div className="plot-icon-box">
+                        <IconSprout size={22} strokeWidth={2} />
+                      </div>
+                      <div className="plot-actions-box">
+                        <button
+                          className="btn-icon-action edit"
+                          onClick={() => openEditModal(plot)}
+                          title="Chỉnh sửa lô đất"
+                        >
+                          <IconPenLine size={16} strokeWidth={2} />
+                        </button>
+                        <button
+                          className="btn-icon-action delete"
+                          onClick={() => handleDeletePlot(plot.id, plot.name)}
+                          title="Xóa lô đất"
+                        >
+                          <IconTrash size={16} strokeWidth={2} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <h3 className="plot-box-title">{plot.name}</h3>
+
+                    <div className="plot-area-badge" title="1 ha = 10.000 m²">
+                      <IconRuler size={14} strokeWidth={2} />
+                      <span>
+                        Diện tích: <strong>{plot.area} ha</strong>
+                        <small style={{ color: "#64748b", marginLeft: "4px" }}>
+                          ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
+                        </small>
+                      </span>
+                    </div>
+
+                    <div className="plot-card-footer">
+                      <Link to="/dashboard" className="plot-link-journal">
+                        <span>Xem nhật ký lô này</span>
+                        <IconSprout size={14} strokeWidth={2} />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Members List Section */}
+        {activeTab === "members" && (
+          <section className="members-list-section">
+            <div className="plots-section-title-row">
+              <div>
+                <h2>Nông Dân & Người Phụ Trách Trang Trại</h2>
+                <p className="section-subtitle">
+                  Một trang trại có thể có nhiều tài khoản người nông dân cùng tham gia cập nhật nhật ký canh tác và quản lý kho vật tư.
+                </p>
+              </div>
+              <button className="add-plot-btn member-btn" onClick={() => setShowMemberModal(true)}>
+                <IconUserPlus size={18} strokeWidth={2.4} />
+                <span>Thêm Nông Dân Mới</span>
               </button>
             </div>
-          ) : (
-            <div className="plots-grid-layout">
-              {plots.map((plot) => (
-                <div key={plot.id} className="plot-card-box">
-                  <div className="plot-card-top">
-                    <div className="plot-icon-box">
-                      <IconSprout size={22} strokeWidth={2} />
+
+            <div className="members-grid-layout">
+              {/* Chủ sở hữu gốc */}
+              {farm.user && (
+                <div className="member-card-box owner">
+                  <div className="member-card-top">
+                    <div className="member-avatar owner">
+                      {farm.user.fullName?.charAt(0)?.toUpperCase() || "C"}
                     </div>
-                    <div className="plot-actions-box">
-                      <button
-                        className="btn-icon-action edit"
-                        onClick={() => openEditModal(plot)}
-                        title="Chỉnh sửa lô đất"
-                      >
-                        <IconPenLine size={16} strokeWidth={2} />
-                      </button>
-                      <button
-                        className="btn-icon-action delete"
-                        onClick={() => handleDeletePlot(plot.id, plot.name)}
-                        title="Xóa lô đất"
-                      >
-                        <IconTrash size={16} strokeWidth={2} />
-                      </button>
-                    </div>
+                    <span className="member-role-badge owner">Chủ Trang Trại</span>
                   </div>
-
-                  <h3 className="plot-box-title">{plot.name}</h3>
-
-                  <div className="plot-area-badge" title="1 ha = 10.000 m²">
-                    <IconRuler size={14} strokeWidth={2} />
-                    <span>
-                      Diện tích: <strong>{plot.area} ha</strong>
-                      <small style={{ color: "#64748b", marginLeft: "4px" }}>
-                        ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
-                      </small>
-                    </span>
+                  <h3 className="member-name">{farm.user.fullName}</h3>
+                  <div className="member-contact-info">
+                    <span>📧 {farm.user.email}</span>
+                    {farm.user.phone && <span>📞 {farm.user.phone}</span>}
                   </div>
-
-                  <div className="plot-card-footer">
-                    <Link to="/dashboard" className="plot-link-journal">
-                      <span>Xem nhật ký lô này</span>
-                      <IconSprout size={14} strokeWidth={2} />
-                    </Link>
+                  <div className="member-permissions-tags">
+                    <span className="perm-tag success">✓ Toàn quyền quản lý & sở hữu</span>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Các thành viên được mời / thêm vào */}
+              {(farm.members || [])
+                .filter((m) => m.userId !== farm.userId)
+                .map((m) => (
+                  <div key={m.id} className="member-card-box">
+                    <div className="member-card-top">
+                      <div className="member-avatar worker">
+                        {m.user?.fullName?.charAt(0)?.toUpperCase() || "N"}
+                      </div>
+                      <div className="member-actions-top">
+                        <span className={`member-role-badge ${m.role.toLowerCase()}`}>
+                          {m.role === 'MANAGER' ? 'Quản lý vườn' : 'Nông dân làm vườn'}
+                        </span>
+                        <button
+                          className="btn-icon-action delete"
+                          onClick={() => handleDeleteMember(m.id, m.user?.fullName || m.user?.email)}
+                          title="Xóa khỏi nông hộ"
+                        >
+                          <IconTrash size={16} strokeWidth={2} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <h3 className="member-name">{m.user?.fullName || "Nông dân"}</h3>
+                    <div className="member-contact-info">
+                      <span>📧 {m.user?.email || "—"}</span>
+                      {m.user?.phone && <span>📞 {m.user.phone}</span>}
+                    </div>
+
+                    <div className="member-permissions-tags">
+                      {m.canEditLog && <span className="perm-tag success">✓ Ghi nhật ký canh tác</span>}
+                      {m.canManageInventory && <span className="perm-tag info">✓ Quản lý kho vật tư</span>}
+                    </div>
+
+                    <div className="member-joined-date">
+                      Tham gia: {new Date(m.joinedAt).toLocaleDateString("vi-VN")}
+                    </div>
+                  </div>
+                ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Modal Thêm / Sửa Lô */}
         {showPlotModal && (
@@ -492,6 +660,98 @@ export default function FarmDetailPage() {
                     disabled={saving}
                   >
                     {saving ? "Đang lưu..." : editingPlot ? "Cập Nhật Lô Đất" : "Lưu Lô Đất"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Thêm Nông Dân Vào Vườn */}
+        {showMemberModal && (
+          <div className="farm-modal-backdrop" onClick={() => setShowMemberModal(false)}>
+            <div className="farm-modal-dialog" onClick={(e) => e.stopPropagation()}>
+              <div className="farm-modal-header">
+                <div className="modal-title-with-icon">
+                  <div className="modal-icon-badge" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+                    <IconUserPlus size={20} strokeWidth={2} />
+                  </div>
+                  <div>
+                    <h3>Thêm Nông Dân Vào Trang Trại</h3>
+                    <p className="modal-subtitle">Gán tài khoản người làm vườn cùng quản lý nông hộ {farm.name}</p>
+                  </div>
+                </div>
+                <button className="farm-modal-close" onClick={() => setShowMemberModal(false)}>
+                  <IconX size={18} strokeWidth={2.2} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveMember} className="farm-modal-form">
+                <div className="form-group">
+                  <label>Email hoặc Số điện thoại nông dân <span className="text-red">*</span></label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="VD: nguyenvana@gmail.com hoặc 0912345678"
+                    value={memberForm.emailOrPhone}
+                    onChange={(e) => setMemberForm({ ...memberForm, emailOrPhone: e.target.value })}
+                    className="farm-input"
+                  />
+                  <small style={{ color: '#64748b', marginTop: '6px', display: 'block', fontSize: '0.85rem' }}>
+                    💡 Tài khoản này cần đã đăng ký trên DalatAgri để được gán quyền làm việc tại vườn này.
+                  </small>
+                </div>
+
+                <div className="form-group">
+                  <label>Vai trò trong trang trại</label>
+                  <select
+                    className="farm-input"
+                    value={memberForm.role}
+                    onChange={(e) => setMemberForm({ ...memberForm, role: e.target.value })}
+                  >
+                    <option value="WORKER">Nông dân / Người làm vườn (Ghi nhật ký thực địa)</option>
+                    <option value="MANAGER">Quản lý nông hộ (Điều phối lô đất, kho vật tư & vụ mùa)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.88rem', fontWeight: '600', color: '#334155', marginBottom: '8px', display: 'block' }}>
+                    Quyền hạn cụ thể:
+                  </label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={memberForm.canEditLog}
+                        onChange={(e) => setMemberForm({ ...memberForm, canEditLog: e.target.checked })}
+                      />
+                      <span>Cho phép cập nhật nhật ký canh tác (bón phân, phun thuốc, thu hoạch)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={memberForm.canManageInventory}
+                        onChange={(e) => setMemberForm({ ...memberForm, canManageInventory: e.target.checked })}
+                      />
+                      <span>Cho phép quản lý & xuất nhập kho vật tư</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="farm-modal-actions">
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setShowMemberModal(false)}
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-primary"
+                    disabled={savingMember}
+                  >
+                    {savingMember ? "Đang thêm..." : "Xác Nhận Thêm Nông Dân"}
                   </button>
                 </div>
               </form>

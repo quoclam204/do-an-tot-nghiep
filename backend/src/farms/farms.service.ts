@@ -22,11 +22,23 @@ function normalizeAreaToHa(value: number, unit?: string): number {
 export class FarmsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Lấy tất cả nông hộ của user đang đăng nhập */
+  /** Lấy tất cả nông hộ của user đang đăng nhập (sở hữu HOẶC là thành viên) */
   async findMyFarms(userId: string) {
-    return this.prisma.farm.findMany({
-      where: { userId, deletedAt: null },
+    return (this.prisma.farm as any).findMany({
+      where: {
+        deletedAt: null,
+        OR: [
+          { userId },
+          { members: { some: { userId } } },
+        ],
+      },
       include: {
+        user: { select: { id: true, fullName: true, email: true } },
+        members: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true, phone: true } },
+          },
+        },
         plots: {
           where: { deletedAt: null },
           select: { id: true, name: true, area: true },
@@ -38,10 +50,15 @@ export class FarmsService {
 
   /** Lấy tất cả nông hộ (chỉ ADMIN) */
   async findAll() {
-    return this.prisma.farm.findMany({
+    return (this.prisma.farm as any).findMany({
       where: { deletedAt: null },
       include: {
         user: { select: { id: true, fullName: true, email: true } },
+        members: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true } },
+          },
+        },
         plots: {
           where: { deletedAt: null },
           select: { id: true, name: true, area: true },
@@ -57,7 +74,7 @@ export class FarmsService {
     if (totalArea <= 0) {
       throw new BadRequestException('Tổng diện tích nông hộ phải lớn hơn 0');
     }
-    return this.prisma.farm.create({
+    const farm = await this.prisma.farm.create({
       data: {
         userId,
         name: dto.name,
@@ -65,19 +82,44 @@ export class FarmsService {
         totalArea,
       },
     });
+
+    // Tự động thêm người tạo làm thành viên OWNER trong FarmMember
+    try {
+      await (this.prisma as any).farmMember.create({
+        data: {
+          farmId: farm.id,
+          userId,
+          role: 'OWNER',
+          canEditLog: true,
+          canManageInventory: true,
+        },
+      });
+    } catch {
+      // ignore nếu đã tồn tại
+    }
+
+    return farm;
   }
 
   /** Xem chi tiết 1 nông hộ */
   async findOne(id: string, userId: string, role: string) {
-    const farm = await this.prisma.farm.findFirst({
+    const farm: any = await (this.prisma.farm as any).findFirst({
       where: { id, deletedAt: null },
       include: {
         plots: { where: { deletedAt: null } },
-        user: { select: { id: true, fullName: true, email: true } },
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        members: {
+          include: {
+            user: { select: { id: true, fullName: true, email: true, phone: true } },
+          },
+          orderBy: { joinedAt: 'asc' },
+        },
       },
     });
     if (!farm) throw new NotFoundException('Nông hộ không tồn tại');
-    if (farm.userId !== userId && role !== 'ADMIN') {
+    
+    const isMember = farm.members?.some((m: any) => m.userId === userId);
+    if (farm.userId !== userId && !isMember && role !== 'ADMIN') {
       throw new ForbiddenException('Bạn không có quyền xem nông hộ này');
     }
     return farm;
@@ -85,11 +127,7 @@ export class FarmsService {
 
   /** Cập nhật nông hộ */
   async update(id: string, dto: UpdateFarmDto, userId: string, role: string) {
-    const farm = await this.prisma.farm.findFirst({ where: { id, deletedAt: null } });
-    if (!farm) throw new NotFoundException('Nông hộ không tồn tại');
-    if (farm.userId !== userId && role !== 'ADMIN') {
-      throw new ForbiddenException('Bạn không có quyền chỉnh sửa nông hộ này');
-    }
+    const farm = await this.checkFarmOwnership(id, userId, role, true);
 
     const dataToUpdate: any = {};
     if (dto.name !== undefined) dataToUpdate.name = dto.name;
@@ -118,11 +156,7 @@ export class FarmsService {
 
   /** Xóa mềm nông hộ */
   async remove(id: string, userId: string, role: string) {
-    const farm = await this.prisma.farm.findFirst({ where: { id, deletedAt: null } });
-    if (!farm) throw new NotFoundException('Nông hộ không tồn tại');
-    if (farm.userId !== userId && role !== 'ADMIN') {
-      throw new ForbiddenException('Bạn không có quyền xóa nông hộ này');
-    }
+    await this.checkFarmOwnership(id, userId, role, true);
     return this.prisma.farm.update({
       where: { id },
       data: { deletedAt: new Date() },
@@ -131,17 +165,110 @@ export class FarmsService {
   }
 
   // ==========================================
+  // FARM MEMBERS MANAGEMENT (N - N)
+  // ==========================================
+
+  /** Lấy danh sách thành viên / nông dân của trang trại */
+  async getFarmMembers(farmId: string, userId: string, role: string) {
+    await this.checkFarmOwnership(farmId, userId, role, false);
+    return (this.prisma as any).farmMember.findMany({
+      where: { farmId },
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+      },
+      orderBy: { joinedAt: 'asc' },
+    });
+  }
+
+  /** Thêm tài khoản nông dân vào trang trại */
+  async addFarmMember(
+    farmId: string,
+    currentUserId: string,
+    role: string,
+    dto: { emailOrPhone: string; role?: string; canEditLog?: boolean; canManageInventory?: boolean },
+  ) {
+    await this.checkFarmOwnership(farmId, currentUserId, role, true);
+
+    const term = dto.emailOrPhone?.trim();
+    if (!term) throw new BadRequestException('Vui lòng nhập email hoặc số điện thoại của người nông dân');
+
+    const targetUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: term.toLowerCase() },
+          { phone: term },
+        ],
+        deletedAt: null,
+      },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundException('Không tìm thấy tài khoản người dùng với thông tin này');
+    }
+
+    // Kiểm tra đã là thành viên chưa
+    const existing = await (this.prisma as any).farmMember.findUnique({
+      where: {
+        farmId_userId: { farmId, userId: targetUser.id },
+      },
+    });
+    if (existing) {
+      throw new BadRequestException('Người nông dân này đã tham gia trang trại rồi');
+    }
+
+    return (this.prisma as any).farmMember.create({
+      data: {
+        farmId,
+        userId: targetUser.id,
+        role: dto.role || 'WORKER',
+        canEditLog: dto.canEditLog ?? true,
+        canManageInventory: dto.canManageInventory ?? true,
+      },
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+      },
+    });
+  }
+
+  /** Xóa nông dân khỏi trang trại */
+  async removeFarmMember(farmId: string, memberId: string, currentUserId: string, role: string) {
+    const farm = await this.checkFarmOwnership(farmId, currentUserId, role, true);
+    
+    const member = await (this.prisma as any).farmMember.findFirst({
+      where: { id: memberId, farmId },
+    });
+    if (!member) throw new NotFoundException('Không tìm thấy thành viên trong nông hộ');
+
+    if (member.userId === farm.userId) {
+      throw new BadRequestException('Không thể xóa chủ trang trại gốc');
+    }
+
+    return (this.prisma as any).farmMember.delete({
+      where: { id: memberId },
+    });
+  }
+
+  // ==========================================
   // PLOT CRUD
   // ==========================================
 
-  /** Kiểm tra quyền sở hữu farm */
-  private async checkFarmOwnership(farmId: string, userId: string, role: string) {
-    const farm = await this.prisma.farm.findFirst({
+  /** Kiểm tra quyền truy cập hoặc quản lý farm */
+  private async checkFarmOwnership(farmId: string, userId: string, role: string, requireManage = false) {
+    const farm: any = await (this.prisma.farm as any).findFirst({
       where: { id: farmId, deletedAt: null },
+      include: { members: true },
     });
     if (!farm) throw new NotFoundException('Nông hộ không tồn tại');
-    if (farm.userId !== userId && role !== 'ADMIN') {
+    if (role === 'ADMIN' || farm.userId === userId) {
+      return farm;
+    }
+
+    const member = farm.members?.find((m: any) => m.userId === userId);
+    if (!member) {
       throw new ForbiddenException('Bạn không có quyền thao tác trên nông hộ này');
+    }
+    if (requireManage && member.role !== 'OWNER' && member.role !== 'MANAGER') {
+      throw new ForbiddenException('Bạn cần quyền Chủ/Quản lý trang trại để thực hiện thao tác này');
     }
     return farm;
   }

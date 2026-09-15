@@ -286,3 +286,30 @@ export const apiSeedLamDong = async () => {
     return response.data;
 };
 
+// ── Farm Members APIs (N - N Nông trại <-> Nông dân) ───────────
+/** Lấy danh sách thành viên / nông dân của nông hộ */
+export const apiGetFarmMembers = async (farmId) => {
+    const response = await api.get(`/farms/${farmId}/members`);
+    return response.data;
+};
+
+/** Thêm tài khoản nông dân vào nông hộ */
+export const apiAddFarmMember = async (farmId, data) => {
+    const response = await api.post(`/farms/${farmId}/members`, data);
+    return response.data;
+};
+
+/** Xóa nông dân khỏi nông hộ */
+export const apiRemoveFarmMember = async (farmId, memberId) => {
+    const response = await api.delete(`/farms/${farmId}/members/${memberId}`);
+    return response.data;
+};
+
+// ── Season Financial Summary API (Báo cáo kinh tế chi tiết vụ mùa) ─────
+/** Thống kê chi tiết kinh tế vụ mùa: Vốn đầu tư, Chi phí nhân công thuê, Doanh thu, Lợi nhuận */
+export const apiGetSeasonFinancialSummary = async (seasonId) => {
+    const response = await api.get(`/catalog/seasons/${seasonId}/financial-summary`);
+    return response.data;
+};
+
+

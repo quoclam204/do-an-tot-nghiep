@@ -647,3 +647,198 @@
     padding-right: 1.25rem;
   }
 }
+
+/* ── Xen Canh (Intercropping) Tag & Button ── */
+.season-intercrop-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #bbf7d0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-season-finance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-season-finance:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+/* ── Finance Modal Styles ── */
+.seasons-modal.finance-modal {
+  max-width: 800px;
+  width: 95%;
+}
+
+.finance-season-header {
+  border-bottom: 1px solid var(--ms-gray-200);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.finance-season-header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--ms-gray-800);
+  margin: 0 0 0.4rem 0;
+}
+
+.finance-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.88rem;
+  color: var(--ms-gray-600);
+}
+
+.finance-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.finance-kpi-card {
+  background: #ffffff;
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.finance-kpi-card.cost {
+  border-left: 4px solid #dc2626;
+  background: #fef2f2;
+}
+
+.finance-kpi-card.labor {
+  border-left: 4px solid #d97706;
+  background: #fffbeb;
+}
+
+.finance-kpi-card.revenue {
+  border-left: 4px solid #0284c7;
+  background: #f0f9ff;
+}
+
+.finance-kpi-card.profit.positive {
+  border-left: 4px solid #16a34a;
+  background: #f0fdf4;
+}
+
+.finance-kpi-card.profit.negative {
+  border-left: 4px solid #ef4444;
+  background: #fef2f2;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.kpi-value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.kpi-value small {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.finance-kpi-card.profit.positive .kpi-value {
+  color: #166534;
+}
+
+.finance-kpi-card.profit.negative .kpi-value {
+  color: #991b1b;
+}
+
+.kpi-sub {
+  font-size: 0.76rem;
+  color: #64748b;
+}
+
+.finance-section-block {
+  margin-bottom: 1.5rem;
+}
+
+.finance-section-block h4 {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.65rem 0;
+}
+
+.no-data-hint {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
+.finance-table-wrap {
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.finance-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.finance-table th {
+  background: #f8fafc;
+  padding: 0.65rem 0.85rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 1px solid var(--ms-gray-200);
+}
+
+.finance-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--ms-gray-100);
+  color: #334155;
+}
+
+.finance-table tr:last-child td {
+  border-bottom: none;
+}
+
+.badge-type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  background: #e2e8f0;
+  color: #334155;
+  border-radius: 4px;
+}

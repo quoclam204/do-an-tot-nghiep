@@ -64,6 +64,36 @@ export class FarmsController {
   }
 
   // ==========================================
+  // FARM MEMBERS ENDPOINTS (N - N)
+  // ==========================================
+
+  /** GET /farms/:id/members - Danh sách nông dân / thành viên của nông hộ */
+  @Get(':id/members')
+  getMembers(@Param('id') id: string, @Request() req: any) {
+    return this.farmsService.getFarmMembers(id, req.user.userId, req.user.role);
+  }
+
+  /** POST /farms/:id/members - Thêm tài khoản nông dân vào nông hộ */
+  @Post(':id/members')
+  addMember(
+    @Param('id') id: string,
+    @Body() dto: { emailOrPhone: string; role?: string; canEditLog?: boolean; canManageInventory?: boolean },
+    @Request() req: any,
+  ) {
+    return this.farmsService.addFarmMember(id, req.user.userId, req.user.role, dto);
+  }
+
+  /** DELETE /farms/:id/members/:memberId - Xóa nông dân khỏi nông hộ */
+  @Delete(':id/members/:memberId')
+  removeMember(
+    @Param('id') id: string,
+    @Param('memberId') memberId: string,
+    @Request() req: any,
+  ) {
+    return this.farmsService.removeFarmMember(id, memberId, req.user.userId, req.user.role);
+  }
+
+  // ==========================================
   // PLOT ENDPOINTS
   // ==========================================
 

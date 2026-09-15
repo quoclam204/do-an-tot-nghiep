@@ -94,6 +94,16 @@ export class CatalogController {
     return this.catalogService.createSeason(body);
   }
 
+  @Get('seasons/:id')
+  findOneSeason(@Param('id') id: string) {
+    return this.catalogService.findOneSeason(id);
+  }
+
+  @Get('seasons/:id/financial-summary')
+  getSeasonFinancialSummary(@Param('id') id: string) {
+    return this.catalogService.getSeasonFinancialSummary(id);
+  }
+
   @Patch('seasons/:id')
   updateSeason(@Param('id') id: string, @Body() body: any) {
     return this.catalogService.updateSeason(id, body);

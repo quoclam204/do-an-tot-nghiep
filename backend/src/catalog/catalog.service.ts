@@ -237,18 +237,24 @@ export class CatalogService {
       }))
     )
       throw new BadRequestException('Chu kỳ không thuộc cây trồng đã chọn');
-    const overlap = await this.prisma.cropCycle.findFirst({
-      where: {
-        plotId: input.plotId,
-        deletedAt: null,
-        startDate: { lte: dates.end },
-        expectedEndDate: { gte: dates.start },
-        status: { not: 'CANCELLED' },
-      },
-    });
-    if (overlap)
-      throw new ConflictException('Mùa vụ bị trùng thời gian trên lô này');
-    return this.prisma.cropCycle.create({
+    const isIntercropped = Boolean(input.isIntercropped);
+    if (!isIntercropped) {
+      const overlap = await (this.prisma.cropCycle as any).findFirst({
+        where: {
+          plotId: input.plotId,
+          deletedAt: null,
+          startDate: { lte: dates.end },
+          expectedEndDate: { gte: dates.start },
+          status: { not: 'CANCELLED' },
+          isIntercropped: false,
+        },
+      });
+      if (overlap)
+        throw new ConflictException(
+          'Mùa vụ bị trùng thời gian trên lô này (Nếu bạn trồng xen canh như Cà phê xen Sầu riêng, hãy tích chọn "Trồng xen canh")',
+        );
+    }
+    return (this.prisma.cropCycle as any).create({
       data: {
         plotId: input.plotId,
         cropId: input.cropId,
@@ -257,6 +263,7 @@ export class CatalogService {
         startDate: dates.start,
         expectedEndDate: dates.end,
         status: input.status || 'PLANNED',
+        isIntercropped,
       },
     });
   }
@@ -265,17 +272,141 @@ export class CatalogService {
       input.startDate || input.expectedEndDate
         ? this.dates(input.startDate, input.expectedEndDate)
         : undefined;
-    return this.prisma.cropCycle.update({
+    return (this.prisma.cropCycle as any).update({
       where: { id },
       data: {
         ...(input.name && { name: input.name.trim() }),
         ...(input.status && { status: input.status }),
+        ...(input.isIntercropped !== undefined && { isIntercropped: Boolean(input.isIntercropped) }),
         ...(dates && { startDate: dates.start, expectedEndDate: dates.end }),
       },
     });
   }
   deleteSeason(id: string) {
     return this.softDelete(this.prisma.cropCycle, id);
+  }
+
+  /** Thống kê kinh tế chi tiết cho 1 mùa vụ (Đầu tư, Nhân công, Doanh thu, Lợi nhuận) */
+  async getSeasonFinancialSummary(id: string) {
+    const season: any = await (this.prisma.cropCycle as any).findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        plot: { include: { farm: true } },
+        crop: true,
+        growthCycle: true,
+        activityLogs: {
+          where: { deletedAt: null },
+          include: { materials: { include: { material: true } } },
+          orderBy: { activityDate: 'asc' },
+        },
+      },
+    });
+    if (!season) throw new NotFoundException('Không tìm thấy mùa vụ');
+
+    let totalMaterialCost = 0;
+    let totalLaborCost = 0;
+    let totalWorkers = 0;
+    let totalOtherCosts = 0;
+    let totalRevenue = 0;
+    let totalHarvestQty = 0;
+
+    const laborLogs: any[] = [];
+    const harvestLogs: any[] = [];
+    const materialsUsedMap: Record<string, { name: string; type: string; unit: string; quantity: number; cost: number }> = {};
+    const costByActivityType: Record<string, number> = {};
+
+    season.activityLogs?.forEach((log: any) => {
+      // 1. Thống kê nhân công
+      if (log.isHiredLabor && (log.laborWorkers || 0) > 0) {
+        totalWorkers += log.laborWorkers || 0;
+        totalLaborCost += log.laborCost || 0;
+        laborLogs.push({
+          id: log.id,
+          date: log.activityDate,
+          activityType: log.activityType,
+          workers: log.laborWorkers,
+          wagePerDay: log.laborWagePerDay,
+          totalCost: log.laborCost,
+          notes: log.notes,
+        });
+      }
+
+      // 2. Thống kê chi phí khác
+      totalOtherCosts += log.otherCosts || 0;
+
+      // 3. Thống kê vật tư
+      let logMatCost = 0;
+      log.materials?.forEach((m: any) => {
+        const matCost = m.cost || 0;
+        logMatCost += matCost;
+        const matId = m.materialId;
+        if (!materialsUsedMap[matId]) {
+          materialsUsedMap[matId] = {
+            name: m.material?.name || 'Vật tư',
+            type: m.material?.type || 'KHAC',
+            unit: m.material?.unit || 'đơn vị',
+            quantity: 0,
+            cost: 0,
+          };
+        }
+        materialsUsedMap[matId].quantity += m.quantityUsed || 0;
+        materialsUsedMap[matId].cost += matCost;
+      });
+      totalMaterialCost += logMatCost;
+
+      const actTotal = (log.laborCost || 0) + (log.otherCosts || 0) + logMatCost;
+      costByActivityType[log.activityType] = (costByActivityType[log.activityType] || 0) + actTotal;
+
+      // 4. Thống kê thu hoạch
+      if (log.activityType === 'THU_HOACH' && (log.harvestQuantity || log.revenue)) {
+        totalHarvestQty += log.harvestQuantity || 0;
+        totalRevenue += log.revenue || 0;
+        harvestLogs.push({
+          id: log.id,
+          date: log.activityDate,
+          quantity: log.harvestQuantity || 0,
+          unitPrice: log.unitPrice || 0,
+          revenue: log.revenue || 0,
+          notes: log.notes,
+        });
+      }
+    });
+
+    const totalInvestment = totalMaterialCost + totalLaborCost + totalOtherCosts;
+    const netProfit = totalRevenue - totalInvestment;
+    const roiPercentage = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
+
+    return {
+      season: {
+        id: season.id,
+        name: season.name,
+        cropName: season.crop?.name,
+        plotName: season.plot?.name,
+        farmName: season.plot?.farm?.name,
+        isIntercropped: Boolean(season.isIntercropped),
+        startDate: season.startDate,
+        expectedEndDate: season.expectedEndDate,
+        actualEndDate: season.actualEndDate,
+        status: season.status,
+      },
+      summary: {
+        totalInvestment,
+        totalMaterialCost,
+        totalLaborCost,
+        totalOtherCosts,
+        hasHiredLabor: totalWorkers > 0,
+        totalWorkers,
+        totalHarvestQty,
+        totalRevenue,
+        netProfit,
+        roiPercentage: Number(roiPercentage.toFixed(2)),
+        isProfitable: netProfit > 0,
+      },
+      materialsUsed: Object.values(materialsUsedMap),
+      laborLogs,
+      harvestLogs,
+      costByActivityType,
+    };
   }
 
   /** Chi tiết 1 vụ mùa */

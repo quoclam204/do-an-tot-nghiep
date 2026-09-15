@@ -31,10 +31,28 @@ model User {
   deletedAt            DateTime?
 
   farms                Farm[]
+  farmMemberships      FarmMember[]
   refreshTokens        RefreshToken[]
   
   resetPasswordToken   String?   @unique
   resetPasswordExpires DateTime?
+}
+
+model FarmMember {
+  id                  String   @id @default(uuid()) @db.Uuid
+  farmId              String   @db.Uuid
+  userId              String   @db.Uuid
+  role                String   @default("WORKER") // OWNER, MANAGER, WORKER
+  canEditLog          Boolean  @default(true)
+  canManageInventory  Boolean  @default(true)
+  joinedAt            DateTime @default(now())
+
+  farm                Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([farmId, userId])
+  @@index([farmId])
+  @@index([userId])
 }
 
 model RefreshToken {
@@ -63,6 +81,7 @@ model Farm {
   deletedAt DateTime?
 
   user        User        @relation(fields: [userId], references: [id])
+  members     FarmMember[]
   plots       Plot[]
   inventories Inventory[]
 }
@@ -135,6 +154,7 @@ model CropCycle {
   expectedEndDate   DateTime
   actualEndDate     DateTime?
   status            String
+  isIntercropped    Boolean   @default(false) // Trồng xen canh trên cùng lô đất
   totalYield        Float?    // Tổng sản lượng thu hoạch được của vụ này
 
   createdAt         DateTime  @default(now())

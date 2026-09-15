@@ -581,3 +581,196 @@
     margin: 0 !important;
   }
 }
+
+/* ── Tab Navigation ── */
+.farm-detail-nav-tabs {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--ms-gray-200);
+  padding-bottom: 0.25rem;
+}
+
+.farm-nav-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: transparent;
+  color: var(--ms-gray-600);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.farm-nav-tab-btn:hover {
+  color: var(--ms-green);
+  background: rgba(46, 125, 50, 0.05);
+}
+
+.farm-nav-tab-btn.active {
+  color: var(--ms-green);
+  background: rgba(46, 125, 50, 0.08);
+}
+
+.farm-nav-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ms-green);
+  border-radius: 3px 3px 0 0;
+}
+
+/* ── Members Grid Layout ── */
+.members-list-section {
+  margin-bottom: 2.5rem;
+}
+
+.members-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.member-card-box {
+  background: #ffffff;
+  border: 1px solid var(--ms-gray-200);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.member-card-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.member-card-box.owner {
+  border-color: #86efac;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.member-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.member-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.member-avatar.worker {
+  background: #0284c7;
+}
+
+.member-avatar.owner {
+  background: #15803d;
+}
+
+.member-actions-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.member-role-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.member-role-badge.owner {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.member-role-badge.manager {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.member-role-badge.worker {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.member-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ms-gray-800);
+  margin: 0 0 0.4rem 0;
+}
+
+.member-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--ms-gray-600);
+  margin-bottom: 0.75rem;
+}
+
+.member-permissions-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.perm-tag {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.perm-tag.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.perm-tag.info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.member-joined-date {
+  margin-top: auto;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  border-top: 1px dashed var(--ms-gray-200);
+  padding-top: 0.5rem;
+}
+
+.add-plot-btn.member-btn {
+  background: #0284c7;
+}
+
+.add-plot-btn.member-btn:hover {
+  background: #0369a1;
+}
+
