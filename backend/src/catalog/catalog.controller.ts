@@ -7,8 +7,11 @@ import {
   Patch,
   Post,
   Query,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('catalog')
 export class CatalogController {
@@ -35,8 +38,9 @@ export class CatalogController {
   }
 
   @Get('plots')
-  findPlots() {
-    return this.catalogService.findPlots();
+  @UseGuards(JwtAuthGuard)
+  findPlots(@Request() req: any, @Query('farmId') farmId?: string) {
+    return this.catalogService.findPlots(req.user?.userId, req.user?.role, farmId);
   }
 
   @Post('plots')
@@ -85,8 +89,9 @@ export class CatalogController {
   }
 
   @Get('seasons')
-  findSeasons() {
-    return this.catalogService.findSeasons();
+  @UseGuards(JwtAuthGuard)
+  findSeasons(@Request() req: any, @Query('farmId') farmId?: string) {
+    return this.catalogService.findSeasons(req.user?.userId, req.user?.role, farmId);
   }
 
   @Post('seasons')
@@ -102,6 +107,11 @@ export class CatalogController {
   @Get('seasons/:id/financial-summary')
   getSeasonFinancialSummary(@Param('id') id: string) {
     return this.catalogService.getSeasonFinancialSummary(id);
+  }
+
+  @Get('seasons/:id/material-consumption')
+  getSeasonMaterialConsumption(@Param('id') id: string) {
+    return this.catalogService.getSeasonMaterialConsumption(id);
   }
 
   @Patch('seasons/:id')
@@ -135,10 +145,20 @@ export class CatalogController {
     return this.catalogService.deleteMaterial(id);
   }
 
+  @Get('material-history/:materialId')
+  findMaterialHistory(@Param('materialId') materialId: string) {
+    return this.catalogService.findMaterialHistory(materialId);
+  }
+
   // ==================== ACTIVITY LOGS ====================
   @Get('activity-logs')
-  findActivityLogs(@Query('cropCycleId') cropCycleId?: string) {
-    return this.catalogService.findActivityLogs(cropCycleId);
+  @UseGuards(JwtAuthGuard)
+  findActivityLogs(
+    @Request() req: any,
+    @Query('cropCycleId') cropCycleId?: string,
+    @Query('farmId') farmId?: string,
+  ) {
+    return this.catalogService.findActivityLogs(req.user?.userId, req.user?.role, cropCycleId, farmId);
   }
 
   @Post('activity-logs')

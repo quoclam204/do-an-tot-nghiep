@@ -27,7 +27,7 @@ export class UsersService {
 
   /** Lấy danh sách tất cả người dùng (chỉ ADMIN) */
   async findAll() {
-    return this.prisma.user.findMany({
+    return (this.prisma.user as any).findMany({
       where: { deletedAt: null },
       select: {
         id: true,
@@ -36,6 +36,8 @@ export class UsersService {
         fullName: true,
         role: true,
         isActive: true,
+        approvalStatus: true,
+        rejectionReason: true,
         emailVerified: true,
         lastLoginAt: true,
         createdAt: true,
@@ -51,7 +53,34 @@ export class UsersService {
 
   /** Lấy thông tin 1 người dùng theo ID */
   async findById(id: string) {
-    return this.prisma.user.findFirst({
+    try {
+      const user = await (this.prisma.user as any).findFirst({
+        where: { id, deletedAt: null },
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          fullName: true,
+          role: true,
+          isActive: true,
+          approvalStatus: true,
+          rejectionReason: true,
+          emailVerified: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+          farms: {
+            where: { deletedAt: null },
+            select: { id: true, name: true, location: true, totalArea: true },
+          },
+        },
+      });
+      if (user) return user;
+    } catch {
+      // Fallback nếu cột approvalStatus chưa được migrate trong database
+    }
+
+    return (this.prisma.user as any).findFirst({
       where: { id, deletedAt: null },
       select: {
         id: true,
@@ -86,12 +115,13 @@ export class UsersService {
     if (existing) throw new BadRequestException('Email đã được sử dụng');
 
     const passwordHash = await this.hashPassword(dto.password);
-    return this.prisma.user.create({
+    return (this.prisma.user as any).create({
       data: {
         email,
         passwordHash,
         fullName: dto.fullName.trim(),
         role: dto.role ?? UserRole.OWNER,
+        approvalStatus: 'PENDING',
       },
     });
   }
@@ -192,14 +222,158 @@ export class UsersService {
     });
   }
 
+  /** Admin tạo tài khoản cho nông hộ */
+  async createByAdmin(dto: { email: string; fullName: string; password: string; role?: string; phone?: string }) {
+    const email = dto.email.trim().toLowerCase();
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) throw new BadRequestException('Email đã được sử dụng');
+
+    const passwordHash = await this.hashPassword(dto.password);
+    return (this.prisma.user as any).create({
+      data: {
+        email,
+        passwordHash,
+        fullName: dto.fullName.trim(),
+        phone: dto.phone?.trim() || null,
+        role: (dto.role as any) || UserRole.OWNER,
+        isActive: true,
+        approvalStatus: 'APPROVED',
+        emailVerified: true,
+      },
+      select: {
+        id: true, email: true, phone: true, fullName: true, role: true, isActive: true, approvalStatus: true, createdAt: true,
+      },
+    });
+  }
+
+  /** Lấy danh sách tài khoản chờ xét duyệt (chỉ ADMIN) */
+  async findPending() {
+    return (this.prisma.user as any).findMany({
+      where: {
+        approvalStatus: 'PENDING',
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        fullName: true,
+        role: true,
+        approvalStatus: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /** Phê duyệt tài khoản (chỉ ADMIN) */
+  async approveUser(id: string) {
+    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+    if (!user) throw new BadRequestException('Không tìm thấy tài khoản người dùng');
+
+    return (this.prisma.user as any).update({
+      where: { id },
+      data: { approvalStatus: 'APPROVED', isActive: true },
+      select: { id: true, email: true, fullName: true, approvalStatus: true, isActive: true },
+    });
+  }
+
+  /** Từ chối tài khoản (chỉ ADMIN) */
+  async rejectUser(id: string, reason?: string) {
+    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+    if (!user) throw new BadRequestException('Không tìm thấy tài khoản người dùng');
+
+    return (this.prisma.user as any).update({
+      where: { id },
+      data: {
+        approvalStatus: 'REJECTED',
+        rejectionReason: reason?.trim() || 'Không đạt điều kiện xét duyệt của DalatAgri',
+        isActive: false,
+      },
+      select: { id: true, email: true, fullName: true, approvalStatus: true, rejectionReason: true, isActive: true },
+    });
+  }
+
+  /** Khôi phục tài khoản đã xóa mềm */
+  async restoreUser(id: string) {
+    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: { not: null } } });
+    if (!user) throw new BadRequestException('Không tìm thấy tài khoản đã xóa');
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { deletedAt: null, isActive: true },
+      select: { id: true, email: true, fullName: true, isActive: true },
+    });
+  }
+
+  /** Lấy danh sách tài khoản đã xóa (để khôi phục) */
+  async findDeleted() {
+    return this.prisma.user.findMany({
+      where: { deletedAt: { not: null } },
+      select: {
+        id: true, email: true, phone: true, fullName: true, role: true,
+        isActive: true, deletedAt: true, createdAt: true,
+      },
+      orderBy: { deletedAt: 'desc' },
+    });
+  }
+
+  /** Thống kê tổng quan cho admin dashboard */
+  async getStatistics() {
+    const [totalUsers, activeUsers, pendingUsers, totalFarms, totalSeasons, totalLogs] = await Promise.all([
+      this.prisma.user.count({ where: { deletedAt: null } }),
+      this.prisma.user.count({ where: { deletedAt: null, isActive: true } }),
+      (this.prisma.user as any).count({ where: { deletedAt: null, approvalStatus: 'PENDING' } }),
+      this.prisma.farm.count({ where: { deletedAt: null } }),
+      this.prisma.cropCycle.count({ where: { deletedAt: null } }),
+      this.prisma.activityLog.count({ where: { deletedAt: null } }),
+    ]);
+
+    // Thống kê users theo role
+    const usersByRole = await this.prisma.user.groupBy({
+      by: ['role'],
+      where: { deletedAt: null },
+      _count: true,
+    });
+
+    // Users đăng ký gần đây (7 ngày)
+    const recentUsers = await this.prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+      },
+      select: { id: true, email: true, fullName: true, role: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
+
+    return {
+      totalUsers,
+      activeUsers,
+      pendingUsers,
+      inactiveUsers: totalUsers - activeUsers,
+      totalFarms,
+      totalSeasons,
+      totalLogs,
+      usersByRole: usersByRole.map((r: any) => ({ role: r.role, count: r._count })),
+      recentUsers,
+    };
+  }
+
   // ────────────────────────────────────────────────
   //  Xác thực (dùng nội bộ bởi AuthService)
   // ────────────────────────────────────────────────
 
   async verifyCredentials(email: string, password: string) {
-    const user = await this.findByEmail(email);
+    const user: any = await this.findByEmail(email);
     if (!user) throw new UnauthorizedException('Email hoặc mật khẩu không đúng');
     if (!user.isActive) throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa');
+    if (user.role !== 'ADMIN' && user.approvalStatus === 'PENDING') {
+      throw new UnauthorizedException('Tài khoản của bạn đang chờ Quản trị viên phê duyệt. Vui lòng quay lại sau.');
+    }
+    if (user.role !== 'ADMIN' && user.approvalStatus === 'REJECTED') {
+      throw new UnauthorizedException(`Tài khoản đã bị từ chối phê duyệt. Lý do: ${user.rejectionReason || 'Không đủ điều kiện'}`);
+    }
 
     const isMatch = await this.verifyPassword(password, user.passwordHash);
     if (!isMatch) {
@@ -220,7 +394,7 @@ export class UsersService {
     return user;
   }
 
-  createSession(user: { id: string; email: string; fullName: string; role: string }) {
+  createSession(user: any) {
     const accessToken = this.jwtService.sign({
       sub: user.id,
       email: user.email,
@@ -234,6 +408,9 @@ export class UsersService {
         email: user.email,
         fullName: user.fullName,
         role: user.role,
+        phone: user.phone || null,
+        isActive: user.isActive !== undefined ? user.isActive : true,
+        createdAt: user.createdAt || new Date().toISOString(),
       },
     };
   }

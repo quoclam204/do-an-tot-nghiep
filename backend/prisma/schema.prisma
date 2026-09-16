@@ -21,6 +21,8 @@ model User {
   fullName             String
   role                 UserRole  @default(OWNER)
   isActive             Boolean   @default(true)
+  approvalStatus       String    @default("APPROVED") // PENDING, APPROVED, REJECTED
+  rejectionReason      String?
   emailVerified        Boolean   @default(false)
   failedLoginAttempts  Int       @default(0)
   lockedUntil          DateTime?
@@ -80,10 +82,13 @@ model Farm {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  user        User        @relation(fields: [userId], references: [id])
-  members     FarmMember[]
-  plots       Plot[]
-  inventories Inventory[]
+  user           User           @relation(fields: [userId], references: [id])
+  members        FarmMember[]
+  plots          Plot[]
+  inventories    Inventory[]
+  products       Product[]
+  invoices       Invoice[]
+  activityTypes  ActivityType[]
 }
 
 model Plot {
@@ -114,14 +119,17 @@ model Crop {
 }
 
 model GrowthCycle {
-  id          String   @id @default(uuid()) @db.Uuid
-  cropId      String   @db.Uuid
-  name        String
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
+  id                String   @id @default(uuid()) @db.Uuid
+  cropId            String   @db.Uuid
+  name              String
+  description       String?
+  isActive          Boolean  @default(true)
+  totalDurationDays Int?     // Tổng số ngày chu kỳ (tự tính từ tổng các stages)
+  yearsToFlower     Float?   // Số năm để cây ra hoa (VD: Sầu riêng = 4-5 năm)
+  yearsToHarvest    Float?   // Số năm để cây cho thu hoạch đầu tiên
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
 
   crop        Crop          @relation(fields: [cropId], references: [id])
   stages      GrowthStage[]
@@ -129,15 +137,16 @@ model GrowthCycle {
 }
 
 model GrowthStage {
-  id            String   @id @default(uuid()) @db.Uuid
-  growthCycleId String   @db.Uuid
-  name          String
-  sequence      Int
-  durationDays  Int
-  description   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
+  id                  String   @id @default(uuid()) @db.Uuid
+  growthCycleId       String   @db.Uuid
+  name                String
+  sequence            Int
+  durationDays        Int
+  description         String?
+  suggestedActivities String?  // Gợi ý hoạt động nên làm ở giai đoạn này (VD: "Bón phân, Tưới nước, Cắt tỉa")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deletedAt           DateTime?
 
   growthCycle GrowthCycle @relation(fields: [growthCycleId], references: [id])
 
@@ -180,6 +189,24 @@ model Material {
 
   inventories       Inventory[]
   activityMaterials ActivityMaterial[]
+  histories         MaterialHistory[]
+}
+
+// Lịch sử thay đổi vật tư - giữ lại dữ liệu khi sửa/xóa vật tư
+model MaterialHistory {
+  id            String    @id @default(uuid()) @db.Uuid
+  materialId    String    @db.Uuid
+  name          String    // Tên vật tư tại thời điểm thay đổi
+  type          String
+  unit          String
+  defaultPrice  Float
+  action        String    // CREATE, UPDATE, DELETE
+  changedBy     String?   // userId người thực hiện thay đổi
+  changedAt     DateTime  @default(now())
+
+  material      Material  @relation(fields: [materialId], references: [id])
+
+  @@index([materialId])
 }
 
 model Inventory {
@@ -197,11 +224,33 @@ model Inventory {
   material      Material  @relation(fields: [materialId], references: [id])
 }
 
+// Loại hoạt động canh tác - cho phép nông hộ tự thêm/sửa/xóa linh hoạt
+model ActivityType {
+  id          String    @id @default(uuid()) @db.Uuid
+  code        String    // VD: BON_PHAN, PHUN_THUOC, CAT_TIA, LAM_CO, TUOI_NUOC, THU_HOACH
+  name        String    // VD: "Bón phân", "Phun thuốc", "Cắt tỉa"
+  description String?
+  icon        String?   // Tên icon (VD: "leaf", "flask", "scissors")
+  isSystem    Boolean   @default(false) // Loại mặc định không xóa được
+  farmId      String?   @db.Uuid        // null = global (hệ thống), có farmId = riêng nông hộ
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  farm        Farm?     @relation(fields: [farmId], references: [id])
+
+  @@index([farmId])
+  @@index([code])
+}
+
 model ActivityLog {
   id              String    @id @default(uuid()) @db.Uuid
   cropCycleId     String    @db.Uuid
   activityType    String    // VD: LAM_DAT, TUOI, BON_PHAN, PHUN_THUOC, THU_HOACH...
   activityDate    DateTime
+  activityTime    String?   // Giờ thực hiện: VD "08:30", "14:00"
+  workShift       String?   // Ca làm việc: SANG, CHIEU, TOI
   notes           String?
   syncStatus      String    // VD: PENDING, SYNCED, CONFLICT
 
@@ -235,6 +284,9 @@ model ActivityMaterial {
   id              String    @id @default(uuid()) @db.Uuid
   activityLogId   String    @db.Uuid
   materialId      String    @db.Uuid
+  materialName    String?   // Snapshot tên vật tư tại thời điểm sử dụng
+  unit            String?   // Snapshot đơn vị
+  unitPrice       Float?    // Snapshot đơn giá
   quantityUsed    Float
   cost            Float     // Chi phí vật tư (quantityUsed * đơn giá)
 
@@ -244,4 +296,65 @@ model ActivityMaterial {
 
   activityLog     ActivityLog @relation(fields: [activityLogId], references: [id])
   material        Material    @relation(fields: [materialId], references: [id])
+}
+
+// ==================== HỆ THỐNG BÁN HÀNG & HÓA ĐƠN ====================
+
+// Sản phẩm / nông sản bán ra
+model Product {
+  id              String    @id @default(uuid()) @db.Uuid
+  farmId          String    @db.Uuid
+  name            String    // VD: "Cà phê nhân sống", "Bơ 034 loại 1"
+  unit            String    // VD: "kg", "trái", "bao"
+  price           Float     // Đơn giá bán
+  stockQuantity   Float     @default(0) // Số lượng tồn kho hiện tại
+  description     String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  farm            Farm          @relation(fields: [farmId], references: [id])
+  invoiceItems    InvoiceItem[]
+}
+
+// Hóa đơn bán hàng
+model Invoice {
+  id              String    @id @default(uuid()) @db.Uuid
+  farmId          String    @db.Uuid
+  invoiceNumber   String    @unique // Mã hóa đơn tự sinh: VD "HD-20260915-001"
+  customerName    String?   // Tên khách hàng
+  customerPhone   String?   // SĐT khách hàng
+  customerAddress String?   // Địa chỉ khách hàng
+  totalAmount     Float     @default(0) // Tổng tiền hóa đơn
+  discount        Float     @default(0) // Giảm giá
+  finalAmount     Float     @default(0) // Thành tiền = totalAmount - discount
+  notes           String?
+  status          String    @default("DRAFT") // DRAFT, COMPLETED, CANCELLED
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  farm            Farm          @relation(fields: [farmId], references: [id])
+  items           InvoiceItem[]
+}
+
+// Chi tiết hóa đơn
+model InvoiceItem {
+  id              String    @id @default(uuid()) @db.Uuid
+  invoiceId       String    @db.Uuid
+  productId       String    @db.Uuid
+  productName     String    // Lưu tên sản phẩm tại thời điểm bán (snapshot)
+  quantity        Float
+  unitPrice       Float     // Đơn giá tại thời điểm bán
+  subtotal        Float     // = quantity * unitPrice
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id])
+
+  @@index([invoiceId])
 }

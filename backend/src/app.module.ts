@@ -6,9 +6,11 @@ import { UsersModule } from './users/users.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { AuthModule } from './auth/auth.module';
 import { FarmsModule } from './farms/farms.module';
+import { ActivityTypesModule } from './activity-types/activity-types.module';
+import { SalesModule } from './sales/sales.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, CatalogModule, AuthModule, FarmsModule],
+  imports: [PrismaModule, UsersModule, CatalogModule, AuthModule, FarmsModule, ActivityTypesModule, SalesModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -62,10 +62,24 @@ export class CatalogService {
     return this.softDelete(this.prisma.farm, id);
   }
 
-  findPlots() {
+  findPlots(userId?: string, role?: string, farmId?: string) {
+    const where: any = { deletedAt: null };
+    if (farmId) {
+      where.farmId = farmId;
+    }
+    if (role && role !== 'ADMIN' && userId) {
+      where.farm = {
+        deletedAt: null,
+        OR: [
+          { userId },
+          { members: { some: { userId } } },
+        ],
+      };
+    }
     return this.prisma.plot.findMany({
-      where: { deletedAt: null },
+      where,
       include: { farm: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
   async createPlot(input: any) {
@@ -126,8 +140,14 @@ export class CatalogService {
     });
   }
   async deletePlot(id: string) {
-    if (await this.hasChildren('cropCycle', { plotId: id }))
-      throw new ConflictException('Không thể xóa lô đã có mùa vụ');
+    const activeSeason = await (this.prisma as any).cropCycle.findFirst({
+      where: { plotId: id, status: 'ACTIVE', deletedAt: null },
+    });
+    if (activeSeason) {
+      throw new ConflictException(
+        `Lô đất đang có mùa vụ đang diễn ra ("${activeSeason.name}"). Vui lòng kết thúc mùa vụ trước khi xóa lô.`
+      );
+    }
     return this.softDelete(this.prisma.plot, id);
   }
 
@@ -184,11 +204,18 @@ export class CatalogService {
     const stages = input.stages || [];
     if (!stages.length)
       throw new BadRequestException('Chu kỳ phải có ít nhất một giai đoạn');
+
+    // Tính tổng số ngày chu kỳ
+    const totalDurationDays = stages.reduce((sum: number, s: any) => sum + (Number(s.durationDays) || 0), 0);
+
     return this.prisma.growthCycle.create({
       data: {
         cropId: input.cropId,
         name: this.text(input.name, 'name'),
         description: input.description,
+        totalDurationDays,
+        yearsToFlower: input.yearsToFlower ? Number(input.yearsToFlower) : null,
+        yearsToHarvest: input.yearsToHarvest ? Number(input.yearsToHarvest) : null,
         stages: {
           create: stages.map((stage: any, index: number) => ({
             name: this.text(stage.name, 'stage.name'),
@@ -198,6 +225,7 @@ export class CatalogService {
               'durationDays',
             ),
             description: stage.description,
+            suggestedActivities: stage.suggestedActivities || null,
           })),
         },
       },
@@ -205,11 +233,28 @@ export class CatalogService {
     });
   }
 
-  findSeasons() {
+  findSeasons(userId?: string, role?: string, farmId?: string) {
+    const where: any = { deletedAt: null };
+    if (farmId) {
+      where.plot = { farmId, deletedAt: null };
+    }
+    if (role && role !== 'ADMIN' && userId) {
+      where.plot = {
+        ...(where.plot || {}),
+        deletedAt: null,
+        farm: {
+          deletedAt: null,
+          OR: [
+            { userId },
+            { members: { some: { userId } } },
+          ],
+        },
+      };
+    }
     return this.prisma.cropCycle.findMany({
-      where: { deletedAt: null },
+      where,
       include: {
-        plot: true,
+        plot: { include: { farm: true } },
         crop: true,
         growthCycle: { include: { stages: true } },
       },
@@ -342,9 +387,9 @@ export class CatalogService {
         const matId = m.materialId;
         if (!materialsUsedMap[matId]) {
           materialsUsedMap[matId] = {
-            name: m.material?.name || 'Vật tư',
+            name: m.materialName || m.material?.name || 'Vật tư',
             type: m.material?.type || 'KHAC',
-            unit: m.material?.unit || 'đơn vị',
+            unit: m.unit || m.material?.unit || 'đơn vị',
             quantity: 0,
             cost: 0,
           };
@@ -454,7 +499,7 @@ export class CatalogService {
 
   async createMaterial(input: any) {
     this.requirePositive(input.defaultPrice, 'defaultPrice');
-    return (this.prisma.material as any).create({
+    const material = await (this.prisma.material as any).create({
       data: {
         name: this.text(input.name, 'name'),
         type: input.type || 'PHAN_BON',
@@ -462,12 +507,44 @@ export class CatalogService {
         defaultPrice: Number(input.defaultPrice),
       },
     });
+
+    // Lưu lịch sử tạo vật tư
+    await (this.prisma as any).materialHistory.create({
+      data: {
+        materialId: material.id,
+        name: material.name,
+        type: material.type,
+        unit: material.unit,
+        defaultPrice: material.defaultPrice,
+        action: 'CREATE',
+        changedBy: input.changedBy || null,
+      },
+    });
+
+    return material;
   }
 
   async updateMaterial(id: string, input: any) {
     if (input.defaultPrice !== undefined) {
       this.requirePositive(input.defaultPrice, 'defaultPrice');
     }
+
+    // Lưu snapshot trước khi sửa (lịch sử vật tư)
+    const current = await (this.prisma.material as any).findFirst({ where: { id, deletedAt: null } });
+    if (current) {
+      await (this.prisma as any).materialHistory.create({
+        data: {
+          materialId: id,
+          name: current.name,
+          type: current.type,
+          unit: current.unit,
+          defaultPrice: current.defaultPrice,
+          action: 'UPDATE',
+          changedBy: input.changedBy || null,
+        },
+      });
+    }
+
     return (this.prisma.material as any).update({
       where: { id },
       data: {
@@ -481,17 +558,141 @@ export class CatalogService {
     });
   }
 
-  deleteMaterial(id: string) {
+  async deleteMaterial(id: string) {
+    // Lưu snapshot trước khi xóa (giữ lại lịch sử)
+    const current = await (this.prisma.material as any).findFirst({ where: { id, deletedAt: null } });
+    if (current) {
+      await (this.prisma as any).materialHistory.create({
+        data: {
+          materialId: id,
+          name: current.name,
+          type: current.type,
+          unit: current.unit,
+          defaultPrice: current.defaultPrice,
+          action: 'DELETE',
+        },
+      });
+    }
     return this.softDelete(this.prisma.material, id);
   }
 
-  // ==================== NHẬT KÝ CANH TÁC & CHI PHÍ ====================
-  async findActivityLogs(cropCycleId?: string) {
-    return this.prisma.activityLog.findMany({
-      where: {
-        deletedAt: null,
-        ...(cropCycleId && { cropCycleId }),
+  /** Lấy lịch sử thay đổi của 1 vật tư */
+  async findMaterialHistory(materialId: string) {
+    return (this.prisma as any).materialHistory.findMany({
+      where: { materialId },
+      orderBy: { changedAt: 'desc' },
+    });
+  }
+
+  /** Tổng hợp lượng vật tư tiêu thụ theo vụ mùa (từ bắt đầu → thu hoạch) */
+  async getSeasonMaterialConsumption(seasonId: string) {
+    const season: any = await (this.prisma.cropCycle as any).findFirst({
+      where: { id: seasonId, deletedAt: null },
+      include: {
+        plot: { include: { farm: true } },
+        crop: true,
+        activityLogs: {
+          where: { deletedAt: null },
+          include: { materials: { include: { material: true } } },
+          orderBy: { activityDate: 'asc' },
+        },
       },
+    });
+    if (!season) throw new NotFoundException('Không tìm thấy mùa vụ');
+
+    const consumptionMap: Record<string, {
+      materialId: string;
+      name: string;
+      type: string;
+      unit: string;
+      totalQuantity: number;
+      totalCost: number;
+      usageHistory: Array<{ date: Date; activityType: string; quantity: number; cost: number }>;
+    }> = {};
+
+    let grandTotalCost = 0;
+    let totalLaborCost = 0;
+    let totalOtherCosts = 0;
+
+    for (const log of season.activityLogs || []) {
+      totalLaborCost += log.laborCost || 0;
+      totalOtherCosts += log.otherCosts || 0;
+
+      for (const mat of log.materials || []) {
+        const key = mat.materialId;
+        if (!consumptionMap[key]) {
+          consumptionMap[key] = {
+            materialId: mat.materialId,
+            name: mat.materialName || mat.material?.name || 'Vật tư',
+            type: mat.material?.type || 'KHAC',
+            unit: mat.unit || mat.material?.unit || '',
+            totalQuantity: 0,
+            totalCost: 0,
+            usageHistory: [],
+          };
+        }
+        consumptionMap[key].totalQuantity += mat.quantityUsed || 0;
+        consumptionMap[key].totalCost += mat.cost || 0;
+        grandTotalCost += mat.cost || 0;
+        consumptionMap[key].usageHistory.push({
+          date: log.activityDate,
+          activityType: log.activityType,
+          quantity: mat.quantityUsed || 0,
+          cost: mat.cost || 0,
+        });
+      }
+    }
+
+    return {
+      season: {
+        id: season.id,
+        name: season.name,
+        cropName: season.crop?.name,
+        plotName: season.plot?.name,
+        farmName: season.plot?.farm?.name,
+        startDate: season.startDate,
+        expectedEndDate: season.expectedEndDate,
+        status: season.status,
+      },
+      totalMaterialCost: grandTotalCost,
+      totalLaborCost,
+      totalOtherCosts,
+      grandTotalInvestment: grandTotalCost + totalLaborCost + totalOtherCosts,
+      materials: Object.values(consumptionMap),
+    };
+  }
+
+  // ==================== NHẬT KÝ CANH TÁC & CHI PHÍ ====================
+  async findActivityLogs(userId?: string, role?: string, cropCycleId?: string, farmId?: string) {
+    const where: any = {
+      deletedAt: null,
+      ...(cropCycleId && { cropCycleId }),
+    };
+
+    if (farmId) {
+      where.cropCycle = {
+        plot: { farmId, deletedAt: null },
+      };
+    }
+
+    if (role && role !== 'ADMIN' && userId) {
+      where.cropCycle = {
+        ...(where.cropCycle || {}),
+        plot: {
+          ...(where.cropCycle?.plot || {}),
+          farm: {
+            deletedAt: null,
+            OR: [
+              { userId },
+              { members: { some: { userId } } },
+            ],
+          },
+        },
+      };
+    }
+
+    return this.prisma.activityLog.findMany({
+      where,
       include: {
         cropCycle: {
           include: {
@@ -521,7 +722,12 @@ export class CatalogService {
 
     const otherCosts = Number(input.otherCosts || 0);
 
-    // Tính chi phí vật tư
+    // Validate ca làm việc
+    const validShifts = ['SANG', 'CHIEU', 'TOI'];
+    const workShift = input.workShift && validShifts.includes(input.workShift) ? input.workShift : null;
+    const activityTime = input.activityTime?.trim() || null;
+
+    // Tính chi phí vật tư & lưu snapshot
     let totalMaterialCost = 0;
     const materialsData: any[] = [];
     if (Array.isArray(input.materials) && input.materials.length > 0) {
@@ -532,10 +738,14 @@ export class CatalogService {
         });
         if (material) {
           const qty = Math.max(0, Number(item.quantityUsed || 0));
-          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * material.defaultPrice;
+          const unitPrice = material.defaultPrice;
+          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
           totalMaterialCost += itemCost;
           materialsData.push({
             materialId: material.id,
+            materialName: material.name,
+            unit: material.unit,
+            unitPrice: unitPrice,
             quantityUsed: qty,
             cost: itemCost,
           });
@@ -561,6 +771,8 @@ export class CatalogService {
         cropCycleId: input.cropCycleId,
         activityType: this.text(input.activityType, 'activityType'),
         activityDate,
+        activityTime,
+        workShift,
         notes: input.notes?.trim() || null,
         syncStatus: input.syncStatus || 'SYNCED',
         isHiredLabor,
@@ -612,6 +824,13 @@ export class CatalogService {
     const laborCost = laborWorkers * laborWagePerDay;
     const otherCosts = Number(input.otherCosts ?? log.otherCosts ?? 0);
 
+    // Ca làm việc & giờ
+    const validShifts = ['SANG', 'CHIEU', 'TOI'];
+    const workShift = input.workShift !== undefined
+      ? (validShifts.includes(input.workShift) ? input.workShift : null)
+      : log.workShift;
+    const activityTime = input.activityTime !== undefined ? (input.activityTime?.trim() || null) : log.activityTime;
+
     // Cập nhật vật tư nếu có
     let totalMaterialCost = 0;
     if (Array.isArray(input.materials)) {
@@ -620,10 +839,19 @@ export class CatalogService {
         const material = await this.prisma.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
         if (material) {
           const qty = Number(item.quantityUsed || 0);
-          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * material.defaultPrice;
+          const unitPrice = material.defaultPrice;
+          const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
           totalMaterialCost += itemCost;
-          await this.prisma.activityMaterial.create({
-            data: { activityLogId: id, materialId: material.id, quantityUsed: qty, cost: itemCost },
+          await (this.prisma as any).activityMaterial.create({
+            data: {
+              activityLogId: id,
+              materialId: material.id,
+              materialName: material.name,
+              unit: material.unit,
+              unitPrice: unitPrice,
+              quantityUsed: qty,
+              cost: itemCost,
+            },
           });
         }
       }
@@ -638,6 +866,8 @@ export class CatalogService {
       ...(input.activityType && { activityType: input.activityType }),
       ...(input.activityDate && { activityDate: new Date(input.activityDate) }),
       ...(input.notes !== undefined && { notes: input.notes?.trim() || null }),
+      activityTime,
+      workShift,
       isHiredLabor,
       laborWorkers: isHiredLabor ? laborWorkers : null,
       laborWagePerDay: isHiredLabor ? laborWagePerDay : null,
@@ -805,8 +1035,102 @@ export class CatalogService {
       createdMaterials.push(mat);
     }
 
+    // 3. Khởi tạo chu kỳ sinh trưởng & giai đoạn nông học chuẩn khoa học
+    const agronomicCycles = [
+      {
+        cropName: 'Cà phê Robusta cao sản',
+        cycleName: 'Chu kỳ kinh doanh Cà phê Robusta',
+        yearsToFlower: 2.5,
+        yearsToHarvest: 3.5,
+        description: 'Chu kỳ kinh doanh hàng năm của cà phê vối cao sản Tây Nguyên & Lâm Đồng',
+        stages: [
+          { name: 'Phục hồi sau thu hoạch & Tỉa cành', sequence: 1, durationDays: 30, description: 'Cắt tỉa cành tăm, cành sâu bệnh, bón phân chuồng hoai mục', suggestedActivities: 'Cắt tỉa, Bón phân hữu cơ, Dọn cỏ' },
+          { name: 'Tưới nước ép hoa & Nở hoa rộ', sequence: 2, durationDays: 25, description: 'Tưới đợt 1 đẫm nước để hoa bung trắng đồng loạt', suggestedActivities: 'Tưới nước, Kiểm tra sâu bệnh' },
+          { name: 'Nuôi trái non & Phát triển cành dự trữ', sequence: 3, durationDays: 120, description: 'Bón NPK 16-16-8, phun phòng mọt đục cành, rệp sáp', suggestedActivities: 'Bón phân NPK, Phun thuốc BVTV, Làm cỏ' },
+          { name: 'Nuôi hạt chắc & Chín tập trung', sequence: 4, durationDays: 75, description: 'Bón phân giàu Kali (NPK 15-5-20) để vào nhân chắc hạt', suggestedActivities: 'Bón phân Kali, Tưới bổ sung' },
+          { name: 'Thu hoạch quả chín rộ', sequence: 5, durationDays: 45, description: 'Hái chọn lọc quả chín >85%, phơi trên bạt hoặc sấy đảo', suggestedActivities: 'Thu hoạch, Phơi sấy, Vận chuyển' },
+        ],
+      },
+      {
+        cropName: 'Sầu riêng Ri6 cơm vàng',
+        cycleName: 'Chu kỳ kinh doanh Sầu riêng Ri6',
+        yearsToFlower: 4.5,
+        yearsToHarvest: 5.0,
+        description: 'Quy trình tạo mầm hoa, nuôi trái sầu riêng Ri6 cơm vàng hạt lép xuất khẩu',
+        stages: [
+          { name: 'Phục hồi sau thu hoạch & Tạo cơi đọt', sequence: 1, durationDays: 60, description: 'Cắt tỉa cuống cũ, rửa vườn bằng đồng, bón phân hữu cơ vi sinh', suggestedActivities: 'Cắt tỉa, Rửa vườn, Bón phân hữu cơ' },
+          { name: 'Xử lý tạo mầm hoa & Siết nước', sequence: 2, durationDays: 45, description: 'Tạo khô hạn siết nước mương vườn, phun Lân cao và Kali hữu cơ', suggestedActivities: 'Siết nước, Phun kích hoa, Quét mắt cua' },
+          { name: 'Xổ nhụy & Đậu trái non', sequence: 3, durationDays: 20, description: 'Thụ phấn bổ sung ban đêm (19h-21h), giữ ẩm mặt đất nhẹ', suggestedActivities: 'Thụ phấn nhân tạo, Phun Bo-Canxi, Giữ ẩm' },
+          { name: 'Nuôi trái non & Định lượng trái', sequence: 4, durationDays: 60, description: 'Bón Kali trắng Sulphate (chống sượng cơm), tỉa định trái giữ 80-100 trái/cây', suggestedActivities: 'Tỉa trái loại 2, Bón phân NPK Kali trắng, Phòng bọ xít' },
+          { name: 'Trái lớn & Vào cơm đóng hộc', sequence: 5, durationDays: 40, description: 'Tích lũy tinh bột và đường, phòng trừ nấm nứt thân xì mủ Phytophthora', suggestedActivities: 'Phun phòng nấm, Bón Kali Sunfat, Buộc dây chống gió' },
+          { name: 'Thu hoạch quả chín (đủ 8.5 - 9 tuổi)', sequence: 6, durationDays: 15, description: 'Cắt tỉa trái già gai nở đều, gõ âm thanh vang trong, đóng sọt xuất khẩu', suggestedActivities: 'Thu hoạch, Phân loại sản phẩm, Vận chuyển' },
+        ],
+      },
+      {
+        cropName: 'Bơ 034 sáp dẻo',
+        cycleName: 'Chu kỳ kinh doanh Bơ 034',
+        yearsToFlower: 2.5,
+        yearsToHarvest: 3.0,
+        description: 'Chu kỳ canh tác bơ sáp dài 034 Bảo Lộc - Lâm Đồng',
+        stages: [
+          { name: 'Phân hóa mầm hoa', sequence: 1, durationDays: 30, description: 'Tỉa cành thông thoáng, phun phân bón lá vi lượng', suggestedActivities: 'Cắt tỉa, Phun vi lượng' },
+          { name: 'Nở hoa & Đậu quả non', sequence: 2, durationDays: 30, description: 'Tưới nước đều đặn, chống sốc nhiệt rụng hoa', suggestedActivities: 'Tưới nước, Bón vi lượng Bo' },
+          { name: 'Phát triển chiều dài trái', sequence: 3, durationDays: 60, description: 'Trái bơ 034 dài từ 25-35cm, cần bón NPK cân đối', suggestedActivities: 'Bón phân NPK, Phòng bọ xít muỗi' },
+          { name: 'Tích lũy độ béo & Tạo sáp', sequence: 4, durationDays: 50, description: 'Tích tụ dầu tự nhiên trong cơm bơ, bón phân hữu cơ khoáng', suggestedActivities: 'Bón phân hữu cơ, Tưới nước giữ ẩm' },
+          { name: 'Thu hoạch trái chín già', sequence: 5, durationDays: 30, description: 'Hái khi vỏ quả chuyển màu xanh đậm bóng, chấm cám nhiều', suggestedActivities: 'Thu hoạch, Đóng hộp bọc xốp' },
+        ],
+      },
+      {
+        cropName: 'Mắc-ca ghép thương phẩm',
+        cycleName: 'Chu kỳ kinh doanh Mắc-ca ghép',
+        yearsToFlower: 3.5,
+        yearsToHarvest: 4.5,
+        description: 'Cây nữ hoàng hạt khô, thích hợp khí hậu mát mẻ cao nguyên',
+        stages: [
+          { name: 'Phân hóa mầm hoa đầu mùa khô', sequence: 1, durationDays: 45, description: 'Thời tiết se lạnh kích thích chùm hoa dài nở', suggestedActivities: 'Dọn cỏ vườn, Tỉa cành vượt' },
+          { name: 'Nở hoa chuỗi & Đậu quả chùm', sequence: 2, durationDays: 30, description: 'Thụ phấn chéo nhờ ong mật, tưới nước bổ sung', suggestedActivities: 'Tưới nước, Nuôi ong mật hỗ trợ' },
+          { name: 'Tăng trưởng kích thước vỏ hạt', sequence: 3, durationDays: 90, description: 'Vỏ xanh dày phát triển, phòng trừ chuột và sâu đục hạt', suggestedActivities: 'Bón phân NPK, Bẫy bả chuột' },
+          { name: 'Hạt hóa gỗ & Tích lũy dầu béo', sequence: 4, durationDays: 60, description: 'Vỏ hạt chuyển sang màu nâu gỗ cứng cáp', suggestedActivities: 'Bón Kali, Magie' },
+          { name: 'Thu hoạch hạt chín tự rụng', sequence: 5, durationDays: 45, description: 'Quả nứt tự nhiên rơi xuống đất, nhặt và bóc vỏ xanh trong 24h', suggestedActivities: 'Thu hoạch, Bóc vỏ xanh, Sấy gió nhẹ' },
+        ],
+      },
+    ];
+
+    for (const cyc of agronomicCycles) {
+      const targetCrop = createdCrops.find((c) => c.name === cyc.cropName);
+      if (!targetCrop) continue;
+
+      let existingCycle = await (this.prisma as any).growthCycle.findFirst({
+        where: { cropId: targetCrop.id, name: cyc.cycleName, deletedAt: null },
+      });
+
+      const totalDuration = cyc.stages.reduce((s, st) => s + st.durationDays, 0);
+
+      if (!existingCycle) {
+        await (this.prisma as any).growthCycle.create({
+          data: {
+            cropId: targetCrop.id,
+            name: cyc.cycleName,
+            description: cyc.description,
+            yearsToFlower: cyc.yearsToFlower,
+            yearsToHarvest: cyc.yearsToHarvest,
+            totalDurationDays: totalDuration,
+            stages: {
+              create: cyc.stages.map((st) => ({
+                name: st.name,
+                sequence: st.sequence,
+                durationDays: st.durationDays,
+                description: st.description,
+                suggestedActivities: st.suggestedActivities,
+              })),
+            },
+          },
+        });
+      }
+    }
+
     return {
-      message: 'Khởi tạo thành công danh mục cây trồng & vật tư mẫu!',
+      message: 'Khởi tạo thành công danh mục cây trồng, vật tư & chu kỳ sinh trưởng nông học!',
       crops: createdCrops,
       materials: createdMaterials,
     };

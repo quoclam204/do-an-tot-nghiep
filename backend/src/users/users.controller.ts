@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -73,5 +74,61 @@ export class UsersController {
   @Roles('ADMIN')
   remove(@Param('id') id: string, @Request() req: any) {
     return this.usersService.softDelete(id, req.user.userId);
+  }
+
+  /** POST /users/admin/create - Admin tạo tài khoản mới */
+  @Post('admin/create')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  createByAdmin(@Body() dto: { email: string; fullName: string; password: string; role?: string; phone?: string }) {
+    return this.usersService.createByAdmin(dto);
+  }
+
+  /** PATCH /users/:id/restore - Khôi phục tài khoản đã xóa (ADMIN) */
+  @Patch(':id/restore')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  restoreUser(@Param('id') id: string) {
+    return this.usersService.restoreUser(id);
+  }
+
+  /** GET /users/deleted - Danh sách tài khoản đã xóa (ADMIN) */
+  @Get('deleted')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  findDeleted() {
+    return this.usersService.findDeleted();
+  }
+
+  /** GET /users/pending-approvals - Danh sách tài khoản chờ duyệt (ADMIN) */
+  @Get('pending-approvals')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  findPending() {
+    return this.usersService.findPending();
+  }
+
+  /** PATCH /users/:id/approve - Phê duyệt tài khoản (ADMIN) */
+  @Patch(':id/approve')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  approveUser(@Param('id') id: string) {
+    return this.usersService.approveUser(id);
+  }
+
+  /** PATCH /users/:id/reject - Từ chối tài khoản (ADMIN) */
+  @Patch(':id/reject')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  rejectUser(@Param('id') id: string, @Body() body: { reason?: string }) {
+    return this.usersService.rejectUser(id, body?.reason);
+  }
+
+  /** GET /users/statistics - Thống kê tổng quan (ADMIN) */
+  @Get('statistics')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  getStatistics() {
+    return this.usersService.getStatistics();
   }
 }
