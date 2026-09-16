@@ -71,7 +71,14 @@ function ProfileTab({ currentUser, onUpdate }) {
 
     if (!currentUser) return <div className="tab-loading">Đang tải...</div>;
 
-    const roleLabel = { OWNER: 'Chủ nông hộ', ADMIN: 'Quản trị viên', WORKER: 'Nhân viên' };
+    const roleLabel = {
+        OWNER: 'Chủ nông hộ',
+        FARMER: 'Chủ nông hộ',
+        ADMIN: 'Quản trị viên',
+        WORKER: 'Nhân viên',
+        TECHNICIAN: 'Kỹ thuật viên',
+        VIEWER: 'Quan sát viên'
+    };
 
     return (
         <div className="tab-content">
@@ -143,13 +150,13 @@ function ProfileTab({ currentUser, onUpdate }) {
                     </div>
                     <div className="info-item">
                         <dt>Ngày tạo</dt>
-                        <dd>{new Date(currentUser.createdAt).toLocaleDateString('vi-VN')}</dd>
+                        <dd>{currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('vi-VN') : 'Mới tạo'}</dd>
                     </div>
                     <div className="info-item">
                         <dt>Trạng thái</dt>
                         <dd>
-                            <span className={`status-dot ${currentUser.isActive ? 'active' : 'inactive'}`} />
-                            {currentUser.isActive ? 'Đang hoạt động' : 'Bị vô hiệu hóa'}
+                            <span className={`status-dot ${currentUser.isActive !== false ? 'active' : 'inactive'}`} />
+                            {currentUser.isActive !== false ? 'Đang hoạt động' : 'Bị vô hiệu hóa'}
                         </dd>
                     </div>
                 </dl>
@@ -553,21 +560,31 @@ function AccountPage() {
     const { user: authUser, token, login, logout } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('profile');
-    const [currentUser, setCurrentUser] = useState(null);
+    const [currentUser, setCurrentUser] = useState(authUser);
 
     useEffect(() => {
-        if (!token) {
+        const activeToken = token || localStorage.getItem('token') || localStorage.getItem('dalat-agri-token');
+        if (!activeToken) {
             navigate('/login');
             return;
         }
         apiGetMe()
-            .then(setCurrentUser)
-            .catch(() => logout());
+            .then((data) => {
+                if (data) setCurrentUser(data);
+            })
+            .catch((err) => {
+                if (err.response?.status === 401) {
+                    logout();
+                    navigate('/login');
+                } else if (authUser) {
+                    setCurrentUser(authUser);
+                }
+            });
     }, [token]);
 
     const handleProfileUpdate = (updatedUser) => {
         setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
-        login(token, { ...authUser, ...updatedUser });
+        login(token || localStorage.getItem('token'), { ...authUser, ...updatedUser });
     };
 
     const visibleTabs = TABS.filter((tab) => !tab.adminOnly || authUser?.role === 'ADMIN');

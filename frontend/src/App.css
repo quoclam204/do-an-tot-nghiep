@@ -71,7 +71,7 @@
 /* ── Desktop Nav ── */
 .nav {
   display: flex;
-  gap: 0;
+  gap: 6px;
   align-items: center;
   justify-content: center;
   flex: 1;

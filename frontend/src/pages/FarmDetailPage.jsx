@@ -43,6 +43,7 @@ export default function FarmDetailPage() {
 
   const [showPlotModal, setShowPlotModal] = useState(false);
   const [editingPlot, setEditingPlot] = useState(null);
+  const [plotToDelete, setPlotToDelete] = useState(null);
   const [plotForm, setPlotForm] = useState({ name: "", area: "", unit: "ha" });
   const [saving, setSaving] = useState(false);
 
@@ -150,10 +151,15 @@ export default function FarmDetailPage() {
     }
   };
 
-  const handleDeletePlot = async (plotId, plotName) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa lô đất "${plotName}"?`)) return;
+  const handleDeletePlot = (plotId, plotName) => {
+    setPlotToDelete({ id: plotId, name: plotName });
+  };
+
+  const handleConfirmDeletePlot = async () => {
+    if (!plotToDelete) return;
     try {
-      await apiDeletePlot(id, plotId);
+      await apiDeletePlot(id, plotToDelete.id);
+      setPlotToDelete(null);
       loadFarm();
     } catch (err) {
       alert("Lỗi khi xóa lô trồng: " + (err.response?.data?.message || err.message));
@@ -755,6 +761,57 @@ export default function FarmDetailPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL XÁC NHẬN XÓA LÔ ĐẤT */}
+        {plotToDelete && (
+          <div className="farm-modal-overlay" onClick={() => setPlotToDelete(null)}>
+            <div
+              className="farm-modal-card"
+              style={{ maxWidth: '460px', textAlign: 'center', padding: '2rem' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>⚠️</div>
+              <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.25rem' }}>
+                Xác nhận xóa lô canh tác
+              </h3>
+              <p style={{ color: '#475569', fontSize: '0.95rem', margin: '0 0 1rem', lineHeight: '1.5' }}>
+                Bạn có chắc chắn muốn xóa lô đất <strong>"{plotToDelete.name}"</strong> không?
+              </p>
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  color: '#b91c1c',
+                  fontSize: '0.85rem',
+                  marginBottom: '1.5rem',
+                  textAlign: 'left'
+                }}
+              >
+                ⚠️ <strong>Cảnh báo:</strong> Nếu lô này đang có lịch sử mùa vụ hoặc cây trồng, hệ thống sẽ ngăn chặn xóa để bảo vệ dữ liệu nông hộ của bạn.
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ minWidth: '110px' }}
+                  onClick={() => setPlotToDelete(null)}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  style={{ minWidth: '130px', background: '#dc2626', borderColor: '#b91c1c' }}
+                  onClick={handleConfirmDeletePlot}
+                >
+                  Đồng ý xóa lô
+                </button>
+              </div>
             </div>
           </div>
         )}

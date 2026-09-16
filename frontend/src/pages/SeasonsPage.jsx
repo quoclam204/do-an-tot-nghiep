@@ -24,6 +24,7 @@ import {
   apiGetCrops,
   apiGetGrowthCycles,
   apiGetSeasonFinancialSummary,
+  apiGetMyFarms,
 } from '../services/api';
 import { api } from '../services/api';
 import './SeasonsPage.css';
@@ -49,6 +50,8 @@ export default function SeasonsPage() {
   const [crops, setCrops] = useState([]);
   const [plots, setPlots] = useState([]);
   const [growthCycles, setGrowthCycles] = useState([]);
+  const [farms, setFarms] = useState([]);
+  const [selectedFarmId, setSelectedFarmId] = useState('');
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,19 +65,22 @@ export default function SeasonsPage() {
   const [selectedSeasonData, setSelectedSeasonData] = useState(null);
   const [financeLoading, setFinanceLoading] = useState(false);
 
-  const loadData = async () => {
+  const loadData = async (targetFarmId) => {
     try {
       setLoading(true);
-      const [seasonsRes, cropsRes, cyclesRes, plotsRes] = await Promise.all([
-        apiGetSeasons().catch(() => []),
+      const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
+      const [seasonsRes, cropsRes, cyclesRes, plotsRes, farmsRes] = await Promise.all([
+        apiGetSeasons(farmToUse).catch(() => []),
         apiGetCrops().catch(() => []),
         apiGetGrowthCycles().catch(() => []),
-        api.get('/catalog/plots').then((r) => r.data).catch(() => []),
+        api.get('/catalog/plots', { params: farmToUse ? { farmId: farmToUse } : {} }).then((r) => r.data).catch(() => []),
+        apiGetMyFarms().catch(() => []),
       ]);
       setSeasons(seasonsRes || []);
       setCrops(cropsRes || []);
       setGrowthCycles(cyclesRes || []);
       setPlots(plotsRes || []);
+      setFarms(farmsRes || []);
     } catch (err) {
       console.error('Lỗi tải dữ liệu mùa vụ:', err);
     } finally {
@@ -322,6 +328,32 @@ export default function SeasonsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            {farms.length > 0 && (
+              <select
+                className="seasons-farm-select"
+                value={selectedFarmId}
+                onChange={(e) => {
+                  const fid = e.target.value;
+                  setSelectedFarmId(fid);
+                  loadData(fid);
+                }}
+                style={{
+                  padding: '0.45rem 0.85rem',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: '#0f172a',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="">🏡 Tất cả trang trại</option>
+                {farms.map((f) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* SEASONS GRID */}

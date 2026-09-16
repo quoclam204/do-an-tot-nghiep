@@ -16,6 +16,7 @@ import {
 import {
   apiGetMaterials,
   apiCreateMaterial,
+  apiGetMaterialHistory,
 } from '../services/api';
 import { api } from '../services/api';
 import './MaterialsPage.css';
@@ -58,6 +59,40 @@ export default function MaterialsPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  // Lịch sử thay đổi vật tư
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [materialHistories, setMaterialHistories] = useState([]);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+
+  // Xác nhận xóa
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState(null);
+
+  const handleOpenHistory = async (item) => {
+    setSelectedMaterial(item);
+    setHistoryModalOpen(true);
+    setHistoryLoading(true);
+    try {
+      const data = await apiGetMaterialHistory(item.id);
+      setMaterialHistories(data || []);
+    } catch (err) {
+      console.error('Lỗi tải lịch sử vật tư:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmItem) return;
+    try {
+      await api.delete(`/catalog/materials/${deleteConfirmItem.id}`);
+      setDeleteConfirmItem(null);
+      await loadMaterials();
+    } catch (err) {
+      alert('Lỗi xóa vật tư: ' + (err.response?.data?.message || err.message));
+    }
+  };
 
   const loadMaterials = async () => {
     try {
@@ -307,7 +342,28 @@ export default function MaterialsPage() {
                           </span>
                         </td>
                         <td>
-                          <div className="material-actions-cell">
+                          <div className="material-actions-cell" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn-mat-history"
+                              title="Xem lịch sử thay đổi vật tư"
+                              onClick={() => handleOpenHistory(item)}
+                              style={{
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '3px'
+                              }}
+                            >
+                              📜 Lịch sử
+                            </button>
                             <button
                               className="btn-mat-edit"
                               title="Sửa vật tư"
@@ -318,7 +374,7 @@ export default function MaterialsPage() {
                             <button
                               className="btn-mat-delete"
                               title="Xóa vật tư"
-                              onClick={() => handleDelete(item.id, item.name)}
+                              onClick={() => setDeleteConfirmItem(item)}
                             >
                               <IconTrash size={14} strokeWidth={2} />
                             </button>
@@ -409,6 +465,115 @@ export default function MaterialsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL LỊCH SỬ THAY ĐỔI VẬT TƯ */}
+      {historyModalOpen && (
+        <div className="materials-modal-overlay" onClick={() => setHistoryModalOpen(false)}>
+          <div className="materials-modal" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                📜 Lịch sử thay đổi vật tư: {selectedMaterial?.name}
+              </h3>
+              <button className="modal-close-btn" onClick={() => setHistoryModalOpen(false)}>
+                <IconX size={16} strokeWidth={2.5} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem' }}>
+                💡 Mọi thay đổi về tên, đơn vị, giá hoặc điều chỉnh vật tư đều được lưu trữ vĩnh viễn nhằm đảm bảo các mùa vụ canh tác trong quá khứ không bị sai lệch số liệu.
+              </p>
+              {historyLoading ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải lịch sử...</div>
+              ) : materialHistories.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                  Chưa có lịch sử thay đổi nào được ghi nhận cho vật tư này.
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                      <th style={{ padding: '8px' }}>Hành động</th>
+                      <th style={{ padding: '8px' }}>Tên vật tư</th>
+                      <th style={{ padding: '8px' }}>Loại</th>
+                      <th style={{ padding: '8px' }}>Đơn vị</th>
+                      <th style={{ padding: '8px' }}>Đơn giá</th>
+                      <th style={{ padding: '8px' }}>Thời điểm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {materialHistories.map((h) => (
+                      <tr key={h.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '8px' }}>
+                          <span style={{
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            background: h.action === 'CREATE' ? '#dcfce7' : h.action === 'UPDATE' ? '#fef3c7' : '#fee2e2',
+                            color: h.action === 'CREATE' ? '#166534' : h.action === 'UPDATE' ? '#92400e' : '#991b1b',
+                          }}>
+                            {h.action === 'CREATE' ? 'Tạo mới' : h.action === 'UPDATE' ? 'Cập nhật' : 'Xóa'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '8px', fontWeight: 600 }}>{h.name}</td>
+                        <td style={{ padding: '8px' }}>{TYPE_LABELS[h.type] || h.type}</td>
+                        <td style={{ padding: '8px' }}>{h.unit}</td>
+                        <td style={{ padding: '8px' }}>{Number(h.defaultPrice).toLocaleString('vi-VN')} đ</td>
+                        <td style={{ padding: '8px', color: '#64748b', fontSize: '0.8rem' }}>
+                          {new Date(h.changedAt).toLocaleString('vi-VN')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-modal-cancel" onClick={() => setHistoryModalOpen(false)}>
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL XÁC NHẬN XÓA VẬT TƯ */}
+      {deleteConfirmItem && (
+        <div className="materials-modal-overlay" onClick={() => setDeleteConfirmItem(null)}>
+          <div className="materials-modal" style={{ maxWidth: '480px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ fontSize: '3rem', margin: '1rem 0 0.5rem' }}>⚠️</div>
+            <h3 style={{ margin: '0 0 0.5rem' }}>Xác nhận xóa vật tư</h3>
+            <p style={{ color: '#475569', fontSize: '0.95rem', margin: '0 1rem 1rem' }}>
+              Bạn có chắc chắn muốn xóa vật tư <strong>"{deleteConfirmItem.name}"</strong>?
+            </p>
+            <div style={{
+              background: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              borderRadius: '8px',
+              padding: '0.75rem',
+              margin: '0 1.5rem 1.5rem',
+              textAlign: 'left',
+              fontSize: '0.85rem',
+              color: '#065f46'
+            }}>
+              🛡️ <strong>Bảo toàn dữ liệu lịch sử:</strong> Lịch sử của vật tư này vẫn được hệ thống lưu trữ vĩnh viễn. Các vụ mùa và nhật ký canh tác đã sử dụng vật tư này trước đây sẽ không bị ảnh hưởng hay mất dữ liệu chi phí!
+            </div>
+            <div className="modal-footer" style={{ justifyContent: 'center', gap: '0.75rem' }}>
+              <button type="button" className="btn-modal-cancel" onClick={() => setDeleteConfirmItem(null)}>
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="btn-modal-save"
+                style={{ background: '#dc2626' }}
+                onClick={handleConfirmDelete}
+              >
+                Đồng ý xóa
+              </button>
+            </div>
           </div>
         </div>
       )}

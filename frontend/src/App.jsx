@@ -37,6 +37,8 @@ import InventoryPage from "./pages/InventoryPage";
 import SeasonsPage from "./pages/SeasonsPage";
 import ReportsPage from "./pages/ReportsPage";
 import HarvestPage from "./pages/HarvestPage";
+import SalesPage from "./pages/SalesPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 function DashboardPage() {
   const supplies = [
@@ -605,6 +607,8 @@ function App() {
           <Route path="/materials" element={<ProtectedRoute><MaterialsPage /></ProtectedRoute>} />
           <Route path="/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
           <Route path="/harvest" element={<ProtectedRoute><HarvestPage /></ProtectedRoute>} />
+          <Route path="/sales" element={<ProtectedRoute><SalesPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
           <Route
             path="/dashboard"

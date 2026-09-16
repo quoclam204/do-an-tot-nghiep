@@ -3,16 +3,27 @@ import { createContext, useState, useContext, useEffect } from 'react';
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
 
-  // TODO 1: Khi app load lần đầu, đọc token và user từ localStorage
-  //         Gợi ý: dùng useEffect + JSON.parse(localStorage.getItem('user'))
+  const [token, setToken] = useState(() => {
+    return localStorage.getItem('token') || localStorage.getItem('dalat-agri-token') || null;
+  });
+
+  // Đồng bộ khi localStorage thay đổi (nếu có)
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
-    if (storedUser) setUser(JSON.parse(storedUser));
-    if (storedToken) setToken(storedToken);
+    const storedToken = localStorage.getItem('token') || localStorage.getItem('dalat-agri-token');
+    if (storedUser && !user) {
+      try { setUser(JSON.parse(storedUser)); } catch {}
+    }
+    if (storedToken && !token) setToken(storedToken);
   }, []);
 
   const login = (newToken, userData) => {

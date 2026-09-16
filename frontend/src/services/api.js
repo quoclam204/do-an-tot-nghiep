@@ -62,6 +62,7 @@ export const apiGetAllUsers = async () => {
     const response = await api.get('/users');
     return response.data;
 };
+export const apiGetUsers = apiGetAllUsers;
 
 /** Thay đổi vai trò người dùng (ADMIN) */
 export const apiUpdateUserRole = async (userId, role) => {
@@ -78,6 +79,24 @@ export const apiToggleUserActive = async (userId) => {
 /** Xóa mềm người dùng (ADMIN) */
 export const apiDeleteUser = async (userId) => {
     const response = await api.delete(`/users/${userId}`);
+    return response.data;
+};
+
+/** Lấy danh sách tài khoản chờ duyệt (ADMIN) */
+export const apiGetPendingUsers = async () => {
+    const response = await api.get('/users/pending-approvals');
+    return response.data;
+};
+
+/** Phê duyệt tài khoản (ADMIN) */
+export const apiApproveUser = async (userId) => {
+    const response = await api.patch(`/users/${userId}/approve`);
+    return response.data;
+};
+
+/** Từ chối tài khoản (ADMIN) */
+export const apiRejectUser = async (userId, reason) => {
+    const response = await api.patch(`/users/${userId}/reject`, { reason });
     return response.data;
 };
 
@@ -184,8 +203,8 @@ export const apiCreateGrowthCycle = async (data) => {
 };
 
 /** Lấy danh sách mùa vụ / chu kỳ canh tác */
-export const apiGetSeasons = async () => {
-    const response = await api.get('/catalog/seasons');
+export const apiGetSeasons = async (farmId) => {
+    const response = await api.get('/catalog/seasons', { params: farmId ? { farmId } : {} });
     return response.data;
 };
 
@@ -257,14 +276,23 @@ export const apiDeleteInventory = async (id) => {
 };
 
 /** Lấy danh sách nhật ký canh tác */
-export const apiGetActivityLogs = async (cropCycleId) => {
-    const response = await api.get('/catalog/activity-logs', { params: { cropCycleId } });
+export const apiGetActivityLogs = async (cropCycleId, farmId) => {
+    const params = {};
+    if (cropCycleId) params.cropCycleId = cropCycleId;
+    if (farmId) params.farmId = farmId;
+    const response = await api.get('/catalog/activity-logs', { params });
     return response.data;
 };
 
 /** Tạo nhật ký canh tác mới */
 export const apiCreateActivityLog = async (data) => {
     const response = await api.post('/catalog/activity-logs', data);
+    return response.data;
+};
+
+/** Cập nhật nhật ký canh tác */
+export const apiUpdateActivityLog = async (id, data) => {
+    const response = await api.patch(`/catalog/activity-logs/${id}`, data);
     return response.data;
 };
 
@@ -312,4 +340,125 @@ export const apiGetSeasonFinancialSummary = async (seasonId) => {
     return response.data;
 };
 
+/** Lượng vật tư tiêu thụ theo vụ mùa */
+export const apiGetSeasonMaterialConsumption = async (seasonId) => {
+    const response = await api.get(`/catalog/seasons/${seasonId}/material-consumption`);
+    return response.data;
+};
 
+/** Lịch sử thay đổi vật tư */
+export const apiGetMaterialHistory = async (materialId) => {
+    const response = await api.get(`/catalog/material-history/${materialId}`);
+    return response.data;
+};
+
+// ── Activity Types APIs (Loại hoạt động canh tác) ──────────────
+/** Lấy danh sách loại hoạt động */
+export const apiGetActivityTypes = async (farmId) => {
+    const response = await api.get('/activity-types', { params: farmId ? { farmId } : {} });
+    return response.data;
+};
+
+/** Tạo loại hoạt động mới */
+export const apiCreateActivityType = async (data) => {
+    const response = await api.post('/activity-types', data);
+    return response.data;
+};
+
+/** Cập nhật loại hoạt động */
+export const apiUpdateActivityType = async (id, data) => {
+    const response = await api.patch(`/activity-types/${id}`, data);
+    return response.data;
+};
+
+/** Xóa loại hoạt động */
+export const apiDeleteActivityType = async (id) => {
+    const response = await api.delete(`/activity-types/${id}`);
+    return response.data;
+};
+
+/** Seed loại hoạt động mặc định */
+export const apiSeedActivityTypes = async () => {
+    const response = await api.post('/activity-types/seed');
+    return response.data;
+};
+
+// ── Sales APIs (Bán hàng & Hóa đơn) ────────────────────────────
+/** Lấy danh sách sản phẩm */
+export const apiGetProducts = async (farmId) => {
+    const response = await api.get('/sales/products', { params: farmId ? { farmId } : {} });
+    return response.data;
+};
+
+/** Tạo sản phẩm mới */
+export const apiCreateProduct = async (data) => {
+    const response = await api.post('/sales/products', data);
+    return response.data;
+};
+
+/** Cập nhật sản phẩm */
+export const apiUpdateProduct = async (id, data) => {
+    const response = await api.patch(`/sales/products/${id}`, data);
+    return response.data;
+};
+
+/** Xóa sản phẩm */
+export const apiDeleteProduct = async (id) => {
+    const response = await api.delete(`/sales/products/${id}`);
+    return response.data;
+};
+
+/** Lấy danh sách hóa đơn */
+export const apiGetInvoices = async (farmId) => {
+    const response = await api.get('/sales/invoices', { params: farmId ? { farmId } : {} });
+    return response.data;
+};
+
+/** Xem chi tiết hóa đơn */
+export const apiGetInvoice = async (id) => {
+    const response = await api.get(`/sales/invoices/${id}`);
+    return response.data;
+};
+
+/** Tạo hóa đơn mới */
+export const apiCreateInvoice = async (data) => {
+    const response = await api.post('/sales/invoices', data);
+    return response.data;
+};
+
+/** Hủy hóa đơn */
+export const apiCancelInvoice = async (id) => {
+    const response = await api.patch(`/sales/invoices/${id}/cancel`);
+    return response.data;
+};
+
+/** Thống kê bán hàng */
+export const apiGetSalesStats = async (farmId) => {
+    const response = await api.get('/sales/stats', { params: { farmId } });
+    return response.data;
+};
+
+// ── Admin APIs ──────────────────────────────────────────────────
+/** Admin tạo tài khoản */
+export const apiAdminCreateUser = async (data) => {
+    const response = await api.post('/users/admin/create', data);
+    return response.data;
+};
+
+/** Admin khôi phục tài khoản */
+export const apiRestoreUser = async (userId) => {
+    const response = await api.patch(`/users/${userId}/restore`);
+    return response.data;
+};
+
+/** Danh sách tài khoản đã xóa */
+export const apiGetDeletedUsers = async () => {
+    const response = await api.get('/users/deleted');
+    return response.data;
+};
+
+/** Thống kê hệ thống */
+export const apiGetStatistics = async () => {
+    const response = await api.get('/users/statistics');
+    return response.data;
+};

@@ -67,6 +67,8 @@ const PRESET_CROPS = [
     category: 'CONG_NGHIEP',
     image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80',
     density: '1.100 cây/ha (cự ly 3m x 3m)',
+    yearsToFlower: '2 - 3 năm sau khi trồng',
+    yearsToHarvest: '3 năm bắt đầu bói, 4 - 5 năm năng suất kinh doanh ổn định',
     harvestDuration: '8 - 9 tháng sau nở hoa',
     harvestUnit: 'Tạ nhân khô / Kg quả tươi',
     commonPests: 'Nấm gỉ sắt, rệp sáp gốc, mọt đục cành, tuyến trùng rễ',
@@ -87,6 +89,8 @@ const PRESET_CROPS = [
     category: 'AN_TRAI',
     image: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=800&q=80',
     density: '120 - 150 cây/ha (cự ly 8m x 8m)',
+    yearsToFlower: '4 - 5 năm sau khi trồng cây giống ghép',
+    yearsToHarvest: '5 năm bắt đầu cho trái bói, 6 - 8 năm vào vụ kinh doanh đỉnh cao',
     harvestDuration: '100 - 115 ngày từ khi xả nhụy',
     harvestUnit: 'Kg quả tươi (trái)',
     commonPests: 'Bệnh xì mủ thân (Phytophthora), rầy nhảy hại đọt, sâu đục trái',
@@ -107,6 +111,8 @@ const PRESET_CROPS = [
     category: 'HAT',
     image: 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80',
     density: '350 - 400 cây/ha (cự ly 6m x 4m)',
+    yearsToFlower: '3 - 4 năm sau khi trồng',
+    yearsToHarvest: '4 năm cho quả bói, từ năm thứ 6 trở đi đạt năng suất ổn định',
     harvestDuration: '7 - 8 tháng tích lũy tinh dầu',
     harvestUnit: 'Kg hạt tươi bóc vỏ / Hạt sấy nứt',
     commonPests: 'Bọ xít muỗi chích chùm hoa, nấm thối hoa, sâu đục vỏ quả',
@@ -126,6 +132,8 @@ const PRESET_CROPS = [
     category: 'AN_TRAI',
     image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=800&q=80',
     density: '200 - 250 cây/ha (cự ly 6m x 7m)',
+    yearsToFlower: '2 - 2.5 năm sau khi ghép trồng',
+    yearsToHarvest: '3 năm bắt đầu cho trái bói, 4 năm kinh doanh 2 vụ/năm',
     harvestDuration: '5.5 - 6 tháng nuôi quả',
     harvestUnit: 'Kg quả tươi',
     commonPests: 'Bọ xít muỗi, bọ trĩ hại quả non, nấm thán thư cuống',
@@ -211,6 +219,8 @@ export default function CropsPage() {
     type: 'Cây công nghiệp lâu năm',
     image: '',
     density: '',
+    yearsToFlower: '',
+    yearsToHarvest: '',
     harvestDuration: '',
     harvestUnit: 'Kg quả tươi',
     commonPests: '',
@@ -351,6 +361,8 @@ export default function CropsPage() {
         type: crop.type || 'Cây công nghiệp lâu năm',
         image: meta.image || '',
         density: meta.density || '',
+        yearsToFlower: meta.yearsToFlower || '',
+        yearsToHarvest: meta.yearsToHarvest || '',
         harvestDuration: meta.harvestDuration || '',
         harvestUnit: meta.harvestUnit || 'Kg quả tươi',
         commonPests: meta.commonPests || '',
@@ -368,6 +380,8 @@ export default function CropsPage() {
         type: 'Cây công nghiệp lâu năm',
         image: '',
         density: '',
+        yearsToFlower: '',
+        yearsToHarvest: '',
         harvestDuration: '',
         harvestUnit: 'Kg quả tươi',
         commonPests: '',
@@ -392,6 +406,8 @@ export default function CropsPage() {
       type: preset.type,
       image: preset.image || '',
       density: preset.density || '',
+      yearsToFlower: preset.yearsToFlower || '',
+      yearsToHarvest: preset.yearsToHarvest || '',
       harvestDuration: preset.harvestDuration || '',
       harvestUnit: preset.harvestUnit || 'Kg quả tươi',
       commonPests: preset.commonPests || '',
@@ -482,6 +498,8 @@ export default function CropsPage() {
         image: formData.image || 'https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?auto=format&fit=crop&w=800&q=80',
         badge: 'Cây trồng nông hộ',
         density: formData.density.trim() || 'Theo quy cách vườn',
+        yearsToFlower: formData.yearsToFlower.trim() || '2 - 3 năm sau khi trồng',
+        yearsToHarvest: formData.yearsToHarvest.trim() || '3 - 4 năm sau khi trồng',
         harvestDuration: formData.harvestDuration.trim() || 'Theo chu kỳ mùa vụ',
         harvestUnit: formData.harvestUnit.trim() || 'Kg',
         commonPests: formData.commonPests.trim() || 'Theo dõi sâu bệnh lá định kỳ',
@@ -684,7 +702,12 @@ export default function CropsPage() {
                         <IconTreePine size={13} strokeWidth={2} />
                         <span>{meta.density ? meta.density.split('(')[0].trim() : 'Mật độ chuẩn'}</span>
                       </div>
-                      <div className="spec-compact-item" title="Thời gian thu hoạch">
+                      {meta.yearsToFlower && (
+                        <div className="spec-compact-item" title="Thời gian ra hoa">
+                          <span>🌸 Ra hoa: {meta.yearsToFlower.split('sau')[0].trim()}</span>
+                        </div>
+                      )}
+                      <div className="spec-compact-item" title="Thời gian nuôi quả đến thu hoạch">
                         <IconClock size={13} strokeWidth={2} />
                         <span>{meta.harvestDuration || 'Theo vụ'}</span>
                       </div>
@@ -970,6 +993,30 @@ export default function CropsPage() {
                         </div>
                       </div>
 
+                      <div className="form-grid-3" style={{ marginTop: '0.5rem' }}>
+                        <div className="form-group">
+                          <label>🌸 Thời gian bắt đầu ra hoa</label>
+                          <input
+                            type="text"
+                            placeholder="VD: 2 - 3 năm sau khi trồng"
+                            value={formData.yearsToFlower}
+                            onChange={(e) => setFormData({ ...formData, yearsToFlower: e.target.value })}
+                            className="crop-input"
+                          />
+                        </div>
+
+                        <div className="form-group">
+                          <label>🌾 Bắt đầu cho thu hoạch</label>
+                          <input
+                            type="text"
+                            placeholder="VD: 3 - 4 năm bắt đầu bói"
+                            value={formData.yearsToHarvest}
+                            onChange={(e) => setFormData({ ...formData, yearsToHarvest: e.target.value })}
+                            className="crop-input"
+                          />
+                        </div>
+                      </div>
+
                       <div className="form-group">
                         <label>
                           <span className="label-with-icon">
@@ -1182,14 +1229,26 @@ export default function CropsPage() {
                   </div>
                 </div>
 
-                {/* 3 Cột thống số canh tác chuyên sâu */}
+                {/* Thống số canh tác chuyên sâu & Chu kỳ sinh trưởng */}
                 <div className="drawer-specs-grid">
                   <div className="drawer-spec-card">
                     <span className="spec-label">Mật độ canh tác</span>
                     <strong className="spec-val">{selectedCropDetail.meta.density || 'Theo quy cách nông hộ'}</strong>
                   </div>
                   <div className="drawer-spec-card">
-                    <span className="spec-label">Thời gian thu hoạch</span>
+                    <span className="spec-label">🌸 Thời gian ra hoa</span>
+                    <strong className="spec-val" style={{ color: '#059669' }}>
+                      {selectedCropDetail.meta.yearsToFlower || '2 - 3 năm sau trồng'}
+                    </strong>
+                  </div>
+                  <div className="drawer-spec-card">
+                    <span className="spec-label">🌾 Bắt đầu thu hoạch</span>
+                    <strong className="spec-val" style={{ color: '#d97706' }}>
+                      {selectedCropDetail.meta.yearsToHarvest || '3 - 4 năm sau trồng'}
+                    </strong>
+                  </div>
+                  <div className="drawer-spec-card">
+                    <span className="spec-label">Thời gian nuôi quả</span>
                     <strong className="spec-val">{selectedCropDetail.meta.harvestDuration || 'Theo chu kỳ mùa vụ'}</strong>
                   </div>
                   <div className="drawer-spec-card">

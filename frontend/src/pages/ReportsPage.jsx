@@ -16,6 +16,8 @@ import {
   apiGetActivityLogs,
   apiGetSeasons,
   apiGetMaterials,
+  apiGetSeasonFinancialSummary,
+  apiGetMyFarms,
 } from '../services/api';
 import {
   BarChart,
@@ -52,6 +54,9 @@ export default function ReportsPage() {
   const [logs, setLogs] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [farms, setFarms] = useState([]);
+  const [selectedFarmId, setSelectedFarmId] = useState('');
+  const [seasonSummary, setSeasonSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Filters
@@ -65,16 +70,21 @@ export default function ReportsPage() {
   const loadData = async (filters = {}) => {
     try {
       setLoading(true);
-      const [seasonsRes, materialsRes] = await Promise.all([
-        apiGetSeasons().catch(() => []),
+      const farmToUse = filters.farmId !== undefined ? filters.farmId : selectedFarmId;
+      const seasonToUse = filters.cropCycleId !== undefined ? filters.cropCycleId : selectedSeason;
+
+      const [seasonsRes, materialsRes, farmsRes] = await Promise.all([
+        apiGetSeasons(farmToUse).catch(() => []),
         apiGetMaterials().catch(() => []),
+        apiGetMyFarms().catch(() => []),
       ]);
       setSeasons(seasonsRes || []);
       setMaterials(materialsRes || []);
+      setFarms(farmsRes || []);
 
       const query = {};
-      if (filters.cropCycleId || selectedSeason) {
-        query.cropCycleId = filters.cropCycleId || selectedSeason;
+      if (seasonToUse) {
+        query.cropCycleId = seasonToUse;
       }
       if (filters.startDate || startDate) {
         query.startDate = filters.startDate || startDate;
@@ -83,13 +93,15 @@ export default function ReportsPage() {
         query.endDate = filters.endDate || endDate;
       }
 
-      const [finRes, logsRes] = await Promise.all([
+      const [finRes, logsRes, seasonSumRes] = await Promise.all([
         apiGetFinancialReport(query.cropCycleId).catch(() => null),
-        apiGetActivityLogs(query.cropCycleId).catch(() => []),
+        apiGetActivityLogs(query.cropCycleId, farmToUse).catch(() => []),
+        seasonToUse ? apiGetSeasonFinancialSummary(seasonToUse).catch(() => null) : Promise.resolve(null),
       ]);
 
       setFinancials(finRes);
       setLogs(logsRes || []);
+      setSeasonSummary(seasonSumRes);
     } catch (err) {
       console.error('Lỗi tải báo cáo:', err);
     } finally {
@@ -104,6 +116,7 @@ export default function ReportsPage() {
   const handleApplyFilter = () => {
     setCurrentPage(1);
     loadData({
+      farmId: selectedFarmId,
       cropCycleId: selectedSeason,
       startDate,
       endDate,
@@ -140,17 +153,17 @@ export default function ReportsPage() {
     ];
   }, [financials]);
 
-  // Material usage aggregation
+  // Material usage aggregation (với snapshot lịch sử)
   const materialUsage = useMemo(() => {
     const usage = {};
     logs.forEach((log) => {
       (log.materials || []).forEach((m) => {
-        const key = m.materialId;
+        const key = m.materialId || m.materialName || 'Vật tư';
         if (!usage[key]) {
           usage[key] = {
-            name: m.material?.name || 'Không rõ',
-            unit: m.material?.unit || '',
-            type: m.material?.type || '',
+            name: m.materialName || m.material?.name || 'Vật tư',
+            unit: m.unit || m.material?.unit || 'đơn vị',
+            type: m.material?.type || 'KHAC',
             totalQty: 0,
             totalCost: 0,
             count: 0,
@@ -222,6 +235,25 @@ export default function ReportsPage() {
 
           {/* FILTER SECTION */}
           <div className="reports-filter-section">
+            {farms.length > 0 && (
+              <div className="report-filter-group">
+                <label>Trang trại / Nông hộ</label>
+                <select
+                  value={selectedFarmId}
+                  onChange={(e) => {
+                    const fid = e.target.value;
+                    setSelectedFarmId(fid);
+                    setSelectedSeason('');
+                    loadData({ farmId: fid, cropCycleId: '' });
+                  }}
+                >
+                  <option value="">Tất cả trang trại của tôi</option>
+                  {farms.map((f) => (
+                    <option key={f.id} value={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="report-filter-group">
               <label>Mùa vụ canh tác</label>
               <select
@@ -256,7 +288,111 @@ export default function ReportsPage() {
               <IconCheckCircle size={16} strokeWidth={2.5} />
               Áp dụng bộ lọc
             </button>
+            <button
+              className="btn-apply-filter"
+              style={{ background: '#0284c7' }}
+              onClick={() => window.print()}
+              title="In hoặc xuất PDF báo cáo"
+            >
+              🖨️ Xuất / In báo cáo
+            </button>
           </div>
+
+          {/* BÁO CÁO CHI TIẾT TỔNG KẾT VỤ MÙA */}
+          {seasonSummary && (
+            <div className="season-summary-card" style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              marginBottom: '1.5rem',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                      🌾 {seasonSummary.season?.name}
+                    </span>
+                    <span style={{
+                      background: seasonSummary.season?.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9',
+                      color: seasonSummary.season?.status === 'ACTIVE' ? '#166534' : '#475569',
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
+                    }}>
+                      {seasonSummary.season?.status === 'ACTIVE' ? 'Đang canh tác' : 'Đã kết thúc vụ'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+                    Cây trồng: <strong>{seasonSummary.season?.cropName}</strong> | Lô: <strong>{seasonSummary.season?.plotName}</strong> | Nông trại: <strong>{seasonSummary.season?.farmName}</strong>
+                  </p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Thời gian vụ mùa</div>
+                  <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>
+                    {formatDate(seasonSummary.season?.startDate)} ➔ {formatDate(seasonSummary.season?.actualEndDate || seasonSummary.season?.expectedEndDate)}
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '1rem', border: '1px solid #fecaca' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 600 }}>TỔNG ĐẦU TƯ VỤ MÙA</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b91c1c', margin: '4px 0' }}>
+                    {formatMoney(seasonSummary.summary?.totalInvestment)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#7f1d1d', lineHeight: '1.5' }}>
+                    • Vật tư: {formatMoney(seasonSummary.summary?.totalMaterialCost)}<br/>
+                    • Nhân công: {formatMoney(seasonSummary.summary?.totalLaborCost)} ({seasonSummary.summary?.totalWorkers || 0} công)<br/>
+                    • Chi phí khác: {formatMoney(seasonSummary.summary?.totalOtherCosts)}
+                  </div>
+                </div>
+
+                <div style={{ background: '#eff6ff', borderRadius: '12px', padding: '1rem', border: '1px solid #bfdbfe' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600 }}>TỔNG DOANH THU THU HOẠCH</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
+                    {formatMoney(seasonSummary.summary?.totalRevenue)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#1e3a8a', lineHeight: '1.5' }}>
+                    • Sản lượng: <strong>{(seasonSummary.summary?.totalHarvestQty || 0).toLocaleString()} kg</strong><br/>
+                    • Đơn giá trung bình: {seasonSummary.summary?.totalHarvestQty > 0 ? formatMoney(seasonSummary.summary?.totalRevenue / seasonSummary.summary?.totalHarvestQty) : '—'}/kg
+                  </div>
+                </div>
+
+                <div style={{
+                  background: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#f0fdf4' : '#fff1f2',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  border: `1px solid ${(seasonSummary.summary?.netProfit || 0) >= 0 ? '#bbf7d0' : '#fecdd3'}`
+                }}>
+                  <div style={{
+                    fontSize: '0.8rem',
+                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#166534' : '#9f1239',
+                    fontWeight: 600
+                  }}>
+                    LỢI NHUẬN RÒNG & HIỆU QUẢ VỐN
+                  </div>
+                  <div style={{
+                    fontSize: '1.4rem',
+                    fontWeight: 800,
+                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#15803d' : '#e11d48',
+                    margin: '4px 0'
+                  }}>
+                    {formatMoney(seasonSummary.summary?.netProfit)}
+                  </div>
+                  <div style={{
+                    fontSize: '0.75rem',
+                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#14532d' : '#881337',
+                    fontWeight: 600
+                  }}>
+                    Tỷ suất hoàn vốn ROI: {seasonSummary.summary?.roiPercentage || 0}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* KPI CARDS */}
           <div className="reports-kpi-grid">
@@ -394,12 +530,18 @@ export default function ReportsPage() {
           {/* MATERIAL USAGE TABLE */}
           {materialUsage.length > 0 && (
             <div className="reports-usage-card">
-              <div className="reports-usage-header">
+              <div className="reports-usage-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <div className="reports-usage-title">
                   <IconFlask size={20} strokeWidth={2} />
-                  <span>Tổng hợp vật tư tiêu thụ ({materialUsage.length} loại)</span>
+                  <span>Tổng hợp vật tư tiêu thụ & Chi phí kết vụ ({materialUsage.length} loại)</span>
+                </div>
+                <div style={{ background: '#ecfdf5', color: '#047857', padding: '6px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '0.9rem', border: '1px solid #a7f3d0' }}>
+                  Tổng chi phí vật tư vụ mùa: {formatMoney(materialUsage.reduce((sum, item) => sum + item.totalCost, 0))}
                 </div>
               </div>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem', padding: '0 1.25rem' }}>
+                🌾 Báo cáo chi tiết toàn bộ lượng vật tư tiêu thụ từ thời điểm bắt đầu làm đất, chăm sóc ban đầu đến khi thu hoạch kết vụ.
+              </p>
               <div className="materials-table-responsive">
                 <table className="reports-usage-table">
                   <thead>

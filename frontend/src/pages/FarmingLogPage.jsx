@@ -19,16 +19,19 @@ import {
   IconMapPin,
   IconClock,
 } from '../components/icons';
+import ActivityTypesModal from './ActivityTypesModal';
 import {
   apiGetCrops,
   apiGetSeasons,
   apiGetMaterials,
   apiGetActivityLogs,
   apiCreateActivityLog,
+  apiUpdateActivityLog,
   apiDeleteActivityLog,
   apiGetFinancialReport,
   apiSeedLamDong,
   apiGetMyFarms,
+  apiGetActivityTypes,
 } from '../services/api';
 import {
   BarChart,
@@ -45,21 +48,30 @@ import {
 
 export default function FarmingLogPage() {
   const [farms, setFarms] = useState([]);
+  const [selectedFarmId, setSelectedFarmId] = useState('');
   const [crops, setCrops] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [logs, setLogs] = useState([]);
   const [financials, setFinancials] = useState(null);
+  const [activityTypes, setActivityTypes] = useState([]);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [isOcrOpen, setIsOcrOpen] = useState(false);
 
+  // Chỉnh sửa nhật ký
+  const [editingLogId, setEditingLogId] = useState(null);
+  const [shiftFilter, setShiftFilter] = useState('ALL');
+
   // Form State
   const [form, setForm] = useState({
     cropCycleId: '',
-    activityType: 'BON_PHAN', // BON_PHAN, PHUN_THUOC, CAT_TIA, LAM_CO, TUOI_NUOC, THU_HOACH
+    activityType: 'BON_PHAN',
     activityDate: new Date().toISOString().split('T')[0],
+    activityTime: new Date().toTimeString().slice(0, 5), // "08:30"
+    workShift: 'SANG', // SANG | CHIEU | TOI
     notes: '',
     // Vật tư
     materialId: '',
@@ -80,16 +92,18 @@ export default function FarmingLogPage() {
   const COLORS = ['#16a34a', '#0284c7', '#d97706', '#dc2626', '#8b5cf6'];
 
   // Load tất cả dữ liệu
-  const loadData = async () => {
+  const loadData = async (targetFarmId) => {
     try {
       setLoading(true);
-      const [cropsRes, seasonsRes, materialsRes, logsRes, farmsRes, finRes] = await Promise.all([
+      const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
+      const [cropsRes, seasonsRes, materialsRes, logsRes, farmsRes, finRes, typesRes] = await Promise.all([
         apiGetCrops().catch(() => []),
-        apiGetSeasons().catch(() => []),
+        apiGetSeasons(farmToUse).catch(() => []),
         apiGetMaterials().catch(() => []),
-        apiGetActivityLogs().catch(() => []),
+        apiGetActivityLogs(undefined, farmToUse).catch(() => []),
         apiGetMyFarms().catch(() => []),
         apiGetFinancialReport().catch(() => null),
+        apiGetActivityTypes(farmToUse).catch(() => []),
       ]);
 
       setCrops(cropsRes || []);
@@ -98,6 +112,11 @@ export default function FarmingLogPage() {
       setLogs(logsRes || []);
       setFarms(farmsRes || []);
       setFinancials(finRes);
+      setActivityTypes(typesRes || []);
+
+      if (farmsRes?.length > 0 && !selectedFarmId && targetFarmId === undefined) {
+        setSelectedFarmId(farmsRes[0].id);
+      }
 
       if (seasonsRes && seasonsRes.length > 0 && !form.cropCycleId) {
         setForm((prev) => ({ ...prev, cropCycleId: seasonsRes[0].id }));
@@ -111,7 +130,7 @@ export default function FarmingLogPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedFarmId]);
 
   // Tự động tính tiền vật tư khi chọn vật tư và nhập số lượng
   const handleMaterialChange = (materialId) => {
@@ -196,7 +215,47 @@ export default function FarmingLogPage() {
     }
   };
 
-  // Submit nhật ký mới
+  // Bắt đầu sửa nhật ký
+  const handleStartEdit = (log) => {
+    setEditingLogId(log.id);
+    const mat = log.materials?.[0];
+    setForm({
+      cropCycleId: log.cropCycleId,
+      activityType: log.activityType,
+      activityDate: log.activityDate ? log.activityDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      activityTime: log.activityTime || '08:30',
+      workShift: log.workShift || 'SANG',
+      notes: log.notes || '',
+      materialId: mat ? mat.materialId : '',
+      quantityUsed: mat ? String(mat.quantityUsed) : '',
+      materialCost: mat ? String(mat.cost) : '',
+      isHiredLabor: Boolean(log.isHiredLabor),
+      laborWorkers: log.laborWorkers || 1,
+      laborWagePerDay: log.laborWagePerDay || 350000,
+      otherCosts: log.otherCosts || 0,
+      harvestQuantity: log.harvestQuantity ? String(log.harvestQuantity) : '',
+      unitPrice: log.unitPrice ? String(log.unitPrice) : '',
+      revenue: log.revenue ? String(log.revenue) : '',
+    });
+    // Cuộn mượt đến form nhập
+    window.scrollTo({ top: 380, behavior: 'smooth' });
+  };
+
+  // Hủy sửa nhật ký
+  const handleCancelEdit = () => {
+    setEditingLogId(null);
+    setForm((prev) => ({
+      ...prev,
+      notes: '',
+      quantityUsed: '',
+      materialCost: '',
+      harvestQuantity: '',
+      unitPrice: '',
+      revenue: '',
+    }));
+  };
+
+  // Submit nhật ký (Tạo mới hoặc Cập nhật)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.cropCycleId) {
@@ -209,6 +268,8 @@ export default function FarmingLogPage() {
         cropCycleId: form.cropCycleId,
         activityType: form.activityType,
         activityDate: form.activityDate,
+        activityTime: form.activityTime || null,
+        workShift: form.workShift || 'SANG',
         notes: form.notes,
         isHiredLabor: form.isHiredLabor,
         laborWorkers: form.isHiredLabor ? Number(form.laborWorkers) : 0,
@@ -224,6 +285,8 @@ export default function FarmingLogPage() {
             cost: Number(form.materialCost || 0),
           },
         ];
+      } else {
+        payload.materials = [];
       }
 
       if (form.activityType === 'THU_HOACH') {
@@ -232,8 +295,15 @@ export default function FarmingLogPage() {
         payload.revenue = Number(form.revenue || 0);
       }
 
-      await apiCreateActivityLog(payload);
-      alert('Đã ghi nhật ký canh tác & hạch toán thành công!');
+      if (editingLogId) {
+        await apiUpdateActivityLog(editingLogId, payload);
+        alert('Cập nhật nhật ký canh tác thành công!');
+        setEditingLogId(null);
+      } else {
+        await apiCreateActivityLog(payload);
+        alert('Đã ghi nhật ký canh tác & hạch toán thành công!');
+      }
+
       // Reset form
       setForm((prev) => ({
         ...prev,
@@ -258,8 +328,10 @@ export default function FarmingLogPage() {
     }
   };
 
-  // Format tên hoạt động
+  // Format tên hoạt động (tìm từ danh mục động trước)
   const formatActivityName = (type) => {
+    const custom = activityTypes.find((t) => t.code === type);
+    if (custom) return custom.name;
     switch (type) {
       case 'BON_PHAN':
         return 'Bón phân';
@@ -273,6 +345,10 @@ export default function FarmingLogPage() {
         return 'Tưới tiêu nước';
       case 'THU_HOACH':
         return 'Thu hoạch nông sản';
+      case 'LAM_DAT':
+        return 'Làm đất / Xới luống';
+      case 'GIEO_TRONG':
+        return 'Gieo trồng';
       default:
         return type;
     }
@@ -301,6 +377,13 @@ export default function FarmingLogPage() {
     ].filter((item) => item.value > 0);
   }, [financials]);
 
+  const displayedLogs = useMemo(() => {
+    return logs.filter((log) => {
+      if (shiftFilter !== 'ALL' && log.workShift !== shiftFilter) return false;
+      return true;
+    });
+  }, [logs, shiftFilter]);
+
   return (
     <div className="farming-log-container">
       {/* HEADER TRANG */}
@@ -315,7 +398,30 @@ export default function FarmingLogPage() {
             Ghi chép phân bón, thuốc BVTV, nhân công thuê, kiểm soát chi phí đầu tư và lợi nhuận vụ mùa nông nghiệp
           </p>
         </div>
-        <div className="farming-header-actions">
+        <div className="farming-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {farms.length > 0 && (
+            <select
+              value={selectedFarmId}
+              onChange={(e) => setSelectedFarmId(e.target.value)}
+              style={{
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1.5px solid #10b981',
+                background: '#fff',
+                fontWeight: '600',
+                color: '#065f46',
+                cursor: 'pointer',
+                fontSize: '0.88rem'
+              }}
+              title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
+            >
+              {farms.map((f) => (
+                <option key={f.id} value={f.id}>
+                  🏡 {f.name}
+                </option>
+              ))}
+            </select>
+          )}
           <button
             className="btn-open-ocr"
             onClick={() => setIsOcrOpen(true)}
@@ -446,16 +552,35 @@ export default function FarmingLogPage() {
           <div className="form-card-header">
             <div className="form-title-wrap">
               <IconPenLine size={20} strokeWidth={2} />
-              <h3>Ghi Nhật Ký Canh Tác Mới</h3>
+              <h3>{editingLogId ? 'Chỉnh Sửa Nhật Ký Canh Tác' : 'Ghi Nhật Ký Canh Tác Mới'}</h3>
             </div>
-            <button
-              type="button"
-              className="btn-quick-ocr"
-              onClick={() => setIsOcrOpen(true)}
-            >
-              <IconZap size={14} strokeWidth={2.4} />
-              <span>Quét Hóa Đơn Tự Điền</span>
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {editingLogId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    padding: '4px 10px',
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Hủy sửa
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-quick-ocr"
+                onClick={() => setIsOcrOpen(true)}
+              >
+                <IconZap size={14} strokeWidth={2.4} />
+                <span>Quét Hóa Đơn Tự Điền</span>
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="farming-form">
@@ -482,31 +607,82 @@ export default function FarmingLogPage() {
               )}
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Loại Hoạt Động</label>
-                <select
-                  value={form.activityType}
-                  onChange={(e) => setForm({ ...form, activityType: e.target.value })}
-                  className="form-control"
+            <div className="form-group">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <label style={{ margin: 0 }}>Loại Hoạt Động</label>
+                <button
+                  type="button"
+                  onClick={() => setIsActivityModalOpen(true)}
+                  style={{
+                    background: '#ecfdf5',
+                    color: '#047857',
+                    border: '1px solid #a7f3d0',
+                    borderRadius: '6px',
+                    padding: '2px 8px',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
                 >
-                  <option value="BON_PHAN">Bón phân (Gốc / Lá)</option>
-                  <option value="PHUN_THUOC">Phun thuốc BVTV</option>
-                  <option value="CAT_TIA">Cắt tỉa cành / Tạo tán</option>
-                  <option value="LAM_CO">Làm cỏ / Xới đất</option>
-                  <option value="TUOI_NUOC">Tưới tiêu nước</option>
-                  <option value="THU_HOACH">Thu hoạch nông sản</option>
-                </select>
+                  ⚙️ Thêm / Sửa loại hoạt động
+                </button>
               </div>
+              <select
+                value={form.activityType}
+                onChange={(e) => setForm({ ...form, activityType: e.target.value })}
+                className="form-control"
+              >
+                {activityTypes.length > 0 ? (
+                  activityTypes.map((t) => (
+                    <option key={t.id || t.code} value={t.code}>
+                      {t.name}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="BON_PHAN">Bón phân (Gốc / Lá)</option>
+                    <option value="PHUN_THUOC">Phun thuốc BVTV</option>
+                    <option value="CAT_TIA">Cắt tỉa cành / Tạo tán</option>
+                    <option value="LAM_CO">Làm cỏ / Xới đất</option>
+                    <option value="TUOI_NUOC">Tưới tiêu nước</option>
+                    <option value="THU_HOACH">Thu hoạch nông sản</option>
+                  </>
+                )}
+              </select>
+            </div>
 
-              <div className="form-group">
-                <label>Ngày Thực Hiện</label>
+            <div className="form-row">
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Ngày Thực Hiện <span className="text-red">*</span></label>
                 <input
                   type="date"
                   value={form.activityDate}
                   onChange={(e) => setForm({ ...form, activityDate: e.target.value })}
                   className="form-control"
                   required
+                />
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Ca Làm Việc</label>
+                <select
+                  value={form.workShift}
+                  onChange={(e) => setForm({ ...form, workShift: e.target.value })}
+                  className="form-control"
+                >
+                  <option value="SANG">🌅 Ca Sáng (06:00 - 11:30)</option>
+                  <option value="CHIEU">☀️ Ca Chiều (13:00 - 17:30)</option>
+                  <option value="TOI">🌙 Ca Tối (18:00 - 21:00)</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Giờ Thực Hiện</label>
+                <input
+                  type="time"
+                  value={form.activityTime}
+                  onChange={(e) => setForm({ ...form, activityTime: e.target.value })}
+                  className="form-control"
                 />
               </div>
             </div>
@@ -675,31 +851,58 @@ export default function FarmingLogPage() {
               />
             </div>
 
-            <button type="submit" className="btn-submit-log">
+            <button
+              type="submit"
+              className="btn-submit-log"
+              style={editingLogId ? { background: '#0284c7', borderColor: '#0369a1' } : {}}
+            >
               <IconCheckCircle size={18} strokeWidth={2.4} />
-              <span>Lưu Nhật Ký & Hạch Toán Dòng Tiền</span>
+              <span>{editingLogId ? 'Lưu Thay Đổi Nhật Ký Canh Tác' : 'Lưu Nhật Ký & Hạch Toán Dòng Tiền'}</span>
             </button>
           </form>
         </div>
 
         {/* CỘT PHẢI: BẢNG DANH SÁCH NHẬT KÝ */}
         <div className="farming-table-card">
-          <div className="table-header-row">
+          <div className="table-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <div className="table-title-box">
               <IconClipboardList size={20} strokeWidth={2} />
-              <h3>Lịch Sử Nhật Ký Canh Tác ({logs.length})</h3>
+              <h3>Lịch Sử Nhật Ký Canh Tác ({displayedLogs.length})</h3>
             </div>
-            <button className="btn-refresh" onClick={loadData}>
-              <IconRotateCw size={14} strokeWidth={2.2} />
-              <span>Làm mới</span>
-            </button>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>Lọc ca:</span>
+                <select
+                  value={shiftFilter}
+                  onChange={(e) => setShiftFilter(e.target.value)}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.82rem',
+                    background: '#fff',
+                    color: '#334155',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="ALL">Tất cả các ca</option>
+                  <option value="SANG">🌅 Ca Sáng</option>
+                  <option value="CHIEU">☀️ Ca Chiều</option>
+                  <option value="TOI">🌙 Ca Tối</option>
+                </select>
+              </div>
+              <button className="btn-refresh" onClick={() => loadData()}>
+                <IconRotateCw size={14} strokeWidth={2.2} />
+                <span>Làm mới</span>
+              </button>
+            </div>
           </div>
 
           <div className="table-responsive">
             <table className="farming-table">
               <thead>
                 <tr>
-                  <th>Ngày</th>
+                  <th>Ngày & Ca làm</th>
                   <th>Mùa vụ / Cây</th>
                   <th>Hoạt động</th>
                   <th>Vật tư & Nhân công</th>
@@ -709,18 +912,26 @@ export default function FarmingLogPage() {
                 </tr>
               </thead>
               <tbody>
-                {logs.length === 0 ? (
+                {displayedLogs.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-6 text-muted">
-                      Chưa có nhật ký nào. Hãy nhập thông tin hoặc bấm nút Quét Hóa Đơn (OCR)!
+                      {logs.length === 0
+                        ? 'Chưa có nhật ký nào. Hãy nhập thông tin hoặc bấm nút Quét Hóa Đơn (OCR)!'
+                        : 'Không có nhật ký nào phù hợp với bộ lọc ca đã chọn.'}
                     </td>
                   </tr>
                 ) : (
-                  logs.map((log) => (
+                  displayedLogs.map((log) => (
                     <tr key={log.id}>
                       <td className="log-date-cell">
                         <IconCalendar size={13} strokeWidth={2} />
                         <span>{new Date(log.activityDate).toLocaleDateString('vi-VN')}</span>
+                        {log.workShift && (
+                          <div style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
+                            {log.workShift === 'SANG' ? '🌅 Ca Sáng' : log.workShift === 'CHIEU' ? '☀️ Ca Chiều' : '🌙 Ca Tối'}
+                            {log.activityTime ? ` (${log.activityTime})` : ''}
+                          </div>
+                        )}
                       </td>
                       <td>
                         <strong>{log.cropCycle?.name}</strong>
@@ -738,7 +949,7 @@ export default function FarmingLogPage() {
                           log.materials.map((m) => (
                             <div key={m.id} className="item-chip">
                               <IconFlask size={12} strokeWidth={2} />
-                              <span>{m.material?.name}: {m.quantityUsed} {m.material?.unit}</span>
+                              <span>{m.material?.name || m.materialName}: {m.quantityUsed} {m.material?.unit || m.unit}</span>
                             </div>
                           ))
                         ) : (
@@ -764,13 +975,23 @@ export default function FarmingLogPage() {
                           '-'
                         )}
                       </td>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <button
+                          type="button"
+                          className="btn-edit-icon"
+                          title="Chỉnh sửa nhật ký này"
+                          style={{ marginRight: '8px', background: 'none', border: 'none', cursor: 'pointer', color: '#0284c7' }}
+                          onClick={() => handleStartEdit(log)}
+                        >
+                          <IconPenLine size={15} strokeWidth={2.2} />
+                        </button>
+                        <button
+                          type="button"
                           className="btn-delete-icon"
                           title="Xóa nhật ký này"
                           onClick={() => handleDeleteLog(log.id)}
                         >
-                          <IconTrash size={14} strokeWidth={2} />
+                          <IconTrash size={15} strokeWidth={2} />
                         </button>
                       </td>
                     </tr>
@@ -787,6 +1008,14 @@ export default function FarmingLogPage() {
         isOpen={isOcrOpen}
         onClose={() => setIsOcrOpen(false)}
         onApplyData={handleApplyOcr}
+      />
+
+      {/* MODAL QUẢN LÝ LOẠI HOẠT ĐỘNG */}
+      <ActivityTypesModal
+        isOpen={isActivityModalOpen}
+        onClose={() => setIsActivityModalOpen(false)}
+        farmId={selectedFarmId}
+        onTypesChanged={loadData}
       />
     </div>
   );

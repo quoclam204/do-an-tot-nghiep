@@ -84,10 +84,13 @@ function Header() {
     { path: '/seasons', label: 'Mùa vụ', desc: 'Kế hoạch mùa vụ canh tác', icon: IconCalendar },
     { path: '/materials', label: 'Vật tư', desc: 'Phân bón, thuốc BVTV & hạt giống', icon: IconFlask },
     { path: '/inventory', label: 'Tồn kho', desc: 'Theo dõi xuất nhập tồn vật tư', icon: IconClipboardList },
-    { path: '/harvest', label: 'Thu hoạch', desc: 'Sản lượng, đơn giá & doanh thu', icon: IconScale },
+    { path: '/harvest', label: 'Thu hoạch', desc: 'Sản lượng & ghi nhận thu hoạch', icon: IconScale },
+    { path: '/sales', label: 'Bán hàng', desc: 'Sản phẩm, đơn hàng & xuất hóa đơn', icon: IconScale },
   ];
 
-  const isManagementActive = managementLinks.some((item) => location.pathname.startsWith(item.path));
+  const isManagementActive = managementLinks
+    .filter((item) => item.path !== '/sales')
+    .some((item) => location.pathname.startsWith(item.path));
 
   return (
     <>
@@ -159,9 +162,19 @@ function Header() {
               )}
             </div>
 
+            <Link to="/sales" className={isActive('/sales') ? 'active-nav-link' : ''}>
+              Bán hàng
+            </Link>
+
             <Link to="/reports" className={isActive('/reports') ? 'active-nav-link' : ''}>
               Báo cáo
             </Link>
+
+            {user?.role === 'ADMIN' && (
+              <Link to="/admin" className={isActive('/admin') ? 'active-nav-link' : ''} style={{ color: '#2563eb', fontWeight: '700' }}>
+                ⚡ Quản trị
+              </Link>
+            )}
           </nav>
 
           {/* User Auth Buttons */}
