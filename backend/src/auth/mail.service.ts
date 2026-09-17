@@ -6,15 +6,30 @@ export class MailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT || '587', 10),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    const user = process.env.EMAIL_USER?.trim();
+    const pass = process.env.EMAIL_PASS?.replace(/\s+/g, '');
+
+    // Dùng service: 'gmail' mặc định để tránh lỗi timeout port 587 trên cloud server (Render)
+    if (!process.env.EMAIL_HOST || process.env.EMAIL_HOST.includes('gmail')) {
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user,
+          pass,
+        },
+      });
+    } else {
+      const port = parseInt(process.env.EMAIL_PORT || '465', 10);
+      this.transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port,
+        secure: port === 465,
+        auth: {
+          user,
+          pass,
+        },
+      });
+    }
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
@@ -47,11 +62,21 @@ export class MailService {
       `,
     };
 
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('LỖI GỬI EMAIL: Thiếu biến môi trường EMAIL_USER hoặc EMAIL_PASS trên Render!');
+      throw new InternalServerErrorException(
+        'Server chưa được cấu hình EMAIL_USER hoặc EMAIL_PASS trong Environment Variables trên Render.',
+      );
+    }
+
     try {
       await this.transporter.sendMail(mailOptions);
-    } catch (error) {
-      console.error('Lỗi khi gửi email:', error);
-      throw new InternalServerErrorException('Không thể gửi email. Có thể do sai cấu hình EMAIL_USER/EMAIL_PASS hoặc lỗi mạng. Vui lòng kiểm tra server log.');
+    } catch (error: any) {
+      console.error('Lỗi khi gửi email (chi tiết từ Nodemailer):', error);
+      const detailMsg = error?.response || error?.message || 'Lỗi mạng / xác thực';
+      throw new InternalServerErrorException(
+        `Không thể gửi email: ${detailMsg}. Vui lòng kiểm tra lại EMAIL_USER/EMAIL_PASS trên Render.`,
+      );
     }
   }
 }
