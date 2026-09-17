@@ -1,4 +1,11 @@
 import 'dotenv/config';
+import * as dns from 'node:dns';
+
+// Render container không có định tuyến IPv6, ép Node.js ưu tiên IPv4
+if (typeof (dns as any).setDefaultResultOrder === 'function') {
+  (dns as any).setDefaultResultOrder('ipv4first');
+}
+
 import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 import * as express from 'express';

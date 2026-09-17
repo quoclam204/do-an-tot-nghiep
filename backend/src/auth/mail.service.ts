@@ -1,5 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import * as dns from 'node:dns';
+
+// Fix lỗi Render / Docker không hỗ trợ outbound IPv6 dẫn đến ENETUNREACH
+if (typeof (dns as any).setDefaultResultOrder === 'function') {
+  (dns as any).setDefaultResultOrder('ipv4first');
+}
 
 @Injectable()
 export class MailService {
@@ -9,27 +15,24 @@ export class MailService {
     const user = process.env.EMAIL_USER?.trim();
     const pass = process.env.EMAIL_PASS?.replace(/\s+/g, '');
 
-    // Dùng service: 'gmail' mặc định để tránh lỗi timeout port 587 trên cloud server (Render)
-    if (!process.env.EMAIL_HOST || process.env.EMAIL_HOST.includes('gmail')) {
-      this.transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user,
-          pass,
-        },
-      });
-    } else {
-      const port = parseInt(process.env.EMAIL_PORT || '465', 10);
-      this.transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port,
-        secure: port === 465,
-        auth: {
-          user,
-          pass,
-        },
-      });
+    const host = process.env.EMAIL_HOST || 'smtp.gmail.com';
+    let port = parseInt(process.env.EMAIL_PORT || '465', 10);
+    // Render chặn/timeout cổng 587 khi kết nối ra ngoài, tự động đổi sang cổng 465 SSL nếu dùng Gmail
+    if (host.includes('gmail') && port === 587) {
+      port = 465;
     }
+    const isSecure = port === 465;
+
+    this.transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: isSecure,
+      family: 4, // BẮT BUỘC: Ép buộc socket dùng IPv4, loại bỏ IPv6 để tránh ENETUNREACH trên Render
+      auth: {
+        user,
+        pass,
+      },
+    } as any);
   }
 
   async sendPasswordResetEmail(to: string, token: string) {
