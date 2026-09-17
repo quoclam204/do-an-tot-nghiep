@@ -26,6 +26,11 @@ import {
   IconImage,
   IconArrowRight,
   IconArrowLeft,
+  IconRotateCw,
+  IconRuler,
+  IconFlower,
+  IconScale,
+  IconAward,
 } from '../../components/icons';
 import {
   apiGetCrops,
@@ -84,7 +89,7 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Sầu riêng',
-    type: 'Cây ăn trái đặc sản',
+    type: 'Cây ăn trái lâu năm',
     badge: 'Giá trị kinh tế cao',
     category: 'AN_TRAI',
     image: '/plots/durian.jpg',
@@ -148,7 +153,7 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Bưởi',
-    type: 'Cây ăn trái đặc sản',
+    type: 'Cây ăn trái lâu năm',
     badge: 'Trái cây xuất khẩu',
     category: 'AN_TRAI',
     image: '/plots/pomelo.jpg',
@@ -169,7 +174,7 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Vải thiều',
-    type: 'Cây ăn trái đặc sản',
+    type: 'Cây ăn trái lâu năm',
     badge: 'Đặc sản xuất khẩu',
     category: 'AN_TRAI',
     image: '/plots/lychee.jpg',
@@ -190,7 +195,7 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Xoài',
-    type: 'Cây ăn trái đặc sản',
+    type: 'Cây ăn trái lâu năm',
     badge: 'Trái cây cao cấp',
     category: 'AN_TRAI',
     image: '/plots/mango.jpg',
@@ -211,10 +216,10 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Mắc ca',
-    type: 'Cây lấy hạt giá trị cao',
+    type: 'Cây lấy hạt lâu năm',
     badge: 'Nông nghiệp bền vững',
     category: 'HAT',
-    image: '/plots/coffee.png',
+    image: '/plots/macadamia.jpg',
     density: '350 - 400 cây/ha (cự ly 6m x 4m)',
     yearsToFlower: '3 - 4 năm sau khi trồng',
     yearsToHarvest: '4 năm cho quả bói, từ năm thứ 6 trở đi đạt năng suất ổn định',
@@ -232,10 +237,10 @@ const PRESET_CROPS = [
   },
   {
     name: 'Cây Bơ',
-    type: 'Cây ăn trái đặc sản',
+    type: 'Cây ăn trái lâu năm',
     badge: 'Trái cây năng suất cao',
     category: 'AN_TRAI',
-    image: '/plots/durian.jpg',
+    image: '/plots/avocado-tree.jpg',
     density: '200 - 250 cây/ha (cự ly 6m x 7m)',
     yearsToFlower: '2 - 2.5 năm sau khi ghép trồng',
     yearsToHarvest: '3 năm bắt đầu cho trái bói, 4 năm kinh doanh 2 vụ/năm',
@@ -256,7 +261,7 @@ const PRESET_CROPS = [
     type: 'Cây công nghiệp lâu năm',
     badge: 'Đặc sản giá trị cao',
     category: 'CONG_NGHIEP',
-    image: '/plots/pepper.jpg',
+    image: '/plots/tea-bush.jpg',
     density: '15.000 - 18.000 bụi/ha',
     harvestDuration: '40 - 45 ngày / lứa hái búp',
     harvestUnit: 'Kg búp tươi (1 tôm 2 lá)',
@@ -280,7 +285,31 @@ const QUICK_SAMPLE_IMAGES = [
   { label: 'Bưởi', url: '/plots/pomelo.jpg' },
   { label: 'Vải thiều', url: '/plots/lychee.jpg' },
   { label: 'Xoài', url: '/plots/mango.jpg' },
+  { label: 'Mắc ca', url: '/plots/macadamia.jpg' },
+  { label: 'Bơ', url: '/plots/avocado-tree.jpg' },
+  { label: 'Chè (Trà)', url: '/plots/tea-bush.jpg' },
 ];
+
+// Dữ liệu trắng mặc định cho form tạo cây trồng mới
+const INITIAL_CROP_FORM = {
+  name: '',
+  type: 'Cây công nghiệp lâu năm',
+  image: '',
+  density: '',
+  yearsToFlower: '',
+  yearsToHarvest: '',
+  harvestDuration: '',
+  harvestUnit: 'Kg quả tươi',
+  commonPests: '',
+  recommendedMaterials: '',
+  description: '',
+  stages: [
+    { name: 'Phục hồi sau thu hoạch & Tỉa cành', durationDays: 30, desc: 'Tỉa cành vô hiệu, bón phân hữu cơ vi sinh, dọn vườn sạch sẽ.' },
+    { name: 'Phân hóa mầm hoa & Bung hoa', durationDays: 30, desc: 'Tưới đẫm nước, phun dưỡng hoa Bo-Canxi.' },
+    { name: 'Nuôi trái non & Phát triển', durationDays: 90, desc: 'Bón NPK cân đối, kiểm tra phòng trừ sâu bệnh định kỳ.' },
+    { name: 'Thu hoạch chính vụ', durationDays: 30, desc: 'Hái chọn lọc quả chín đạt tiêu chuẩn thương phẩm cao.' },
+  ],
+};
 
 export default function CropsPage() {
   const { user } = useAuth();
@@ -300,25 +329,7 @@ export default function CropsPage() {
   const [formActiveTab, setFormActiveTab] = useState('INFO'); // 'INFO' | 'SPECS' | 'STAGES'
 
   // Form Data đầy đủ các thông số nông nghiệp chuyên sâu
-  const [formData, setFormData] = useState({
-    name: '',
-    type: 'Cây công nghiệp lâu năm',
-    image: '',
-    density: '',
-    yearsToFlower: '',
-    yearsToHarvest: '',
-    harvestDuration: '',
-    harvestUnit: 'Kg quả tươi',
-    commonPests: '',
-    recommendedMaterials: '',
-    description: '',
-    stages: [
-      { name: 'Phục hồi sau thu hoạch & Tỉa cành', durationDays: 30, desc: 'Tỉa cành vô hiệu, bón phân hữu cơ vi sinh, dọn vườn sạch sẽ.' },
-      { name: 'Phân hóa mầm hoa & Bung hoa', durationDays: 30, desc: 'Tưới đẫm nước, phun dưỡng hoa Bo-Canxi.' },
-      { name: 'Nuôi trái non & Phát triển', durationDays: 90, desc: 'Bón NPK cân đối, kiểm tra phòng trừ sâu bệnh định kỳ.' },
-      { name: 'Thu hoạch chính vụ', durationDays: 30, desc: 'Hái chọn lọc quả chín đạt tiêu chuẩn thương phẩm cao.' },
-    ],
-  });
+  const [formData, setFormData] = useState(INITIAL_CROP_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tải dữ liệu
@@ -422,6 +433,9 @@ export default function CropsPage() {
       if (selectedCategory === 'HAT') {
         return (crop.type && crop.type.includes('hạt')) || crop.name.includes('Mắc ca') || crop.name.includes('Điều');
       }
+      if (selectedCategory === 'XEN_CANH') {
+        return (crop.type && (crop.type.includes('xen canh') || crop.type.includes('nông sản khác') || crop.type.includes('hoa') || crop.type.includes('rau')));
+      }
       return true;
     });
   }, [crops, searchTerm, selectedCategory]);
@@ -465,10 +479,29 @@ export default function CropsPage() {
       });
     } else {
       setEditingCrop(null);
-      setFormData({
+      setFormData(INITIAL_CROP_FORM);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+    setFormActiveTab('INFO');
+    setIsFormOpen(true);
+  };
+
+  // Làm mới dữ liệu theo từng tab (phần nào ở tab đó thì chỉ xóa tab đó)
+  const handleResetCurrentTab = () => {
+    if (formActiveTab === 'INFO') {
+      // Làm mới phần 1: Thông tin & Ảnh
+      setFormData((prev) => ({
+        ...prev,
         name: '',
         type: 'Cây công nghiệp lâu năm',
+        description: '',
         image: '',
+      }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } else if (formActiveTab === 'SPECS') {
+      // Làm mới phần 2: Thông số canh tác
+      setFormData((prev) => ({
+        ...prev,
         density: '',
         yearsToFlower: '',
         yearsToHarvest: '',
@@ -476,21 +509,27 @@ export default function CropsPage() {
         harvestUnit: 'Kg quả tươi',
         commonPests: '',
         recommendedMaterials: '',
-        description: '',
+      }));
+    } else if (formActiveTab === 'STAGES') {
+      // Làm mới phần 3: Quy trình sinh trưởng
+      setFormData((prev) => ({
+        ...prev,
         stages: [
           { name: 'Phục hồi sau thu hoạch & Tỉa cành', durationDays: 30, desc: 'Tỉa cành vô hiệu, bón phân hữu cơ vi sinh, dọn vườn sạch sẽ.' },
           { name: 'Phân hóa mầm hoa & Bung hoa', durationDays: 30, desc: 'Tưới đẫm nước, phun dưỡng hoa Bo-Canxi.' },
           { name: 'Nuôi trái non & Phát triển', durationDays: 90, desc: 'Bón NPK cân đối, kiểm tra phòng trừ sâu bệnh định kỳ.' },
           { name: 'Thu hoạch chính vụ', durationDays: 30, desc: 'Hái chọn lọc quả chín đạt tiêu chuẩn thương phẩm cao.' },
         ],
-      });
+      }));
     }
-    setFormActiveTab('INFO');
-    setIsFormOpen(true);
   };
 
-  // Áp dụng mẫu từ preset vào form thêm mới
+  // Áp dụng mẫu từ preset vào form thêm mới (click lại để hủy chọn phần thông tin)
   const handleSelectPreset = (preset) => {
+    if (formData.name === preset.name) {
+      handleResetCurrentTab();
+      return;
+    }
     setFormData({
       name: preset.name,
       type: preset.type,
@@ -732,6 +771,13 @@ export default function CropsPage() {
               <IconLeaf size={15} strokeWidth={2} />
               <span>Cây lấy hạt</span>
             </button>
+            <button
+              className={`filter-pill ${selectedCategory === 'XEN_CANH' ? 'active' : ''}`}
+              onClick={() => setSelectedCategory('XEN_CANH')}
+            >
+              <IconFlask size={15} strokeWidth={2} />
+              <span>Cây xen canh & khác</span>
+            </button>
           </div>
         </section>
 
@@ -878,31 +924,50 @@ export default function CropsPage() {
               </div>
 
               <form onSubmit={handleSubmitForm} className="crop-modal-form">
-                {/* --- THANH ĐIỀU HƯỚNG TABS --- */}
-                <div className="crop-modal-tabs">
+                {/* --- THANH ĐIỀU HƯỚNG TABS & NÚT LÀM MỚI CHUNG CHO 3 PHẦN --- */}
+                <div className="crop-modal-tabs-header">
+                  <div className="crop-modal-tabs">
+                    <button
+                      type="button"
+                      className={`modal-tab-btn ${formActiveTab === 'INFO' ? 'active' : ''}`}
+                      onClick={() => setFormActiveTab('INFO')}
+                    >
+                      <IconCamera size={14} strokeWidth={2.2} />
+                      <span>1. Thông Tin</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`modal-tab-btn ${formActiveTab === 'SPECS' ? 'active' : ''}`}
+                      onClick={() => setFormActiveTab('SPECS')}
+                    >
+                      <IconLayers size={14} strokeWidth={2.2} />
+                      <span>2. Thông Số</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`modal-tab-btn ${formActiveTab === 'STAGES' ? 'active' : ''}`}
+                      onClick={() => setFormActiveTab('STAGES')}
+                    >
+                      <IconClock size={14} strokeWidth={2.2} />
+                      <span>3. Quy Trình ({formData.stages.length})</span>
+                    </button>
+                  </div>
+
+                  {/* Nút làm mới chung cho cả 3 tab - bấm ở tab nào thì làm mới riêng tab đó */}
                   <button
                     type="button"
-                    className={`modal-tab-btn ${formActiveTab === 'INFO' ? 'active' : ''}`}
-                    onClick={() => setFormActiveTab('INFO')}
+                    className="tab-global-reset-btn"
+                    onClick={handleResetCurrentTab}
+                    title={
+                      formActiveTab === 'INFO'
+                        ? 'Làm mới phần 1: Tên, loại cây, mô tả & ảnh'
+                        : formActiveTab === 'SPECS'
+                        ? 'Làm mới phần 2: Mật độ, thời gian, đơn vị & thông số'
+                        : 'Làm mới phần 3: Đưa các giai đoạn quy trình về mặc định'
+                    }
                   >
-                    <IconCamera size={15} strokeWidth={2.2} />
-                    <span>1. Thông Tin & Ảnh</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`modal-tab-btn ${formActiveTab === 'SPECS' ? 'active' : ''}`}
-                    onClick={() => setFormActiveTab('SPECS')}
-                  >
-                    <IconLayers size={15} strokeWidth={2.2} />
-                    <span>2. Thông Số Canh Tác</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`modal-tab-btn ${formActiveTab === 'STAGES' ? 'active' : ''}`}
-                    onClick={() => setFormActiveTab('STAGES')}
-                  >
-                    <IconClock size={15} strokeWidth={2.2} />
-                    <span>3. Quy Trình ({formData.stages.length})</span>
+                    <IconRotateCw size={13} strokeWidth={2.2} />
+                    <span>Làm mới</span>
                   </button>
                 </div>
 
@@ -911,27 +976,36 @@ export default function CropsPage() {
                   <div className="tab-pane-content">
                     {!editingCrop && (
                       <div className="crop-preset-picker">
-                        <label className="picker-label">
-                          <IconZap size={14} strokeWidth={2} />
-                          <span>Gợi ý nhanh giống cây trồng phổ biến (1 chạm tự điền thông số & ảnh):</span>
-                        </label>
-                        <div className="picker-chips-grid">
-                          {PRESET_CROPS.map((p, idx) => (
-                            <button
-                              type="button"
-                              key={idx}
-                              className="preset-chip"
-                              onClick={() => handleSelectPreset(p)}
-                            >
-                              <span className="preset-chip-icon">
-                                {renderCropCategoryIcon(p.type, p.name, 18)}
-                              </span>
-                              <div>
-                                <strong>{p.name}</strong>
-                                <small>{p.type}</small>
-                              </div>
-                            </button>
-                          ))}
+                        <div className="picker-header">
+                          <div className="picker-label">
+                            <IconZap size={13} strokeWidth={2.2} className="picker-label-icon" />
+                            <span>Gợi ý nhanh giống cây mẫu (1 chạm tự điền):</span>
+                          </div>
+                        </div>
+                        <div className="picker-pills-wrap">
+                          {PRESET_CROPS.map((p, idx) => {
+                            const isSelected = formData.name === p.name;
+                            const shortName = p.name.replace(/^Cây\s+/i, '');
+                            return (
+                              <button
+                                type="button"
+                                key={idx}
+                                className={`preset-pill-btn ${isSelected ? 'active' : ''}`}
+                                onClick={() => handleSelectPreset(p)}
+                                title={`${p.name} — ${p.type}`}
+                              >
+                                <span className="preset-pill-icon">
+                                  {renderCropCategoryIcon(p.type, p.name, 13)}
+                                </span>
+                                <span className="preset-pill-text">{shortName}</span>
+                                {isSelected && (
+                                  <span className="preset-pill-check">
+                                    <IconCheckCircle size={11} strokeWidth={2.5} />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
@@ -956,10 +1030,10 @@ export default function CropsPage() {
                           onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                           className="crop-select"
                         >
-                          <option value="Cây công nghiệp lâu năm">Cây công nghiệp lâu năm (Cà phê, Chè, Hồ tiêu, Điều...)</option>
-                          <option value="Cây ăn trái đặc sản">Cây ăn trái đặc sản (Sầu riêng, Bơ, Bưởi, Nhãn, Vải, Mít...)</option>
-                          <option value="Cây lấy hạt giá trị cao">Cây lấy hạt giá trị cao (Mắc ca, Điều, Ca cao...)</option>
-                          <option value="Cây hoa & rau màu">Cây hoa, rau củ & nông sản khác</option>
+                          <option value="Cây công nghiệp lâu năm">Cây công nghiệp lâu năm (Cà phê, Chè, Hồ tiêu, Điều, Ca cao...)</option>
+                          <option value="Cây ăn trái lâu năm">Cây ăn trái lâu năm (Sầu riêng, Bơ, Bưởi, Nhãn, Vải, Mít...)</option>
+                          <option value="Cây lấy hạt lâu năm">Cây lấy hạt lâu năm (Mắc ca, Óc chó, Dẻ...)</option>
+                          <option value="Cây trồng xen canh & nông sản khác">Cây trồng xen canh & nông sản khác (Hoa, rau củ ngắn ngày, gừng, chuối...)</option>
                         </select>
                       </div>
 
@@ -1024,24 +1098,36 @@ export default function CropsPage() {
                         </div>
                       )}
 
-                      <div className="quick-sample-photos-row">
-                        <span className="sample-label">Hoặc chọn nhanh ảnh mẫu:</span>
-                        <div className="sample-tags-list">
-                          {QUICK_SAMPLE_IMAGES.map((sample, idx) => (
-                            <button
-                              type="button"
-                              key={idx}
-                              className={`sample-tag-btn ${formData.image === sample.url ? 'active' : ''}`}
-                              onClick={() => setFormData({ ...formData, image: sample.url })}
-                            >
-                              <img
-                                src={sample.url}
-                                alt={sample.label}
-                                style={{ width: 20, height: 20, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
-                              />
-                              <span>{sample.label}</span>
-                            </button>
-                          ))}
+                      <div className="quick-sample-photos-section">
+                        <div className="sample-photos-header">
+                          <IconImage size={13} strokeWidth={2.2} className="sample-label-icon" />
+                          <span className="sample-label">Hoặc chọn nhanh ảnh mẫu:</span>
+                        </div>
+                        <div className="sample-photos-grid">
+                          {QUICK_SAMPLE_IMAGES.map((sample, idx) => {
+                            const isSelected = formData.image === sample.url;
+                            return (
+                              <button
+                                type="button"
+                                key={idx}
+                                className={`sample-photo-card ${isSelected ? 'active' : ''}`}
+                                onClick={() => setFormData({ ...formData, image: sample.url })}
+                                title={`Chọn ảnh mẫu: ${sample.label}`}
+                              >
+                                <img
+                                  src={sample.url}
+                                  alt={sample.label}
+                                  className="sample-photo-thumb"
+                                />
+                                <span className="sample-photo-name">{sample.label}</span>
+                                {isSelected && (
+                                  <span className="sample-photo-badge">
+                                    <IconCheckCircle size={10} strokeWidth={2.5} />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -1323,31 +1409,55 @@ export default function CropsPage() {
                   </div>
                 </div>
 
-                {/* Thống số canh tác chuyên sâu & Chu kỳ sinh trưởng */}
+                {/* Thông số canh tác chuyên sâu & Chu kỳ sinh trưởng (Lưới 6 thẻ cân đối 3x2) */}
                 <div className="drawer-specs-grid">
                   <div className="drawer-spec-card">
-                    <span className="spec-label">Mật độ canh tác</span>
+                    <span className="spec-label">
+                      <IconRuler size={13} strokeWidth={2.2} className="spec-icon" />
+                      <span>Mật độ canh tác</span>
+                    </span>
                     <strong className="spec-val">{selectedCropDetail.meta.density || 'Theo quy cách nông hộ'}</strong>
                   </div>
                   <div className="drawer-spec-card">
-                    <span className="spec-label">🌸 Thời gian ra hoa</span>
+                    <span className="spec-label">
+                      <IconFlower size={13} strokeWidth={2.2} className="spec-icon text-emerald" />
+                      <span>Thời gian ra hoa</span>
+                    </span>
                     <strong className="spec-val" style={{ color: '#059669' }}>
                       {selectedCropDetail.meta.yearsToFlower || '2 - 3 năm sau trồng'}
                     </strong>
                   </div>
                   <div className="drawer-spec-card">
-                    <span className="spec-label">🌾 Bắt đầu thu hoạch</span>
+                    <span className="spec-label">
+                      <IconCalendar size={13} strokeWidth={2.2} className="spec-icon text-amber" />
+                      <span>Bắt đầu thu hoạch</span>
+                    </span>
                     <strong className="spec-val" style={{ color: '#d97706' }}>
                       {selectedCropDetail.meta.yearsToHarvest || '3 - 4 năm sau trồng'}
                     </strong>
                   </div>
                   <div className="drawer-spec-card">
-                    <span className="spec-label">Thời gian nuôi quả</span>
+                    <span className="spec-label">
+                      <IconClock size={13} strokeWidth={2.2} className="spec-icon" />
+                      <span>Thời gian nuôi quả</span>
+                    </span>
                     <strong className="spec-val">{selectedCropDetail.meta.harvestDuration || 'Theo chu kỳ mùa vụ'}</strong>
                   </div>
                   <div className="drawer-spec-card">
-                    <span className="spec-label">Đơn vị sản phẩm</span>
+                    <span className="spec-label">
+                      <IconScale size={13} strokeWidth={2.2} className="spec-icon" />
+                      <span>Đơn vị sản phẩm</span>
+                    </span>
                     <strong className="spec-val">{selectedCropDetail.meta.harvestUnit || 'Kg quả tươi'}</strong>
+                  </div>
+                  <div className="drawer-spec-card">
+                    <span className="spec-label">
+                      <IconAward size={13} strokeWidth={2.2} className="spec-icon text-blue" />
+                      <span>Phân hạng thương phẩm</span>
+                    </span>
+                    <strong className="spec-val" style={{ color: '#2563eb' }}>
+                      {selectedCropDetail.meta.badge || selectedCropDetail.type || 'Nông sản chủ lực'}
+                    </strong>
                   </div>
                 </div>
 

@@ -1341,3 +1341,45 @@ export function IconCheck({ size = 16, strokeWidth = 2, className = '' }) {
     </svg>
   );
 }
+
+export function IconFlower({ size = 20, strokeWidth = 2, className = '' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5" />
+      <path d="M12 7.5V9" />
+      <path d="M7.5 12H9" />
+      <path d="M16.5 12H15" />
+      <path d="M12 16.5V15" />
+    </svg>
+  );
+}
+
+export function IconAward({ size = 20, strokeWidth = 2, className = '' }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <circle cx="12" cy="8" r="6" />
+      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11" />
+    </svg>
+  );
+}

@@ -996,7 +996,7 @@ export class CatalogService {
       { name: 'Cà phê Arabica chọn lọc', type: 'Cây công nghiệp lâu năm' },
       { name: 'Sầu riêng Ri6 cơm vàng', type: 'Cây ăn trái lâu năm' },
       { name: 'Sầu riêng Monthong Dona', type: 'Cây ăn trái lâu năm' },
-      { name: 'Mắc-ca ghép thương phẩm', type: 'Cây hạt dinh dưỡng lâu năm' },
+      { name: 'Mắc-ca ghép thương phẩm', type: 'Cây lấy hạt lâu năm' },
       { name: 'Bơ 034 sáp dẻo', type: 'Cây ăn trái lâu năm' },
       { name: 'Hồ tiêu Vĩnh Linh', type: 'Cây công nghiệp lâu năm' },
       { name: 'Bưởi da xanh ruột hồng', type: 'Cây ăn trái lâu năm' },

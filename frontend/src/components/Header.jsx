@@ -368,6 +368,7 @@ function Header() {
           </div>
         )}
       </header>
+      <div className="header-placeholder" aria-hidden="true" />
 
       {/* ================= THANH ĐIỀU HƯỚNG DƯỚI ĐÁY CHO DI ĐỘNG (MOBILE BOTTOM NAV) ================= */}
       <nav className="mobile-bottom-nav">

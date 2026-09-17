@@ -45,6 +45,9 @@ const PRESET_PLOT_IMAGES = [
   { label: "Vườn Bưởi", url: "/plots/pomelo.jpg" },
   { label: "Vườn Vải thiều", url: "/plots/lychee.jpg" },
   { label: "Vườn Xoài", url: "/plots/mango.jpg" },
+  { label: "Vườn Mắc ca", url: "/plots/macadamia.jpg" },
+  { label: "Vườn Bơ", url: "/plots/avocado-tree.jpg" },
+  { label: "Vườn Chè (Trà)", url: "/plots/tea-bush.jpg" },
 ];
 
 const PLOT_IMAGES_STORAGE_KEY = "dalatagri_plot_images";
