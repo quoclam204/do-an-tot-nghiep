@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { MailService } from './mail.service';
@@ -42,6 +43,13 @@ export class AuthService {
       throw new BadRequestException('Google credential không hợp lệ');
     }
 
+    const configuredClientId = process.env.GOOGLE_CLIENT_ID;
+    if (!configuredClientId) {
+      throw new InternalServerErrorException(
+        'Hệ thống chưa cấu hình GOOGLE_CLIENT_ID trên máy chủ',
+      );
+    }
+
     let payload: any;
     try {
       const response = await fetch(
@@ -59,9 +67,14 @@ export class AuthService {
       throw new UnauthorizedException('Không thể lấy thông tin email từ tài khoản Google');
     }
 
-    const configuredClientId = process.env.GOOGLE_CLIENT_ID;
-    if (configuredClientId && payload.aud && payload.aud !== configuredClientId) {
+    // 1. Kiểm tra Client ID (Audience) bắt buộc phải khớp với ứng dụng của bạn
+    if (payload.aud !== configuredClientId) {
       throw new UnauthorizedException('Google Client ID không khớp với hệ thống');
+    }
+
+    // 2. Bắt buộc email từ Google phải là email đã được xác minh chính chủ
+    if (payload.email_verified === 'false' || payload.email_verified === false) {
+      throw new UnauthorizedException('Tài khoản Google chưa được xác minh email');
     }
 
     const user = await this.usersService.findOrCreateGoogleUser({
