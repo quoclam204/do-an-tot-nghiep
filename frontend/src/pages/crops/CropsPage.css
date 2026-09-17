@@ -1564,6 +1564,13 @@
   color: #14532d;
 }
 
+.sample-tag-btn.active {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #047857;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
 /* Specs 3-column grid */
 .form-grid-3 {
   display: grid;

@@ -36,13 +36,15 @@ import "./FarmDetailPage.css";
 // Ảnh lô đất mặc định
 const DEFAULT_PLOT_IMAGE = "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80";
 
-// Danh sách ảnh mẫu lô đất chuyên canh
+// Danh sách ảnh mẫu lô đất chuyên canh tải từ thư mục public/plots
 const PRESET_PLOT_IMAGES = [
-  { label: "Vườn Cà phê", url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80" },
-  { label: "Vườn Sầu riêng", url: "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=800&q=80" },
-  { label: "Vườn Bơ sáp 034", url: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=800&q=80" },
-  { label: "Vườn Mắc ca ghép", url: "https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80" },
-  { label: "Vườn Chè & Cây Trái", url: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80" },
+  { label: "Vườn Cà phê", url: "/plots/coffee.png" },
+  { label: "Vườn Sầu riêng", url: "/plots/durian.jpg" },
+  { label: "Vườn Cao su", url: "/plots/rubber.jpg" },
+  { label: "Vườn Hồ tiêu", url: "/plots/pepper.jpg" },
+  { label: "Vườn Bưởi", url: "/plots/pomelo.jpg" },
+  { label: "Vườn Vải thiều", url: "/plots/lychee.jpg" },
+  { label: "Vườn Xoài", url: "/plots/mango.jpg" },
 ];
 
 const PLOT_IMAGES_STORAGE_KEY = "dalatagri_plot_images";
@@ -181,7 +183,7 @@ export default function FarmDetailPage() {
   const handleSavePlot = async (e) => {
     e.preventDefault();
     if (!plotForm.name.trim()) return alert("Vui lòng nhập tên lô trồng!");
-    
+
     // Chuẩn hóa dấu phẩy thành dấu chấm
     const numArea = Number(String(plotForm.area || "").replace(',', '.'));
     if (isNaN(numArea) || numArea <= 0) return alert("Vui lòng nhập diện tích lô đất hợp lệ lớn hơn 0!");

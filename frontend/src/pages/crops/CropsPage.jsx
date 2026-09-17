@@ -61,11 +61,11 @@ const saveStoredMeta = (key, meta) => {
 // ==================== BỘ DỮ LIỆU CÂY TRỒNG MẪU CHUẨN ====================
 const PRESET_CROPS = [
   {
-    name: 'Cà phê Robusta cao sản',
+    name: 'Cây Cà phê',
     type: 'Cây công nghiệp lâu năm',
     badge: 'Cây xuất khẩu chủ lực',
     category: 'CONG_NGHIEP',
-    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80',
+    image: '/plots/coffee.png',
     density: '1.100 cây/ha (cự ly 3m x 3m)',
     yearsToFlower: '2 - 3 năm sau khi trồng',
     yearsToHarvest: '3 năm bắt đầu bói, 4 - 5 năm năng suất kinh doanh ổn định',
@@ -83,11 +83,11 @@ const PRESET_CROPS = [
     recommendedMaterials: ['NPK 20-20-15 Đầu Trâu', 'Phân Hữu Cơ Vi Sinh', 'Regent 800WG', 'Vôi nông nghiệp'],
   },
   {
-    name: 'Sầu riêng Ri6 cơm vàng hạt lép',
+    name: 'Cây Sầu riêng',
     type: 'Cây ăn trái đặc sản',
     badge: 'Giá trị kinh tế cao',
     category: 'AN_TRAI',
-    image: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=800&q=80',
+    image: '/plots/durian.jpg',
     density: '120 - 150 cây/ha (cự ly 8m x 8m)',
     yearsToFlower: '4 - 5 năm sau khi trồng cây giống ghép',
     yearsToHarvest: '5 năm bắt đầu cho trái bói, 6 - 8 năm vào vụ kinh doanh đỉnh cao',
@@ -105,11 +105,116 @@ const PRESET_CROPS = [
     recommendedMaterials: ['Ridomil Gold 68WG', 'Bo - Canxi vi lượng', 'Phân Hữu cơ Bỉ', 'NPK 12-12-17 Kali Trắng'],
   },
   {
-    name: 'Mắc ca ghép giống OC / QN1',
+    name: 'Cây Cao su',
+    type: 'Cây công nghiệp lâu năm',
+    badge: 'Mủ cao su xuất khẩu',
+    category: 'CONG_NGHIEP',
+    image: '/plots/rubber.jpg',
+    density: '550 cây/ha (cự ly 6m x 3m)',
+    yearsToFlower: '4 - 5 năm',
+    yearsToHarvest: '5 - 6 năm bắt đầu cạo mủ kinh doanh',
+    harvestDuration: '9 - 10 tháng cạo mủ/năm',
+    harvestUnit: 'Kg mủ khô / Tạ mủ tươi',
+    commonPests: 'Bệnh phấn trắng lá non, bệnh nứt vỏ xì mủ, nấm hồng',
+    description: 'Cung cấp mủ phục vụ công nghiệp và xuất khẩu, sinh trưởng tốt ở đất đỏ bazan và đất đồi xám bạc màu.',
+    stages: [
+      { name: 'Kiến thiết cơ bản & Tỉa cành', durationDays: 60, desc: 'Tỉa chồi nách, bón phân lân, dưỡng thân cây thẳng đều khỏe mạnh.' },
+      { name: 'Mở miệng cạo mủ đầu vụ', durationDays: 30, desc: 'Vệ sinh vỏ thân, mở đường cạo chuẩn kỹ thuật d/2 hoặc d/3.' },
+      { name: 'Cạo mủ kinh doanh & Thu mủ', durationDays: 210, desc: 'Cạo sáng sớm thu mủ tươi, trút mủ định kỳ, quét thuốc ngừa nấm miệng cạo.' },
+      { name: 'Nghỉ cạo & Phục hồi thay lá', durationDays: 60, desc: 'Bôi mỡ ngừa bệnh mặt cạo, bón phân phục hồi sau mùa rụng lá.' },
+    ],
+    recommendedMaterials: ['Phân Lân nung chảy', 'Vaseline bôi mặt cạo', 'Thuốc trừ nấm Hexaconazole'],
+  },
+  {
+    name: 'Cây Hồ tiêu',
+    type: 'Cây công nghiệp lâu năm',
+    badge: 'Gia vị xuất khẩu',
+    category: 'CONG_NGHIEP',
+    image: '/plots/pepper.jpg',
+    density: '1.600 - 1.800 trụ/ha (cự ly 2.5m x 2.2m)',
+    yearsToFlower: '2 - 3 năm',
+    yearsToHarvest: '3 năm bắt đầu cho thu hoạch chuỗi hạt',
+    harvestDuration: '9 - 10 tháng',
+    harvestUnit: 'Tạ tiêu đen / Tạ tiêu sọ',
+    commonPests: 'Bệnh chết nhanh (Phytophthora), bệnh chết chậm (tuyến trùng), rệp sáp',
+    description: 'Giống tiêu hạt to cay nồng, rễ nhạy cảm úng nước, cần hệ thống rãnh thoát nước sâu và phòng ngừa nấm đối kháng định kỳ.',
+    stages: [
+      { name: 'Xử lý ra hoa đồng loạt', durationDays: 30, desc: 'Hãm nước đầu mùa mưa, phun kích ra gié hoa.' },
+      { name: 'Đậu hạt & Nuôi chuỗi gié', durationDays: 120, desc: 'Bón phân NPK cân đối, phun phòng rệp sáp gié tiêu.' },
+      { name: 'Chắc hạt & Chín đỏ', durationDays: 60, desc: 'Bón tăng cường Kali, hạn chế tưới nước khi hạt vào chắc.' },
+      { name: 'Thu hoạch chuỗi quả chín', durationDays: 40, desc: 'Thu hái chùm chín rộ, phơi sấy trên bạt sạch.' },
+    ],
+    recommendedMaterials: ['Trichoderma đối kháng', 'Phân hữu cơ nở', 'NPK 16-8-16 Đầu Trâu'],
+  },
+  {
+    name: 'Cây Bưởi',
+    type: 'Cây ăn trái đặc sản',
+    badge: 'Trái cây xuất khẩu',
+    category: 'AN_TRAI',
+    image: '/plots/pomelo.jpg',
+    density: '250 - 300 cây/ha (cự ly 5m x 6m)',
+    yearsToFlower: '2.5 - 3 năm sau trồng',
+    yearsToHarvest: '3 năm cho quả bói, năng suất ổn định từ năm thứ 5',
+    harvestDuration: '6.5 - 7 tháng từ lúc đậu quả',
+    harvestUnit: 'Kg quả tươi',
+    commonPests: 'Sâu vẽ bùa, ruồi đục quả, bọ xít muỗi, vàng lá thối rễ',
+    description: 'Múi hồng không hạt hoặc ít hạt, tép róc dóc ráo nước, vị ngọt thanh mát, thời gian bảo quản sau hái rất lâu.',
+    stages: [
+      { name: 'Tỉa cành & Kích mầm hoa', durationDays: 30, desc: 'Tỉa cành tăm, siết nước nhẹ rồi tưới đẫm bung hoa đều.' },
+      { name: 'Xổ nhụy & Đậu quả non', durationDays: 25, desc: 'Phun Bo-Canxi chống rụng cánh, tỉa bớt hoa chùm dị tật.' },
+      { name: 'Bao trái & Nuôi quả lớn', durationDays: 130, desc: 'Bao túi chuyên dụng tránh ruồi đục quả, bón NPK vi lượng đều đặn.' },
+      { name: 'Thu hoạch quả đạt chuẩn', durationDays: 30, desc: 'Hái khi túi tinh dầu nở đều, vỏ mỏng căng bóng, màu xanh sáng.' },
+    ],
+    recommendedMaterials: ['Túi bao bưởi chuyên dụng', 'Phân dơi hữu cơ', 'NPK 15-5-20 Kali Sunfat'],
+  },
+  {
+    name: 'Cây Vải thiều',
+    type: 'Cây ăn trái đặc sản',
+    badge: 'Đặc sản xuất khẩu',
+    category: 'AN_TRAI',
+    image: '/plots/lychee.jpg',
+    density: '200 - 250 cây/ha (cự ly 6m x 7m)',
+    yearsToFlower: '3 năm sau khi trồng',
+    yearsToHarvest: '3 - 4 năm bắt đầu cho thu hoạch quả',
+    harvestDuration: '80 - 90 ngày sau khi tắt hoa',
+    harvestUnit: 'Kg quả tươi',
+    commonPests: 'Sâu đục cuống quả, bọ xít nâu, nấm sương mai',
+    description: 'Cùi dày mọng nước, hạt nhỏ, vị ngọt đậm thơm mát, là nông sản xuất khẩu chủ lực có giá trị thương phẩm cao.',
+    stages: [
+      { name: 'Hãm lộc đông & Kích hoa', durationDays: 35, desc: 'Khoanh cành ngăn đọt đông, tạo khô hạn kích phân hóa mầm hoa rộ.' },
+      { name: 'Nở hoa & Nuôi dưỡng bầu nhụy', durationDays: 20, desc: 'Thả ong thụ phấn, tưới ẩm vừa phải, phun ngừa bọ xít nâu.' },
+      { name: 'Nuôi cùi & Phòng sâu đục cuống', durationDays: 60, desc: 'Bón thúc Kali, phun chế phẩm sinh học bảo vệ cuống quả non.' },
+      { name: 'Thu hoạch quả chín đỏ', durationDays: 25, desc: 'Thu hái chùm chín mọng vào buổi sáng sớm, đóng thùng bảo quản mát.' },
+    ],
+    recommendedMaterials: ['Thuốc sinh học phòng sâu đục cuống', 'NPK giàu Bo & Kali', 'Phân trùn quế'],
+  },
+  {
+    name: 'Cây Xoài',
+    type: 'Cây ăn trái đặc sản',
+    badge: 'Trái cây cao cấp',
+    category: 'AN_TRAI',
+    image: '/plots/mango.jpg',
+    density: '200 - 250 cây/ha (cự ly 6m x 6m)',
+    yearsToFlower: '2.5 - 3 năm',
+    yearsToHarvest: '3 năm bắt đầu cho trái, thu hoạch bền vững 15 - 20 năm',
+    harvestDuration: '3.5 - 4 tháng sau đậu quả',
+    harvestUnit: 'Kg quả tươi',
+    commonPests: 'Rầy bông xoài, thán thư hoa và quả non, ruồi đục quả',
+    description: 'Thịt quả vàng tươi, mịn màng không xơ, hương thơm ngào ngạt, độ ngọt đậm sâu được ưa chuộng khắp cả nước.',
+    stages: [
+      { name: 'Kích phát hoa chính vụ', durationDays: 40, desc: 'Tỉa cành tạo tán thông thoáng, phun kích hoa bung rộ đều vườn.' },
+      { name: 'Bảo vệ hoa & Đậu trái non', durationDays: 25, desc: 'Phun phòng nấm thán thư và rầy bông xoài vào buổi sáng sớm.' },
+      { name: 'Bao quả & Nuôi quả lớn', durationDays: 60, desc: 'Bao trái chống ruồi vàng, bón NPK 15-15-15 bổ sung trung vi lượng.' },
+      { name: 'Thu hoạch quả đạt chuẩn chín', durationDays: 25, desc: 'Hái khi quả đẫy đà, eo trái nở căng, thu hoạch sáng sớm.' },
+    ],
+    recommendedMaterials: ['Túi bao xoài 2 lớp', 'Antracol 70WP trị thán thư', 'Phân bón lá Amino Acid'],
+  },
+  {
+    name: 'Cây Mắc ca',
     type: 'Cây lấy hạt giá trị cao',
     badge: 'Nông nghiệp bền vững',
     category: 'HAT',
-    image: 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80',
+    image: '/plots/coffee.png',
     density: '350 - 400 cây/ha (cự ly 6m x 4m)',
     yearsToFlower: '3 - 4 năm sau khi trồng',
     yearsToHarvest: '4 năm cho quả bói, từ năm thứ 6 trở đi đạt năng suất ổn định',
@@ -126,11 +231,11 @@ const PRESET_CROPS = [
     recommendedMaterials: ['Phân trùn quế hữu cơ', 'NPK 15-15-15', 'Thuốc trừ bọ xít sinh học'],
   },
   {
-    name: 'Bơ sáp 034 cơm vàng',
+    name: 'Cây Bơ',
     type: 'Cây ăn trái đặc sản',
     badge: 'Trái cây năng suất cao',
     category: 'AN_TRAI',
-    image: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=800&q=80',
+    image: '/plots/durian.jpg',
     density: '200 - 250 cây/ha (cự ly 6m x 7m)',
     yearsToFlower: '2 - 2.5 năm sau khi ghép trồng',
     yearsToHarvest: '3 năm bắt đầu cho trái bói, 4 năm kinh doanh 2 vụ/năm',
@@ -147,11 +252,11 @@ const PRESET_CROPS = [
     recommendedMaterials: ['Phân cá vi sinh', 'Bo - Canxi Amino', 'NPK hữu cơ sinh học'],
   },
   {
-    name: 'Chè Ô Long búp xanh',
+    name: 'Cây Chè (Trà)',
     type: 'Cây công nghiệp lâu năm',
     badge: 'Đặc sản giá trị cao',
     category: 'CONG_NGHIEP',
-    image: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80',
+    image: '/plots/pepper.jpg',
     density: '15.000 - 18.000 bụi/ha',
     harvestDuration: '40 - 45 ngày / lứa hái búp',
     harvestUnit: 'Kg búp tươi (1 tôm 2 lá)',
@@ -164,36 +269,17 @@ const PRESET_CROPS = [
     ],
     recommendedMaterials: ['Phân hữu cơ khoáng', 'Chế phẩm sinh học thảo mộc', 'NPK chuyên dùng chè'],
   },
-  {
-    name: 'Hồ tiêu Vĩnh Linh',
-    type: 'Cây công nghiệp lâu năm',
-    badge: 'Gia vị xuất khẩu',
-    category: 'CONG_NGHIEP',
-    image: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80',
-    density: '1.600 - 1.800 trụ/ha (cự ly 2.5m x 2.2m)',
-    harvestDuration: '9 - 10 tháng',
-    harvestUnit: 'Tạ tiêu đen / Tạ tiêu sọ',
-    commonPests: 'Bệnh chết nhanh (Phytophthora), bệnh chết chậm (tuyến trùng), rệp sáp',
-    description: 'Giống tiêu hạt to cay nồng, rễ nhạy cảm úng nước, cần hệ thống rãnh thoát nước sâu và phòng ngừa nấm đối kháng định kỳ.',
-    stages: [
-      { name: 'Xử lý ra hoa đồng loạt', durationDays: 30, desc: 'Hãm nước đầu mùa mưa, phun kích ra gié hoa.' },
-      { name: 'Đậu hạt & Nuôi chuỗi gié', durationDays: 120, desc: 'Bón phân NPK cân đối, phun phòng rệp sáp gié tiêu.' },
-      { name: 'Chắc hạt & Chín đỏ', durationDays: 60, desc: 'Bón tăng cường Kali, hạn chế tưới nước khi hạt vào chắc.' },
-      { name: 'Thu hoạch chuỗi quả chín', durationDays: 40, desc: 'Thu hái chùm chín rộ, phơi sấy trên bạt sạch.' },
-    ],
-    recommendedMaterials: ['Trichoderma đối kháng', 'Phân hữu cơ nở', 'NPK 16-8-16 Đầu Trâu'],
-  },
 ];
 
-// Mẫu ảnh chất lượng cao để chọn nhanh
+// Mẫu ảnh chất lượng cao trong thư mục public/plots để chọn nhanh
 const QUICK_SAMPLE_IMAGES = [
-  { label: 'Cà phê', url: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Sầu riêng', url: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Mắc ca', url: 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Bơ sáp', url: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Chè / Trà', url: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Hồ tiêu', url: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80' },
-  { label: 'Bưởi / Cam', url: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?auto=format&fit=crop&w=800&q=80' },
+  { label: 'Cà phê', url: '/plots/coffee.png' },
+  { label: 'Sầu riêng', url: '/plots/durian.jpg' },
+  { label: 'Cao su', url: '/plots/rubber.jpg' },
+  { label: 'Hồ tiêu', url: '/plots/pepper.jpg' },
+  { label: 'Bưởi', url: '/plots/pomelo.jpg' },
+  { label: 'Vải thiều', url: '/plots/lychee.jpg' },
+  { label: 'Xoài', url: '/plots/mango.jpg' },
 ];
 
 export default function CropsPage() {
@@ -283,11 +369,15 @@ export default function CropsPage() {
       };
     }
 
-    const matched = PRESET_CROPS.find(
-      (p) =>
-        p.name.toLowerCase().includes(crop.name.toLowerCase()) ||
-        crop.name.toLowerCase().includes(p.name.split(' ')[0].toLowerCase())
-    );
+    const cleanCropName = (crop.name || '').replace(/^cây\s+/i, '').toLowerCase().trim();
+    const matched = PRESET_CROPS.find((p) => {
+      const cleanPName = p.name.replace(/^cây\s+/i, '').toLowerCase().trim();
+      return (
+        cleanCropName.includes(cleanPName) ||
+        cleanPName.includes(cleanCropName) ||
+        (crop.name && p.name.toLowerCase().includes(crop.name.toLowerCase()))
+      );
+    });
     if (matched) return matched;
 
     return {
@@ -941,10 +1031,14 @@ export default function CropsPage() {
                             <button
                               type="button"
                               key={idx}
-                              className="sample-tag-btn"
+                              className={`sample-tag-btn ${formData.image === sample.url ? 'active' : ''}`}
                               onClick={() => setFormData({ ...formData, image: sample.url })}
                             >
-                              <IconImage size={12} strokeWidth={2} />
+                              <img
+                                src={sample.url}
+                                alt={sample.label}
+                                style={{ width: 20, height: 20, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+                              />
                               <span>{sample.label}</span>
                             </button>
                           ))}
