@@ -4,6 +4,18 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import {
+  IconPackage,
+  IconReceipt,
+  IconHistory,
+  IconPlus,
+  IconPenLine,
+  IconTrash,
+  IconPrinter,
+  IconXCircle,
+  IconCheckCircle,
+  IconAlertTriangle,
+} from '../components/icons';
+import {
   apiGetMyFarms, apiGetProducts, apiCreateProduct, apiUpdateProduct, apiDeleteProduct,
   apiGetInvoices, apiCreateInvoice, apiCancelInvoice, apiGetSalesStats,
 } from '../services/api';
@@ -188,9 +200,15 @@ export default function SalesPage() {
           {success && <div className="alert alert-success">{success}</div>}
 
           <div className="sales-tabs">
-            <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>🏪 Sản phẩm</button>
-            <button className={tab === 'invoices' ? 'active' : ''} onClick={() => setTab('invoices')}>📝 Tạo hóa đơn</button>
-            <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>📋 Lịch sử hóa đơn</button>
+            <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconPackage size={17} /> <span>Sản phẩm</span>
+            </button>
+            <button className={tab === 'invoices' ? 'active' : ''} onClick={() => setTab('invoices')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconReceipt size={17} /> <span>Tạo hóa đơn</span>
+            </button>
+            <button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconHistory size={17} /> <span>Lịch sử hóa đơn</span>
+            </button>
           </div>
 
           {/* ── PRODUCTS TAB ── */}
@@ -199,7 +217,7 @@ export default function SalesPage() {
               <div className="section-header">
                 <h2>Sản phẩm ({products.length})</h2>
                 <button className="btn-primary" onClick={() => { setShowProductForm(true); setEditProduct(null); setProductForm({ name: '', unit: 'kg', price: '', stockQuantity: '', description: '' }); }}>
-                  + Thêm sản phẩm
+                  <IconPlus size={16} /> <span>Thêm sản phẩm</span>
                 </button>
               </div>
 
@@ -233,8 +251,12 @@ export default function SalesPage() {
                         {p.description && <p className="product-desc">{p.description}</p>}
                       </div>
                       <div className="product-actions">
-                        <button className="btn-edit" onClick={() => startEditProduct(p)}>✏️ Sửa</button>
-                        <button className="btn-delete" onClick={() => setDeleteConfirm(p)}>🗑️ Xóa</button>
+                        <button className="btn-edit" onClick={() => startEditProduct(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <IconPenLine size={14} /> Sửa
+                        </button>
+                        <button className="btn-delete" onClick={() => setDeleteConfirm(p)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <IconTrash size={14} /> Xóa
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -276,7 +298,9 @@ export default function SalesPage() {
                       </div>
                     );
                   })}
-                  <button type="button" className="btn-add-item" onClick={addInvoiceItem}>+ Thêm sản phẩm</button>
+                  <button type="button" className="btn-add-item" onClick={addInvoiceItem} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <IconPlus size={15} /> Thêm sản phẩm
+                  </button>
                 </div>
 
                 <div className="invoice-summary">
@@ -291,7 +315,9 @@ export default function SalesPage() {
                 <label>Ghi chú <textarea value={invoiceForm.notes} onChange={e => setInvoiceForm(f => ({ ...f, notes: e.target.value }))} rows="2" /></label>
 
                 <div className="form-actions">
-                  <button type="submit" className="btn-primary">💰 Tạo hóa đơn & xuất kho</button>
+                  <button type="submit" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <IconReceipt size={16} /> Tạo hóa đơn & xuất kho
+                  </button>
                 </div>
               </form>
             </section>
@@ -331,8 +357,14 @@ export default function SalesPage() {
                       <div className="invoice-footer">
                         <strong className="invoice-total">Thành tiền: {fmt(inv.finalAmount)} đ</strong>
                         <div className="invoice-actions">
-                          <button className="btn-print" onClick={() => printInvoice(inv)}>🖨️ In</button>
-                          {inv.status === 'COMPLETED' && <button className="btn-cancel" onClick={() => handleCancelInvoice(inv.id)}>❌ Hủy</button>}
+                          <button className="btn-print" onClick={() => printInvoice(inv)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconPrinter size={14} /> In
+                          </button>
+                          {inv.status === 'COMPLETED' && (
+                            <button className="btn-cancel" onClick={() => handleCancelInvoice(inv.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <IconXCircle size={14} /> Hủy
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -347,7 +379,9 @@ export default function SalesPage() {
         {deleteConfirm && (
           <div className="modal-backdrop" onClick={() => setDeleteConfirm(null)}>
             <div className="modal-content confirm-modal" onClick={e => e.stopPropagation()}>
-              <h3>⚠️ Xác nhận xóa</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <IconAlertTriangle size={18} color="#dc2626" /> Xác nhận xóa
+              </h3>
               <p>Bạn có chắc chắn muốn xóa sản phẩm <strong>"{deleteConfirm.name}"</strong>?</p>
               <div className="modal-actions">
                 <button className="btn-danger" onClick={handleDeleteProduct}>Xóa</button>
@@ -397,7 +431,9 @@ export default function SalesPage() {
                 {viewInvoice.notes && <p className="print-notes">Ghi chú: {viewInvoice.notes}</p>}
               </div>
               <div className="no-print modal-actions">
-                <button className="btn-primary" onClick={() => window.print()}>🖨️ In hóa đơn</button>
+                <button className="btn-primary" onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <IconPrinter size={16} /> In hóa đơn
+                </button>
                 <button className="btn-secondary" onClick={() => setViewInvoice(null)}>Đóng</button>
               </div>
             </div>

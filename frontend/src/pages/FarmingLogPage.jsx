@@ -18,6 +18,7 @@ import {
   IconCalendar,
   IconMapPin,
   IconClock,
+  IconSettings,
 } from '../components/icons';
 import ActivityTypesModal from './ActivityTypesModal';
 import {
@@ -621,10 +622,13 @@ export default function FarmingLogPage() {
                     padding: '2px 8px',
                     fontSize: '0.75rem',
                     fontWeight: '600',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
                   }}
                 >
-                  ⚙️ Thêm / Sửa loại hoạt động
+                  <IconSettings size={13} /> Thêm / Sửa loại hoạt động
                 </button>
               </div>
               <select

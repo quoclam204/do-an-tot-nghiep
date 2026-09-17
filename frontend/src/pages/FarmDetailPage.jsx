@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   apiGetFarm,
@@ -23,8 +23,49 @@ import {
   IconCheckCircle,
   IconUsers,
   IconUserPlus,
+  IconUpload,
+  IconImage,
 } from "../components/icons";
 import "./FarmDetailPage.css";
+
+// Ảnh lô đất mặc định
+const DEFAULT_PLOT_IMAGE = "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80";
+
+// Danh sách ảnh mẫu lô đất chuyên canh
+const PRESET_PLOT_IMAGES = [
+  { label: "Vườn Cà phê", url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80" },
+  { label: "Vườn Sầu riêng", url: "https://images.unsplash.com/photo-1587132137056-bfbf0166836e?auto=format&fit=crop&w=800&q=80" },
+  { label: "Vườn Bơ sáp 034", url: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=800&q=80" },
+  { label: "Vườn Mắc ca ghép", url: "https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?auto=format&fit=crop&w=800&q=80" },
+  { label: "Vườn Chè & Cây Trái", url: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80" },
+];
+
+const PLOT_IMAGES_STORAGE_KEY = "dalatagri_plot_images";
+
+const getStoredPlotImages = () => {
+  try {
+    const raw = localStorage.getItem(PLOT_IMAGES_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredPlotImage = (idOrName, url) => {
+  try {
+    const current = getStoredPlotImages();
+    current[idOrName] = url;
+    localStorage.setItem(PLOT_IMAGES_STORAGE_KEY, JSON.stringify(current));
+  } catch (e) {
+    console.error("Không thể lưu ảnh lô đất vào bộ nhớ cục bộ:", e);
+  }
+};
+
+const getPlotImage = (plot) => {
+  if (!plot) return DEFAULT_PLOT_IMAGE;
+  const stored = getStoredPlotImages();
+  return stored[plot.id] || stored[plot.name] || DEFAULT_PLOT_IMAGE;
+};
 
 const PRESET_PLOTS = [
   { name: "Lô A - Cà phê Robusta cao sản", area: 1.2 },
@@ -44,8 +85,9 @@ export default function FarmDetailPage() {
   const [showPlotModal, setShowPlotModal] = useState(false);
   const [editingPlot, setEditingPlot] = useState(null);
   const [plotToDelete, setPlotToDelete] = useState(null);
-  const [plotForm, setPlotForm] = useState({ name: "", area: "", unit: "ha" });
+  const [plotForm, setPlotForm] = useState({ name: "", area: "", unit: "ha", image: "" });
   const [saving, setSaving] = useState(false);
+  const plotFileInputRef = useRef(null);
 
   // Quản lý thành viên nông hộ
   const [showMemberModal, setShowMemberModal] = useState(false);
@@ -75,14 +117,35 @@ export default function FarmDetailPage() {
 
   const openAddModal = () => {
     setEditingPlot(null);
-    setPlotForm({ name: "", area: "", unit: "ha" });
+    setPlotForm({ name: "", area: "", unit: "ha", image: "" });
     setShowPlotModal(true);
   };
 
   const openEditModal = (plot) => {
     setEditingPlot(plot);
-    setPlotForm({ name: plot.name, area: String(plot.area), unit: "ha" });
+    const stored = getStoredPlotImages();
+    const currentImg = stored[plot.id] || stored[plot.name] || "";
+    setPlotForm({ name: plot.name, area: String(plot.area), unit: "ha", image: currentImg });
     setShowPlotModal(true);
+  };
+
+  const handlePlotImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Kích thước ảnh tối đa là 5MB!");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPlotForm((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearPlotImage = () => {
+    setPlotForm((prev) => ({ ...prev, image: "" }));
+    if (plotFileInputRef.current) plotFileInputRef.current.value = "";
   };
 
   // Chuyển đổi đơn vị và tự động quy đổi giá trị đang nhập
@@ -137,10 +200,20 @@ export default function FarmDetailPage() {
         area: numArea,
         unit: plotForm.unit || "ha",
       };
+
+      // Nếu người dùng để trống ảnh thì tự lấy ảnh mặc định
+      const finalImage = plotForm.image.trim() || DEFAULT_PLOT_IMAGE;
+
       if (editingPlot) {
         await apiUpdatePlot(id, editingPlot.id, payload);
+        saveStoredPlotImage(editingPlot.id, finalImage);
+        saveStoredPlotImage(payload.name, finalImage);
       } else {
-        await apiCreatePlot(id, payload);
+        const res = await apiCreatePlot(id, payload);
+        if (res && res.id) {
+          saveStoredPlotImage(res.id, finalImage);
+        }
+        saveStoredPlotImage(payload.name, finalImage);
       }
       setShowPlotModal(false);
       loadFarm();
@@ -415,45 +488,60 @@ export default function FarmDetailPage() {
               <div className="plots-grid-layout">
                 {plots.map((plot) => (
                   <div key={plot.id} className="plot-card-box">
-                    <div className="plot-card-top">
-                      <div className="plot-icon-box">
-                        <IconSprout size={22} strokeWidth={2} />
-                      </div>
-                      <div className="plot-actions-box">
+                    <div className="plot-card-cover">
+                      <img
+                        src={getPlotImage(plot)}
+                        alt={plot.name}
+                        onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
+                      />
+                      <span className="plot-card-badge">
+                        <IconCheckCircle size={12} strokeWidth={2.4} />
+                        <span>Lô canh tác</span>
+                      </span>
+                      <div className="plot-cover-actions">
                         <button
+                          type="button"
                           className="btn-icon-action edit"
                           onClick={() => openEditModal(plot)}
-                          title="Chỉnh sửa lô đất"
+                          title="Chỉnh sửa lô đất & ảnh"
                         >
-                          <IconPenLine size={16} strokeWidth={2} />
+                          <IconPenLine size={15} strokeWidth={2} />
                         </button>
                         <button
+                          type="button"
                           className="btn-icon-action delete"
                           onClick={() => handleDeletePlot(plot.id, plot.name)}
                           title="Xóa lô đất"
                         >
-                          <IconTrash size={16} strokeWidth={2} />
+                          <IconTrash size={15} strokeWidth={2} />
                         </button>
                       </div>
                     </div>
 
-                    <h3 className="plot-box-title">{plot.name}</h3>
+                    <div className="plot-card-body">
+                      <div className="plot-title-row">
+                        <div className="plot-icon-box">
+                          <IconSprout size={18} strokeWidth={2} />
+                        </div>
+                        <h3 className="plot-box-title">{plot.name}</h3>
+                      </div>
 
-                    <div className="plot-area-badge" title="1 ha = 10.000 m²">
-                      <IconRuler size={14} strokeWidth={2} />
-                      <span>
-                        Diện tích: <strong>{plot.area} ha</strong>
-                        <small style={{ color: "#64748b", marginLeft: "4px" }}>
-                          ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
-                        </small>
-                      </span>
-                    </div>
+                      <div className="plot-area-badge" title="1 ha = 10.000 m²">
+                        <IconRuler size={14} strokeWidth={2} />
+                        <span>
+                          Diện tích: <strong>{plot.area} ha</strong>
+                          <small style={{ color: "#64748b", marginLeft: "4px" }}>
+                            ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
+                          </small>
+                        </span>
+                      </div>
 
-                    <div className="plot-card-footer">
-                      <Link to="/dashboard" className="plot-link-journal">
-                        <span>Xem nhật ký lô này</span>
-                        <IconSprout size={14} strokeWidth={2} />
-                      </Link>
+                      <div className="plot-card-footer">
+                        <Link to="/dashboard" className="plot-link-journal">
+                          <span>Xem nhật ký lô này</span>
+                          <IconSprout size={14} strokeWidth={2} />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -553,7 +641,11 @@ export default function FarmDetailPage() {
                   </div>
                   <div>
                     <h3>{editingPlot ? "Chỉnh Sửa Lô Trồng" : "Thêm Lô Trồng Mới"}</h3>
-                    <p className="modal-subtitle">Khai báo khu vườn canh tác trực thuộc nông hộ {farm.name}</p>
+                    <p className="modal-subtitle">
+                      {editingPlot
+                        ? `Cập nhật thông tin & hình ảnh cho lô "${editingPlot.name}"`
+                        : `Khai báo khu vườn canh tác trực thuộc nông hộ ${farm.name}`}
+                    </p>
                   </div>
                 </div>
                 <button className="farm-modal-close" onClick={() => setShowPlotModal(false)}>
@@ -650,6 +742,89 @@ export default function FarmDetailPage() {
                       )}
                     </div>
                   )}
+                </div>
+
+                {/* ================= KHỐI CÀI ĐẶT ẢNH LÔ ĐẤT ================= */}
+                <div className="form-group farm-image-group">
+                  <div className="farm-image-header-row">
+                    <label className="farm-image-label">
+                      <IconImage size={15} strokeWidth={2} />
+                      <span>Hình ảnh Lô đất / Khu vườn</span>
+                    </label>
+                    <span className="farm-image-fallback-note">
+                      (Để trống sẽ tự lấy ảnh mặc định)
+                    </span>
+                  </div>
+
+                  {/* Khung xem trước ảnh */}
+                  <div className="farm-image-preview-card">
+                    <div className="preview-img-container">
+                      <img
+                        src={plotForm.image || DEFAULT_PLOT_IMAGE}
+                        alt="Xem trước ảnh lô đất"
+                        onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
+                      />
+                      <span className={`preview-badge ${plotForm.image ? "custom" : "default"}`}>
+                        {plotForm.image ? "✓ Ảnh đã chọn" : "Ảnh mặc định hệ thống"}
+                      </span>
+                    </div>
+
+                    <div className="preview-controls-col">
+                      <div className="preview-upload-row">
+                        <label className="btn-upload-file">
+                          <IconUpload size={14} strokeWidth={2} />
+                          <span>Tải ảnh từ máy</span>
+                          <input
+                            ref={plotFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePlotImageFileChange}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+
+                        {plotForm.image && (
+                          <button
+                            type="button"
+                            className="btn-clear-img"
+                            onClick={handleClearPlotImage}
+                            title="Khôi phục về ảnh mặc định"
+                          >
+                            <IconX size={14} strokeWidth={2} />
+                            <span>Về ảnh mặc định</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="image-url-input-wrap">
+                        <input
+                          type="url"
+                          placeholder="Hoặc dán đường link ảnh (URL) tại đây..."
+                          value={plotForm.image}
+                          onChange={(e) => setPlotForm({ ...plotForm, image: e.target.value })}
+                          className="farm-input-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ảnh gợi ý mẫu nhanh */}
+                  <div className="preset-images-section">
+                    <span className="preset-images-label">Chọn nhanh ảnh vườn mẫu chuyên canh:</span>
+                    <div className="preset-images-chips">
+                      {PRESET_PLOT_IMAGES.map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`preset-chip-btn ${plotForm.image === p.url ? "active" : ""}`}
+                          onClick={() => setPlotForm({ ...plotForm, image: p.url })}
+                        >
+                          <img src={p.url} alt={p.label} className="preset-chip-thumb" />
+                          <span>{p.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="farm-modal-actions">

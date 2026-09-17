@@ -127,8 +127,8 @@
   background: var(--ms-green);
   color: #ffffff;
   border: 1px solid var(--ms-green);
-  border-radius: 2px;
-  padding: 0.65rem 1.2rem;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 600;
   display: inline-flex;
@@ -291,7 +291,7 @@
 .plot-card-box {
   background: #ffffff;
   border: 1px solid var(--ms-gray-200);
-  padding: 1.2rem;
+  overflow: hidden;
   transition: border-color 0.15s, box-shadow 0.15s;
   display: flex;
   flex-direction: column;
@@ -302,16 +302,87 @@
   box-shadow: var(--shadow-md);
 }
 
-.plot-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.85rem;
+.plot-card-cover {
+  position: relative;
+  width: 100%;
+  height: 145px;
+  background-color: var(--ms-gray-200);
+  overflow: hidden;
 }
 
-.plot-icon-box {
-  width: 38px;
-  height: 38px;
+.plot-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.plot-card-box:hover .plot-card-cover img {
+  transform: scale(1.04);
+}
+
+.plot-card-badge {
+  position: absolute;
+  top: 0.65rem;
+  left: 0.65rem;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.plot-cover-actions {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  display: flex;
+  gap: 5px;
+  z-index: 2;
+}
+
+.plot-cover-actions .btn-icon-action {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.plot-cover-actions .btn-icon-action.edit:hover {
+  background: var(--ms-green-light);
+  color: var(--ms-green);
+  border-color: var(--ms-green);
+}
+
+.plot-cover-actions .btn-icon-action.delete:hover {
+  background: #fdf3f2;
+  color: #c42b1c;
+  border-color: #fdd;
+}
+
+.plot-card-body {
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.plot-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+}
+
+.plot-title-row .plot-icon-box {
+  width: 30px;
+  height: 30px;
   border-radius: 3px;
   background: var(--ms-green-light);
   border: 1px solid var(--ms-green-mid);
@@ -319,11 +390,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.plot-actions-box {
-  display: flex;
-  gap: 6px;
+.plot-title-row .plot-box-title {
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: var(--ms-gray-900);
+  margin: 0;
+  line-height: 1.3;
 }
 
 .btn-icon-action {
@@ -354,13 +429,6 @@
   border-color: #fdd;
 }
 
-.plot-box-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ms-gray-900);
-  margin: 0 0 0.55rem 0;
-}
-
 .plot-area-badge {
   display: inline-flex;
   align-items: center;
@@ -373,7 +441,7 @@
   padding: 0.28rem 0.6rem;
   border-radius: 2px;
   width: fit-content;
-  margin-bottom: 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .plot-area-badge strong {
@@ -401,6 +469,211 @@
 .plot-link-journal:hover {
   color: var(--ms-green-dark);
   text-decoration: underline;
+}
+
+/* ── PLOT MODAL IMAGE STYLES ── */
+.farm-image-group {
+  background: var(--ms-gray-50);
+  border: 1px solid var(--ms-gray-200);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.5rem;
+}
+
+.farm-image-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.65rem;
+}
+
+.farm-image-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ms-gray-900);
+  margin-bottom: 0 !important;
+}
+
+.farm-image-fallback-note {
+  font-size: 0.75rem;
+  color: var(--ms-green);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.farm-image-preview-card {
+  display: flex;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--ms-gray-300);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.preview-img-container {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--ms-gray-200);
+  background: var(--ms-gray-100);
+  flex-shrink: 0;
+}
+
+.preview-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 2px 4px;
+  backdrop-filter: blur(2px);
+}
+
+.preview-badge.custom {
+  background: rgba(16, 124, 16, 0.85);
+  color: #ffffff;
+}
+
+.preview-badge.default {
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+}
+
+.preview-controls-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preview-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn-upload-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--ms-green-light);
+  color: var(--ms-green);
+  border: 1px solid var(--ms-green-mid);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-upload-file:hover {
+  background: var(--ms-green-mid);
+}
+
+.btn-clear-img {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #c42b1c;
+  border: 1px solid #fdd;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-clear-img:hover {
+  background: #fdf3f2;
+}
+
+.image-url-input-wrap {
+  width: 100%;
+}
+
+.farm-input-sm {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--ms-gray-300);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--ms-gray-800);
+  outline: none;
+  font-family: var(--sans);
+  background: #ffffff;
+}
+
+.farm-input-sm:focus {
+  border-color: var(--ms-green);
+}
+
+.preset-images-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.preset-images-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ms-gray-600);
+}
+
+.preset-images-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid var(--ms-gray-200);
+  border-radius: var(--radius-sm);
+  padding: 3px 7px 3px 4px;
+  font-size: 0.75rem;
+  color: var(--ms-gray-700);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-chip-btn:hover {
+  border-color: var(--ms-green);
+  background: var(--ms-green-light);
+}
+
+.preset-chip-btn.active {
+  background: var(--ms-green-light);
+  border-color: var(--ms-green);
+  color: var(--ms-green);
+  font-weight: 600;
+}
+
+.preset-chip-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 2px;
+  object-fit: cover;
 }
 
 /* ── Empty & Loading ── */

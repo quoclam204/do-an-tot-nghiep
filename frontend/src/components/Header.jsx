@@ -18,6 +18,8 @@ import {
   IconLineChart,
   IconUser,
   IconLayers,
+  IconShoppingBag,
+  IconShield,
 } from './icons';
 
 function Header() {
@@ -85,7 +87,7 @@ function Header() {
     { path: '/materials', label: 'Vật tư', desc: 'Phân bón, thuốc BVTV & hạt giống', icon: IconFlask },
     { path: '/inventory', label: 'Tồn kho', desc: 'Theo dõi xuất nhập tồn vật tư', icon: IconClipboardList },
     { path: '/harvest', label: 'Thu hoạch', desc: 'Sản lượng & ghi nhận thu hoạch', icon: IconScale },
-    { path: '/sales', label: 'Bán hàng', desc: 'Sản phẩm, đơn hàng & xuất hóa đơn', icon: IconScale },
+    { path: '/sales', label: 'Bán hàng', desc: 'Sản phẩm, đơn hàng & xuất hóa đơn', icon: IconShoppingBag },
   ];
 
   const isManagementActive = managementLinks
@@ -171,8 +173,13 @@ function Header() {
             </Link>
 
             {user?.role === 'ADMIN' && (
-              <Link to="/admin" className={isActive('/admin') ? 'active-nav-link' : ''} style={{ color: '#2563eb', fontWeight: '700' }}>
-                ⚡ Quản trị
+              <Link
+                to="/admin"
+                className={isActive('/admin') ? 'active-nav-link' : ''}
+                style={{ color: '#2563eb', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+              >
+                <IconShield size={16} strokeWidth={2.2} />
+                <span>Quản trị</span>
               </Link>
             )}
           </nav>
@@ -315,6 +322,17 @@ function Header() {
                       <IconUser size={18} />
                       <span>Hồ sơ & Nông trại</span>
                     </Link>
+                    {user.role === 'ADMIN' && (
+                      <Link
+                        to="/admin"
+                        className={`mobile-nav-link ${isActive('/admin') ? 'active' : ''}`}
+                        style={{ color: '#2563eb', fontWeight: 600 }}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <IconShield size={18} />
+                        <span>Trung tâm Quản trị</span>
+                      </Link>
+                    )}
                     <button
                       type="button"
                       className="mobile-nav-link"

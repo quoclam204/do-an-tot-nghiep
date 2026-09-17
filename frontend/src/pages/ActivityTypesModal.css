@@ -184,20 +184,20 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--ms-green);
   color: #ffffff;
-  border: none;
-  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--ms-green);
+  padding: 0.6rem 1.1rem;
   font-size: 0.875rem;
   font-weight: 600;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669, #047857);
-  transform: translateY(-1px);
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
 }
 
 .btn-secondary {

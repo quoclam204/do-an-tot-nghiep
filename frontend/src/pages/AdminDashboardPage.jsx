@@ -4,6 +4,26 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useAuth } from '../context/AuthContext';
 import {
+  IconUsers,
+  IconClock,
+  IconRotateCw,
+  IconLineChart,
+  IconPlus,
+  IconLock,
+  IconUnlock,
+  IconTrash,
+  IconCheckCircle,
+  IconXCircle,
+  IconAlertTriangle,
+  IconWarehouse,
+  IconMapPin,
+  IconSprout,
+  IconClipboardList,
+  IconCircleDollar,
+  IconShield,
+  IconZap,
+} from '../components/icons';
+import {
   apiGetUsers,
   apiAdminCreateUser,
   apiRestoreUser,
@@ -161,45 +181,59 @@ export default function AdminDashboardPage() {
         {/* Header Bar */}
         <div className="admin-header">
           <div>
-            <div className="admin-badge">⚡ Trung tâm quản trị hệ thống</div>
+            <div className="admin-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconShield size={16} /> Trung tâm quản trị hệ thống
+            </div>
             <h1 className="admin-title">Quản Trị Viên DalatAgri</h1>
             <p className="admin-subtitle">Quản lý người dùng nông hộ, kiểm soát truy cập và theo dõi thống kê toàn bộ nền tảng</p>
           </div>
           <div className="admin-header-actions">
-            <button className="btn-create-user" onClick={() => setShowCreateModal(true)}>
-              ➕ Thêm tài khoản mới
+            <button className="btn-create-user" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <IconPlus size={16} /> Thêm tài khoản mới
             </button>
           </div>
         </div>
 
-        {error && <div className="admin-alert error">⚠️ {error}</div>}
-        {success && <div className="admin-alert success">✅ {success}</div>}
+        {error && (
+          <div className="admin-alert error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IconAlertTriangle size={18} /> <span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="admin-alert success" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IconCheckCircle size={18} /> <span>{success}</span>
+          </div>
+        )}
 
         {/* Navigation Tabs */}
         <div className="admin-tabs">
           <button
             className={`admin-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            👥 Tài khoản hoạt động ({users.length})
+            <IconUsers size={16} /> Tài khoản hoạt động ({users.length})
           </button>
           <button
             className={`admin-tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
             onClick={() => setActiveTab('pending')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            ⏳ Chờ xét duyệt {pendingUsers.length > 0 && <span className="tab-badge">{pendingUsers.length}</span>}
+            <IconClock size={16} /> Chờ xét duyệt {pendingUsers.length > 0 && <span className="tab-badge">{pendingUsers.length}</span>}
           </button>
           <button
             className={`admin-tab-btn ${activeTab === 'deleted' ? 'active' : ''}`}
             onClick={() => setActiveTab('deleted')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            ♻️ Tài khoản đã xóa / Khôi phục ({deletedUsers.length})
+            <IconRotateCw size={16} /> Tài khoản đã xóa / Khôi phục ({deletedUsers.length})
           </button>
           <button
             className={`admin-tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
             onClick={() => setActiveTab('stats')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
           >
-            📊 Thống kê nền tảng
+            <IconLineChart size={16} /> Thống kê nền tảng
           </button>
         </div>
 
@@ -260,10 +294,14 @@ export default function AdminDashboardPage() {
                               {u.isActive ? 'Đang hoạt động' : 'Đang bị khóa'}
                             </span>
                             {u.approvalStatus === 'PENDING' && (
-                              <span className="status-pill pending">⏳ Chờ duyệt</span>
+                              <span className="status-pill pending" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <IconClock size={12} /> Chờ duyệt
+                              </span>
                             )}
                             {u.approvalStatus === 'REJECTED' && (
-                              <span className="status-pill rejected" title={u.rejectionReason}>❌ Bị từ chối</span>
+                              <span className="status-pill rejected" title={u.rejectionReason} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <IconXCircle size={12} /> Bị từ chối
+                              </span>
                             )}
                           </div>
                         </td>
@@ -276,15 +314,25 @@ export default function AdminDashboardPage() {
                                   className={`btn-action-small ${u.isActive ? 'btn-lock' : 'btn-unlock'}`}
                                   onClick={() => handleToggleActive(u.id)}
                                   title={u.isActive ? 'Khóa tài khoản' : 'Mở khóa'}
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 >
-                                  {u.isActive ? '🔒 Khóa' : '🔓 Mở'}
+                                  {u.isActive ? (
+                                    <>
+                                      <IconLock size={13} /> Khóa
+                                    </>
+                                  ) : (
+                                    <>
+                                      <IconUnlock size={13} /> Mở
+                                    </>
+                                  )}
                                 </button>
                                 <button
                                   className="btn-action-small btn-del"
                                   onClick={() => handleDeleteUser(u.id)}
                                   title="Xóa tài khoản"
+                                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 >
-                                  🗑️ Xóa
+                                  <IconTrash size={13} /> Xóa
                                 </button>
                               </>
                             )}
@@ -348,15 +396,17 @@ export default function AdminDashboardPage() {
                               className="btn-action-small btn-approve"
                               onClick={() => handleApproveUser(u.id, u.fullName)}
                               title="Phê duyệt tài khoản và cho phép đăng nhập"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              ✅ Phê duyệt
+                              <IconCheckCircle size={14} /> Phê duyệt
                             </button>
                             <button
                               className="btn-action-small btn-reject"
                               onClick={() => handleRejectUser(u.id, u.fullName)}
                               title="Từ chối tài khoản"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                             >
-                              ❌ Từ chối
+                              <IconXCircle size={14} /> Từ chối
                             </button>
                           </div>
                         </td>
@@ -405,8 +455,9 @@ export default function AdminDashboardPage() {
                           <button
                             className="btn-action-small btn-restore"
                             onClick={() => handleRestoreUser(u.id)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           >
-                            ♻️ Khôi phục tài khoản
+                            <IconRotateCw size={14} /> Khôi phục tài khoản
                           </button>
                         </td>
                       </tr>
@@ -427,32 +478,32 @@ export default function AdminDashboardPage() {
               <>
                 <div className="stats-overview-grid">
                   <div className="stat-card stat-users">
-                    <div className="stat-icon">👥</div>
+                    <div className="stat-icon"><IconUsers size={32} /></div>
                     <div className="stat-number">{stats.overview?.totalUsers || 0}</div>
                     <div className="stat-label">Tổng người dùng ({stats.overview?.activeUsers || 0} đang hoạt động)</div>
                   </div>
                   <div className="stat-card stat-farms">
-                    <div className="stat-icon">🏡</div>
+                    <div className="stat-icon"><IconWarehouse size={32} /></div>
                     <div className="stat-number">{stats.overview?.totalFarms || 0}</div>
                     <div className="stat-label">Tổng số nông trại</div>
                   </div>
                   <div className="stat-card stat-plots">
-                    <div className="stat-icon">🗺️</div>
+                    <div className="stat-icon"><IconMapPin size={32} /></div>
                     <div className="stat-number">{stats.overview?.totalPlots || 0}</div>
                     <div className="stat-label">Lô canh tác được thiết lập</div>
                   </div>
                   <div className="stat-card stat-seasons">
-                    <div className="stat-icon">🌾</div>
+                    <div className="stat-icon"><IconSprout size={32} /></div>
                     <div className="stat-number">{stats.overview?.totalSeasons || 0}</div>
                     <div className="stat-label">Vụ mùa canh tác</div>
                   </div>
                   <div className="stat-card stat-logs">
-                    <div className="stat-icon">📝</div>
+                    <div className="stat-icon"><IconClipboardList size={32} /></div>
                     <div className="stat-number">{stats.overview?.totalActivityLogs || 0}</div>
                     <div className="stat-label">Nhật ký hoạt động ghi nhận</div>
                   </div>
                   <div className="stat-card stat-sales">
-                    <div className="stat-icon">💰</div>
+                    <div className="stat-icon"><IconCircleDollar size={32} /></div>
                     <div className="stat-number">{formatCurrency(stats.overview?.totalRevenue || 0)}</div>
                     <div className="stat-label">Doanh số bán hàng ({stats.overview?.totalInvoices || 0} hóa đơn)</div>
                   </div>
@@ -482,7 +533,9 @@ export default function AdminDashboardPage() {
           <div className="admin-modal-overlay" onClick={() => setShowCreateModal(false)}>
             <div className="admin-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="admin-modal-header">
-                <h3>➕ Thêm tài khoản người dùng mới</h3>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <IconPlus size={18} /> Thêm tài khoản người dùng mới
+                </h3>
                 <button className="btn-close" onClick={() => setShowCreateModal(false)}>&times;</button>
               </div>
               <form onSubmit={handleCreateUser} className="admin-create-form">

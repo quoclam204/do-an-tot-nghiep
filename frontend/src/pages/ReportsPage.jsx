@@ -10,6 +10,7 @@ import {
   IconCalendar,
   IconSprout,
   IconCheckCircle,
+  IconPrinter,
 } from '../components/icons';
 import {
   apiGetFinancialReport,
@@ -290,11 +291,12 @@ export default function ReportsPage() {
             </button>
             <button
               className="btn-apply-filter"
-              style={{ background: '#0284c7' }}
+              style={{ background: '#0284c7', border: '1px solid #0284c7' }}
               onClick={() => window.print()}
               title="In hoặc xuất PDF báo cáo"
             >
-              🖨️ Xuất / In báo cáo
+              <IconPrinter size={16} strokeWidth={2} />
+              <span>Xuất / In báo cáo</span>
             </button>
           </div>
 

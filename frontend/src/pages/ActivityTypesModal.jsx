@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import './ActivityTypesModal.css';
 import {
+  IconPlus,
+  IconPenLine,
+  IconTrash,
+  IconCheckCircle,
+  IconAlertTriangle,
+  IconSprout,
+  IconSettings,
+} from '../components/icons';
+import {
   apiGetActivityTypes,
   apiCreateActivityType,
   apiUpdateActivityType,
@@ -151,7 +160,7 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
       <div className="activity-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="activity-modal-header">
           <div className="activity-modal-title">
-            <span className="activity-icon-badge">⚙️</span>
+            <span className="activity-icon-badge"><IconSettings size={18} /></span>
             <div>
               <h3>Quản lý Loại Hoạt Động Canh Tác</h3>
               <p className="subtitle">Tự do thêm, sửa, xóa loại hoạt động phù hợp với mô hình nông trại của bạn</p>
@@ -160,13 +169,31 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
           <button className="btn-close" onClick={onClose}>&times;</button>
         </div>
 
-        {error && <div className="activity-alert error">⚠️ {error}</div>}
-        {success && <div className="activity-alert success">✅ {success}</div>}
+        {error && (
+          <div className="activity-alert error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IconAlertTriangle size={18} /> <span>{error}</span>
+          </div>
+        )}
+        {success && (
+          <div className="activity-alert success" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <IconCheckCircle size={18} /> <span>{success}</span>
+          </div>
+        )}
 
         <div className="activity-modal-body">
           {/* Form thêm / sửa */}
           <form className="activity-form-card" onSubmit={handleSave}>
-            <h4>{editingId ? '✏️ Chỉnh sửa loại hoạt động' : '➕ Thêm loại hoạt động mới'}</h4>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {editingId ? (
+                <>
+                  <IconPenLine size={16} /> Chỉnh sửa loại hoạt động
+                </>
+              ) : (
+                <>
+                  <IconPlus size={16} /> Thêm loại hoạt động mới
+                </>
+              )}
+            </h4>
             <div className="activity-form-row">
               <div className="form-group flex-2">
                 <label>Tên hoạt động <span className="req">*</span></label>
@@ -230,8 +257,8 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
             <div className="activity-list-header">
               <h4>Danh sách loại hoạt động ({types.length})</h4>
               {types.length === 0 && (
-                <button className="btn-seed" onClick={handleSeed} disabled={loading}>
-                  🌱 Tạo danh mục mặc định chuẩn
+                <button className="btn-seed" onClick={handleSeed} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  <IconSprout size={16} /> Tạo danh mục mặc định chuẩn
                 </button>
               )}
             </div>
@@ -261,7 +288,7 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
                         title="Chỉnh sửa"
                         onClick={() => handleEdit(item)}
                       >
-                        ✏️
+                        <IconPenLine size={14} />
                       </button>
                       {!item.isSystem && (
                         confirmDeleteId === item.id ? (
@@ -286,7 +313,7 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
                             title="Xóa loại này"
                             onClick={() => setConfirmDeleteId(item.id)}
                           >
-                            🗑️
+                            <IconTrash size={14} />
                           </button>
                         )
                       )}

@@ -3,8 +3,8 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f7fbf8;
-  color: #133321;
+  background-color: var(--ms-gray-100);
+  color: var(--ms-gray-900);
   font-family: inherit;
 }
 
@@ -15,21 +15,18 @@
 }
 
 /* ================= HERO BANNER ================= */
-/* ================= HERO BANNER (CLEAN & COMPACT STYLE) ================= */
+/* ================= HERO BANNER (MICROSOFT STYLE - SYNCED WITH FARMS PAGE) ================= */
 .crops-hero-banner {
   background: #ffffff;
-  border-radius: 16px;
-  padding: 1.5rem 1.75rem;
-  color: #1e293b;
+  padding: 1.25rem 1.5rem;
+  color: var(--ms-gray-900);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-  margin-bottom: 1.5rem;
-  position: relative;
-  border: 1px solid #e2e8f0;
-  border-left: 5px solid #10b981;
+  gap: 1.25rem;
+  border: 1px solid var(--ms-gray-200);
+  border-left: 3px solid var(--ms-green);
+  margin-bottom: 1.25rem;
 }
 
 .crops-hero-banner::after {
@@ -39,107 +36,108 @@
 .crops-pill-tag {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #ecfdf5;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  gap: 5px;
+  background: var(--ms-green-light);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  color: #047857;
-  margin-bottom: 0.5rem;
-  border: 1px solid #a7f3d0;
+  letter-spacing: 0.04em;
+  color: var(--ms-green);
+  margin-bottom: 0.4rem;
+  border: 1px solid var(--ms-green-mid);
+  text-transform: uppercase;
 }
 
 .crops-hero-text h1 {
-  font-size: clamp(20px, 2.2vw, 26px);
-  font-weight: 800;
-  line-height: 1.3;
-  margin: 0 0 0.35rem 0;
-  color: #0f172a;
-  letter-spacing: -0.3px;
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 0.25rem 0;
+  color: var(--ms-gray-900);
+  letter-spacing: -0.2px;
 }
 
 .crops-hero-desc {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   line-height: 1.5;
-  color: #64748b;
-  max-width: 680px;
-  margin: 0 0 1rem 0;
+  color: var(--ms-gray-500);
+  max-width: 600px;
+  margin: 0 0 0.85rem 0;
 }
 
 .crops-quick-stats {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
 .stat-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 0.55rem 0.95rem;
+  background: var(--ms-gray-50);
+  border: 1px solid var(--ms-gray-200);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.85rem;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
-  min-width: 120px;
+  gap: 0.6rem;
+  min-width: 110px;
 }
 
 .stat-icon-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #ecfdf5;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--ms-green-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #059669;
+  color: var(--ms-green);
   flex-shrink: 0;
 }
 
 .stat-number {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ms-gray-900);
   line-height: 1.1;
   display: block;
 }
 
 .stat-label {
-  font-size: 0.74rem;
-  color: #64748b;
+  font-size: 0.72rem;
+  color: var(--ms-gray-500);
   margin-top: 0.1rem;
   display: block;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .crops-hero-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  min-width: 200px;
+  gap: 0.5rem;
+  min-width: 180px;
 }
 
 .crops-btn-primary {
-  background: #10b981;
+  background: var(--ms-green);
   color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  padding: 0.65rem 1.2rem;
-  font-size: 0.9rem;
-  font-weight: 700;
+  border: 1px solid var(--ms-green);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
-  transition: all 0.2s ease;
+  transition: background 0.15s;
+  font-family: var(--sans);
 }
 
 .crops-btn-primary:hover {
-  background: #059669;
-  transform: translateY(-1px);
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
 }
 
 .crops-btn-seed {
@@ -256,35 +254,42 @@
 
 .filter-pill,
 .pill-btn {
-  background: #f8faf8;
-  border: 1.5px solid #d8e6db;
-  color: #2b543b;
-  padding: 0.6rem 1.15rem;
+  background: #ffffff;
+  border: 1.5px solid var(--ms-gray-300, #d1d5db);
+  color: var(--ms-gray-700, #374151);
+  padding: 0.55rem 1.15rem;
   border-radius: 9999px;
   font-size: 0.88rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 1px 4px rgba(25, 46, 34, 0.03);
-  transition: all 0.2s ease;
+  box-shadow: none;
+  transition: all 0.15s ease;
 }
 
 .filter-pill:hover,
 .pill-btn:hover {
-  background: #f0fdf4;
-  border-color: #86efac;
-  color: #166534;
-  transform: translateY(-1px);
+  background: var(--ms-green-light);
+  border-color: var(--ms-green);
+  color: var(--ms-green);
+  transform: none;
 }
 
 .filter-pill.active,
 .pill-btn.active {
-  background: linear-gradient(135deg, #15803d 0%, #1e804d 100%);
-  border-color: #15803d;
+  background: var(--ms-green);
+  border-color: var(--ms-green);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(21, 128, 61, 0.25);
+  box-shadow: none;
+}
+
+.filter-pill.active:hover,
+.pill-btn.active:hover {
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
+  color: #ffffff;
 }
 
 /* ================= CROPS CARDS GRID ================= */
@@ -697,14 +702,14 @@
 .crop-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(19, 51, 33, 0.6);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.15s ease;
 }
 
 @keyframes fadeIn {
@@ -719,14 +724,14 @@
 
 .crop-modal-dialog {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 580px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(19, 51, 33, 0.25);
-  border: 2px solid #d4ebd8;
-  animation: slideUp 0.25s ease;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--ms-gray-200);
+  animation: slideUp 0.2s ease;
 }
 
 @keyframes slideUp {
@@ -746,7 +751,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem 1.75rem;
-  border-bottom: 1.5px solid #edf5ef;
+  border-bottom: 1px solid var(--ms-gray-200);
 }
 
 .modal-title-with-icon {
@@ -923,40 +928,40 @@
 }
 
 .btn-primary {
-  background: #1e804d;
-  border: none;
+  background: var(--ms-green);
+  border: 1px solid var(--ms-green);
   color: #ffffff;
-  border-radius: 12px;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.92rem;
-  font-weight: 700;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 1.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(30, 128, 77, 0.25);
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .btn-primary:hover {
-  background: #166534;
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
 }
 
 /* ================= DRAWER DETAIL ================= */
 .crop-detail-drawer {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 12px;
   width: 100%;
   max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(19, 51, 33, 0.35);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  border: 2px solid #d4ebd8;
-  animation: slideUp 0.25s ease;
+  border: 1px solid var(--ms-gray-200);
+  animation: slideUp 0.2s ease;
 }
 
 .drawer-header {
   padding: 1.5rem 1.75rem;
-  border-bottom: 1.5px solid #edf5ef;
+  border-bottom: 1px solid var(--ms-gray-200);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1021,7 +1026,7 @@
 .drawer-cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(19, 51, 33, 0.88) 0%, rgba(19, 51, 33, 0.3) 60%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 60%, transparent 100%);
   display: flex;
   align-items: flex-end;
   padding: 1.25rem;
@@ -1109,7 +1114,7 @@
   justify-content: center;
   flex-shrink: 0;
   border: 3px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(19, 51, 33, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 2;
 }

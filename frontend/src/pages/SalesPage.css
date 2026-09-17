@@ -7,15 +7,28 @@
 
 .sales-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5ece7; padding-bottom: 0; }
 .sales-tabs button { padding: .7rem 1.2rem; border: none; background: none; font-size: .95rem; color: #6b7c6f; cursor: pointer; border-bottom: 3px solid transparent; transition: all .2s; font-weight: 500; }
-.sales-tabs button.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 600; }
-.sales-tabs button:hover { color: #16a34a; }
+.sales-tabs button.active { color: var(--ms-green); border-bottom-color: var(--ms-green); font-weight: 600; }
+.sales-tabs button:hover { color: var(--ms-green); }
 
 .sales-section { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 .section-header h2 { margin: 0; font-size: 1.2rem; color: #1a3a2a; }
 
-.btn-primary { background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all .2s; font-size: .9rem; }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(22,163,74,.3); }
+.btn-primary {
+  background: var(--ms-green);
+  color: #ffffff;
+  border: 1px solid var(--ms-green);
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+  font-size: 0.875rem;
+}
+.btn-primary:hover {
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
+}
 .btn-secondary { background: #f1f5f3; color: #4a5c4f; border: 1px solid #d1d9d4; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: .9rem; }
 .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .9rem; }
 .btn-edit { background: #e0f2fe; color: #0284c7; border: none; padding: .4rem .8rem; border-radius: 8px; cursor: pointer; font-size: .85rem; }

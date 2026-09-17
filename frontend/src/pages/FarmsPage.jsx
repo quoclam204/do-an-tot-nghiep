@@ -1,12 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { apiGetMyFarms, apiCreateFarm, apiDeleteFarm } from "../services/api";
+import { apiGetMyFarms, apiCreateFarm, apiUpdateFarm, apiDeleteFarm } from "../services/api";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import {
   IconWarehouse,
   IconPlus,
   IconTrash,
+  IconPenLine,
   IconMapPin,
   IconRuler,
   IconSprout,
@@ -15,25 +16,46 @@ import {
   IconEye,
   IconArrowRight,
   IconCheckCircle,
+  IconUpload,
+  IconImage,
 } from "../components/icons";
 import "./FarmsPage.css";
 
-// Mẫu ảnh trang trại thực tế nông nghiệp
-const FARM_IMAGES = [
-  "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
-  "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=800&q=80",
+// Ảnh nông hộ mặc định thực tế nông nghiệp
+const DEFAULT_FARM_IMAGE = "/farms/farm-1.jpg";
+
+// Danh sách ảnh mẫu trang trại thực tế
+const PRESET_FARM_IMAGES = [
+  { label: "Nông trại mẫu 1", url: "/farms/farm-1.jpg" },
+  { label: "Nông trại mẫu 2", url: "/farms/farm-2.jpg" },
 ];
 
-const SUGGESTED_LOCATIONS = [
-  "Huyện Cư M'gar, Đắk Lắk",
-  "Huyện Di Linh, Lâm Đồng",
-  "Huyện Chư Prông, Gia Lai",
-  "Huyện Định Quán, Đồng Nai",
-  "Huyện Cái Bè, Tiền Giang",
-  "Huyện Mộc Châu, Sơn La",
-];
+const FARM_IMAGES_STORAGE_KEY = "dalatagri_farm_images";
+
+const getStoredFarmImages = () => {
+  try {
+    const raw = localStorage.getItem(FARM_IMAGES_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveStoredFarmImage = (idOrName, url) => {
+  try {
+    const current = getStoredFarmImages();
+    current[idOrName] = url;
+    localStorage.setItem(FARM_IMAGES_STORAGE_KEY, JSON.stringify(current));
+  } catch (e) {
+    console.error("Không thể lưu ảnh nông hộ vào bộ nhớ cục bộ:", e);
+  }
+};
+
+const getFarmImage = (farm) => {
+  if (!farm) return DEFAULT_FARM_IMAGE;
+  const stored = getStoredFarmImages();
+  return stored[farm.id] || stored[farm.name] || DEFAULT_FARM_IMAGE;
+};
 
 export default function FarmsPage() {
   const [farms, setFarms] = useState([]);
@@ -41,8 +63,11 @@ export default function FarmsPage() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", location: "", totalArea: "", unit: "ha" });
+  const [editingFarm, setEditingFarm] = useState(null);
+  const [form, setForm] = useState({ name: "", location: "", totalArea: "", unit: "ha", image: "" });
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     loadFarms();
@@ -60,8 +85,100 @@ export default function FarmsPage() {
     }
   };
 
+  // Lấy vị trí thực tế hiện tại qua GPS trình duyệt
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Trình duyệt của bạn không hỗ trợ định vị GPS!");
+      return;
+    }
+
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          // Sử dụng dịch vụ Reverse Geocoding miễn phí OpenStreetMap để lấy tên địa danh tiếng Việt
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=14&addressdetails=1&accept-language=vi`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.address) {
+              const addr = data.address;
+              const villageOrSuburb = addr.village || addr.suburb || addr.quarter || addr.town || addr.commune || "";
+              const district = addr.district || addr.county || addr.city_district || "";
+              const stateOrCity = addr.state || addr.city || "";
+              const parts = [villageOrSuburb, district, stateOrCity].filter(Boolean);
+
+              if (parts.length > 0) {
+                setForm((prev) => ({ ...prev, location: parts.join(", ") }));
+                return;
+              } else if (data.display_name) {
+                const shortName = data.display_name.split(",").slice(0, 3).join(",").trim();
+                setForm((prev) => ({ ...prev, location: shortName }));
+                return;
+              }
+            }
+          }
+          setForm((prev) => ({
+            ...prev,
+            location: `Tọa độ GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+          }));
+        } catch (err) {
+          console.warn("Lỗi dịch ngược địa chỉ:", err);
+          setForm((prev) => ({
+            ...prev,
+            location: `Tọa độ GPS (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+          }));
+        } finally {
+          setLocating(false);
+        }
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          alert("Bạn đã từ chối quyền truy cập vị trí. Vui lòng bật quyền định vị trên trình duyệt hoặc nhập địa chỉ thủ công.");
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          alert("Không thể xác định vị trí hiện tại. Vui lòng kiểm tra kết nối mạng hoặc GPS.");
+        } else if (err.code === err.TIMEOUT) {
+          alert("Quá thời gian lấy vị trí GPS. Vui lòng thử lại hoặc nhập tay.");
+        } else {
+          alert("Lỗi khi lấy vị trí: " + err.message);
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 30000,
+      }
+    );
+  };
+
+  const handleOpenAdd = () => {
+    setEditingFarm(null);
+    setForm({ name: "", location: "", totalArea: "", unit: "ha", image: "" });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (farm, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setEditingFarm(farm);
+    const stored = getStoredFarmImages();
+    const currentImg = stored[farm.id] || stored[farm.name] || "";
+    setForm({
+      name: farm.name,
+      location: farm.location || "",
+      totalArea: String(farm.totalArea),
+      unit: "ha",
+      image: currentImg,
+    });
+    setShowModal(true);
+  };
+
   const handleAreaChange = (val) => {
-    // Cho phép người dùng nhập số, dấu chấm (.) và dấu phẩy (,) thoải mái
     if (val === "" || /^[0-9.,]*$/.test(val)) {
       setForm((prev) => ({ ...prev, totalArea: val }));
     }
@@ -87,24 +204,63 @@ export default function FarmsPage() {
     }));
   };
 
-  const handleCreateFarm = async (e) => {
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Kích thước ảnh tối đa là 5MB!");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm((prev) => ({ ...prev, image: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClearImage = () => {
+    setForm((prev) => ({ ...prev, image: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSubmitFarm = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return alert("Vui lòng nhập tên nông hộ!");
     const areaNum = Number(String(form.totalArea).replace(",", "."));
     if (isNaN(areaNum) || areaNum <= 0) return alert("Vui lòng nhập diện tích hợp lệ lớn hơn 0!");
     setSaving(true);
     try {
-      await apiCreateFarm({
-        name: form.name.trim(),
-        location: form.location.trim(),
-        totalArea: areaNum,
-        unit: form.unit || "ha",
-      });
+      // Nếu người dùng để trống ảnh thì tự lấy ảnh mặc định
+      const finalImage = form.image.trim() || DEFAULT_FARM_IMAGE;
+
+      if (editingFarm) {
+        await apiUpdateFarm(editingFarm.id, {
+          name: form.name.trim(),
+          location: form.location.trim(),
+          totalArea: areaNum,
+          unit: form.unit || "ha",
+        });
+        saveStoredFarmImage(editingFarm.id, finalImage);
+        saveStoredFarmImage(form.name.trim(), finalImage);
+      } else {
+        const res = await apiCreateFarm({
+          name: form.name.trim(),
+          location: form.location.trim(),
+          totalArea: areaNum,
+          unit: form.unit || "ha",
+        });
+        if (res && res.id) {
+          saveStoredFarmImage(res.id, finalImage);
+        }
+        saveStoredFarmImage(form.name.trim(), finalImage);
+      }
+
       setShowModal(false);
-      setForm({ name: "", location: "", totalArea: "", unit: "ha" });
+      setEditingFarm(null);
+      setForm({ name: "", location: "", totalArea: "", unit: "ha", image: "" });
       loadFarms();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi tạo nông hộ");
+      alert(err.response?.data?.message || "Lỗi lưu nông hộ");
     } finally {
       setSaving(false);
     }
@@ -193,7 +349,7 @@ export default function FarmsPage() {
           </div>
 
           <div className="farms-hero-actions">
-            <button className="farms-btn-primary" onClick={() => setShowModal(true)}>
+            <button className="farms-btn-primary" onClick={handleOpenAdd}>
               <IconPlus size={18} strokeWidth={2.4} />
               <span>Thêm Nông Hộ Mới</span>
             </button>
@@ -208,7 +364,7 @@ export default function FarmsPage() {
             </span>
             <input
               type="text"
-              placeholder="Tìm kiếm nông hộ theo tên hoặc địa chỉ (Di Linh, Lâm Hà, Bảo Lộc...)"
+              placeholder="Tìm kiếm nông hộ theo tên hoặc địa chỉ"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -239,21 +395,21 @@ export default function FarmsPage() {
                 ? "Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc."
                 : "Bắt đầu bằng cách thêm trang trại đầu tiên để phân lô đất và ghi nhật ký canh tác."}
             </p>
-            <button className="farms-btn-primary" onClick={() => setShowModal(true)}>
+            <button className="farms-btn-primary" onClick={handleOpenAdd}>
               <IconPlus size={18} strokeWidth={2.4} />
               <span>Thêm Nông Hộ Đầu Tiên</span>
             </button>
           </div>
         ) : (
           <section className="farms-cards-grid">
-            {filteredFarms.map((farm, idx) => {
-              const farmImg = FARM_IMAGES[idx % FARM_IMAGES.length];
+            {filteredFarms.map((farm) => {
+              const farmImg = getFarmImage(farm);
               const plotsCount = farm.plots?.length || 0;
 
               return (
                 <div key={farm.id} className="farm-card-item">
                   <div className="farm-card-cover">
-                    <img src={farmImg} alt={farm.name} />
+                    <img src={farmImg} alt={farm.name} onError={(e) => { e.target.src = DEFAULT_FARM_IMAGE; }} />
                     <span className="farm-card-badge">
                       <IconCheckCircle size={13} strokeWidth={2.4} />
                       <span>Trang trại hoạt động</span>
@@ -297,13 +453,24 @@ export default function FarmsPage() {
                         <IconArrowRight size={14} strokeWidth={2.2} />
                       </Link>
 
-                      <button
-                        className="farm-btn-delete"
-                        onClick={(e) => handleDelete(farm.id, farm.name, e)}
-                        title="Xóa nông hộ"
-                      >
-                        <IconTrash size={15} strokeWidth={2} />
-                      </button>
+                      <div className="farm-card-actions">
+                        <button
+                          type="button"
+                          className="farm-btn-edit"
+                          onClick={(e) => handleOpenEdit(farm, e)}
+                          title="Chỉnh sửa nông hộ & ảnh"
+                        >
+                          <IconPenLine size={15} strokeWidth={2} />
+                        </button>
+                        <button
+                          type="button"
+                          className="farm-btn-delete"
+                          onClick={(e) => handleDelete(farm.id, farm.name, e)}
+                          title="Xóa nông hộ"
+                        >
+                          <IconTrash size={15} strokeWidth={2} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -312,7 +479,7 @@ export default function FarmsPage() {
           </section>
         )}
 
-        {/* ================= MODAL: THÊM NÔNG HỘ MỚI ================= */}
+        {/* ================= MODAL: THÊM / SỬA NÔNG HỘ ================= */}
         {showModal && (
           <div className="farm-modal-backdrop" onClick={() => setShowModal(false)}>
             <div className="farm-modal-dialog" onClick={(e) => e.stopPropagation()}>
@@ -322,8 +489,12 @@ export default function FarmsPage() {
                     <IconWarehouse size={20} strokeWidth={2} />
                   </div>
                   <div>
-                    <h3>Thêm Nông Hộ Mới</h3>
-                    <p className="modal-subtitle">Khai báo thông tin trang trại và khu đất sản xuất</p>
+                    <h3>{editingFarm ? "Chỉnh Sửa Nông Hộ" : "Thêm Nông Hộ Mới"}</h3>
+                    <p className="modal-subtitle">
+                      {editingFarm
+                        ? `Cập nhật thông tin & hình ảnh cho nông hộ "${editingFarm.name}"`
+                        : "Khai báo thông tin trang trại và khu đất sản xuất"}
+                    </p>
                   </div>
                 </div>
                 <button className="farm-modal-close" onClick={() => setShowModal(false)}>
@@ -331,13 +502,13 @@ export default function FarmsPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateFarm} className="farm-modal-form">
+              <form onSubmit={handleSubmitFarm} className="farm-modal-form">
                 <div className="form-group">
                   <label>Tên nông hộ / Trang trại <span className="text-red">*</span></label>
                   <input
                     type="text"
                     required
-                    placeholder="VD: Nông trại Cà phê Lâm Hà, Vườn Sầu riêng Di Linh..."
+                    placeholder="VD: Nông trại Cà phê..."
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     className="farm-input"
@@ -349,28 +520,27 @@ export default function FarmsPage() {
                   <input
                     type="text"
                     required
-                    placeholder="VD: Huyện Cư M'gar, Đắk Lắk hoặc Huyện Di Linh, Lâm Đồng..."
+                    placeholder="VD: Thôn/Xã, Huyện/Thị xã, Tỉnh thành..."
                     value={form.location}
                     onChange={(e) => setForm({ ...form, location: e.target.value })}
                     className="farm-input"
                   />
 
-                  {/* Gợi ý vị trí nhanh */}
-                  <div className="location-suggestions">
-                    <span className="suggestions-label">Gợi ý nhanh:</span>
-                    <div className="suggestions-list">
-                      {SUGGESTED_LOCATIONS.map((loc, i) => (
-                        <button
-                          type="button"
-                          key={i}
-                          className="suggestion-chip"
-                          onClick={() => setForm({ ...form, location: loc })}
-                        >
-                          <IconMapPin size={12} strokeWidth={2} />
-                          <span>{loc.split(",")[0]}</span>
-                        </button>
-                      ))}
-                    </div>
+                  {/* Nút bật lấy vị trí hiện tại qua GPS */}
+                  <div className="location-detect-bar">
+                    <button
+                      type="button"
+                      className={`btn-detect-location ${locating ? "loading" : ""}`}
+                      onClick={handleGetCurrentLocation}
+                      disabled={locating}
+                      title="Bật GPS để tự động điền địa chỉ hiện tại của bạn"
+                    >
+                      <IconMapPin size={14} strokeWidth={2.2} />
+                      <span>{locating ? "Đang định vị GPS..." : "Lấy vị trí hiện tại (GPS)"}</span>
+                    </button>
+                    {locating && (
+                      <span className="location-detecting-spinner" />
+                    )}
                   </div>
                 </div>
 
@@ -431,6 +601,89 @@ export default function FarmsPage() {
                   })()}
                 </div>
 
+                {/* ================= KHỐI CÀI ĐẶT ẢNH NÔNG HỘ ================= */}
+                <div className="form-group farm-image-group">
+                  <div className="farm-image-header-row">
+                    <label className="farm-image-label">
+                      <IconImage size={15} strokeWidth={2} />
+                      <span>Hình ảnh nông hộ / Trang trại</span>
+                    </label>
+                    <span className="farm-image-fallback-note">
+                      (Để trống sẽ tự lấy ảnh mặc định)
+                    </span>
+                  </div>
+
+                  {/* Khung xem trước ảnh */}
+                  <div className="farm-image-preview-card">
+                    <div className="preview-img-container">
+                      <img
+                        src={form.image || DEFAULT_FARM_IMAGE}
+                        alt="Xem trước ảnh nông hộ"
+                        onError={(e) => { e.target.src = DEFAULT_FARM_IMAGE; }}
+                      />
+                      <span className={`preview-badge ${form.image ? "custom" : "default"}`}>
+                        {form.image ? "✓ Ảnh đã chọn" : "Ảnh mặc định hệ thống"}
+                      </span>
+                    </div>
+
+                    <div className="preview-controls-col">
+                      <div className="preview-upload-row">
+                        <label className="btn-upload-file">
+                          <IconUpload size={14} strokeWidth={2} />
+                          <span>Tải ảnh từ máy</span>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageFileChange}
+                            style={{ display: "none" }}
+                          />
+                        </label>
+
+                        {form.image && (
+                          <button
+                            type="button"
+                            className="btn-clear-img"
+                            onClick={handleClearImage}
+                            title="Khôi phục về ảnh mặc định"
+                          >
+                            <IconX size={14} strokeWidth={2} />
+                            <span>Về ảnh mặc định</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="image-url-input-wrap">
+                        <input
+                          type="url"
+                          placeholder="Hoặc dán đường link ảnh (URL) tại đây..."
+                          value={form.image}
+                          onChange={(e) => setForm({ ...form, image: e.target.value })}
+                          className="farm-input-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ảnh gợi ý mẫu nhanh */}
+                  <div className="preset-images-section">
+                    <span className="preset-images-label">Chọn nhanh ảnh trang trại mẫu:</span>
+                    <div className="preset-images-chips">
+                      {PRESET_FARM_IMAGES.map((p, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`preset-chip-btn ${form.image === p.url ? "active" : ""}`}
+                          onClick={() => setForm({ ...form, image: p.url })}
+                        >
+                          <img src={p.url} alt={p.label} className="preset-chip-thumb" />
+                          <span>{p.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="farm-modal-actions">
                   <button
                     type="button"
@@ -444,7 +697,7 @@ export default function FarmsPage() {
                     className="btn-primary"
                     disabled={saving}
                   >
-                    {saving ? "Đang lưu..." : "Lưu Nông Hộ"}
+                    {saving ? "Đang lưu..." : editingFarm ? "Cập Nhật Nông Hộ" : "Lưu Nông Hộ"}
                   </button>
                 </div>
               </form>

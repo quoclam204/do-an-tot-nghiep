@@ -17,6 +17,9 @@ import {
   IconWarehouse,
   IconCircleDollar,
   IconTrendingUp,
+  IconFlask,
+  IconUsers,
+  IconScale,
 } from '../components/icons';
 import {
   apiGetSeasons,
@@ -689,7 +692,9 @@ export default function SeasonsPage() {
 
                   {/* CHI TIẾT VẬT TƯ ĐÃ DÙNG */}
                   <div className="finance-section-block">
-                    <h4>📦 Chi phí vật tư đã xuất dùng (Phân bón, Thuốc BVTV, Giống)</h4>
+                    <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <IconFlask size={18} /> Chi phí vật tư đã xuất dùng (Phân bón, Thuốc BVTV, Giống)
+                    </h4>
                     {selectedSeasonData.materialsUsed?.length === 0 ? (
                       <p className="no-data-hint">Chưa ghi nhận vật tư nào xuất dùng trong vụ mùa này.</p>
                     ) : (
@@ -721,7 +726,9 @@ export default function SeasonsPage() {
                   {/* CHI TIẾT NHÂN CÔNG */}
                   {selectedSeasonData.laborLogs?.length > 0 && (
                     <div className="finance-section-block">
-                      <h4>👷 Chi tiết các đợt thuê nhân công ngoài</h4>
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <IconUsers size={18} /> Chi tiết các đợt thuê nhân công ngoài
+                      </h4>
                       <div className="finance-table-wrap">
                         <table className="finance-table">
                           <thead>
@@ -754,7 +761,9 @@ export default function SeasonsPage() {
                   {/* CHI TIẾT THU HOẠCH */}
                   {selectedSeasonData.harvestLogs?.length > 0 && (
                     <div className="finance-section-block">
-                      <h4>🌾 Chi tiết các đợt thu hoạch & Doanh thu bán hàng</h4>
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <IconScale size={18} /> Chi tiết các đợt thu hoạch & Doanh thu bán hàng
+                      </h4>
                       <div className="finance-table-wrap">
                         <table className="finance-table">
                           <thead>

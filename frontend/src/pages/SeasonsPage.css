@@ -17,13 +17,12 @@
 /* ================= HERO BANNER (CLEAN & COMPACT STYLE) ================= */
 .seasons-hero-banner {
   background: #ffffff;
-  border-radius: var(--radius-sm);
   padding: 1.25rem 1.5rem;
   color: var(--ms-gray-900);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   margin-bottom: 1.25rem;
   position: relative;
   border: 1px solid var(--ms-gray-200);
@@ -312,8 +311,8 @@
 .seasons-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(19, 51, 33, 0.45);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
   z-index: 999;
   display: flex;
   align-items: center;

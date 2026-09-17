@@ -170,3 +170,30 @@ textarea {
   outline: 2px solid var(--ms-green);
   outline-offset: 2px;
 }
+
+/* ── Global Button Styles (Microsoft-Green System) ── */
+.btn-primary {
+  background: var(--ms-green);
+  border: 1px solid var(--ms-green);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--ms-green-dark);
+  border-color: var(--ms-green-dark);
+  transform: none;
+  box-shadow: none;
+}
