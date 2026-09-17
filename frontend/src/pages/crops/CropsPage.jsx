@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './CropsPage.css';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { useAuth } from '../../context/AuthContext';
 import {
   IconSprout,
   IconLeaf,
@@ -26,7 +26,7 @@ import {
   IconImage,
   IconArrowRight,
   IconArrowLeft,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetCrops,
   apiCreateCrop,
@@ -34,7 +34,7 @@ import {
   apiDeleteCrop,
   apiSeedLamDong,
   apiGetSeasons,
-} from '../services/api';
+} from '../../services/api';
 
 // ==================== METADATA STORAGE HELPER ====================
 const CROP_METAS_STORAGE_KEY = 'dalatagri_custom_crop_metas';

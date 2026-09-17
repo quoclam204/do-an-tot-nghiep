@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './FarmingLogPage.css';
-import ReceiptOcrModal from '../components/ReceiptOcrModal';
+import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
 import {
   IconClipboardList,
   IconZap,
@@ -19,8 +19,8 @@ import {
   IconMapPin,
   IconClock,
   IconSettings,
-} from '../components/icons';
-import ActivityTypesModal from './ActivityTypesModal';
+} from '../../components/icons';
+import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import {
   apiGetCrops,
   apiGetSeasons,
@@ -33,7 +33,7 @@ import {
   apiSeedLamDong,
   apiGetMyFarms,
   apiGetActivityTypes,
-} from '../services/api';
+} from '../../services/api';
 import {
   BarChart,
   Bar,

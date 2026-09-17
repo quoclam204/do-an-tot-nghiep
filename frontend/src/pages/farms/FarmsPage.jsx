@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
-import { apiGetMyFarms, apiCreateFarm, apiUpdateFarm, apiDeleteFarm } from "../services/api";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { apiGetMyFarms, apiCreateFarm, apiUpdateFarm, apiDeleteFarm } from "../../services/api";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import {
   IconWarehouse,
   IconPlus,
@@ -18,7 +18,7 @@ import {
   IconCheckCircle,
   IconUpload,
   IconImage,
-} from "../components/icons";
+} from "../../components/icons";
 import "./FarmsPage.css";
 
 // Ảnh nông hộ mặc định thực tế nông nghiệp
@@ -655,8 +655,8 @@ export default function FarmsPage() {
 
                       <div className="image-url-input-wrap">
                         <input
-                          type="url"
-                          placeholder="Hoặc dán đường link ảnh (URL) tại đây..."
+                          type="text"
+                          placeholder="Hoặc dán đường link ảnh hoặc đường dẫn (/farms/...)"
                           value={form.image}
                           onChange={(e) => setForm({ ...form, image: e.target.value })}
                           className="farm-input-sm"

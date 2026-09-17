@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './SalesPage.css';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { useAuth } from '../../context/AuthContext';
 import {
   IconPackage,
   IconReceipt,
@@ -14,11 +14,11 @@ import {
   IconXCircle,
   IconCheckCircle,
   IconAlertTriangle,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetMyFarms, apiGetProducts, apiCreateProduct, apiUpdateProduct, apiDeleteProduct,
   apiGetInvoices, apiCreateInvoice, apiCancelInvoice, apiGetSalesStats,
-} from '../services/api';
+} from '../../services/api';
 
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
 

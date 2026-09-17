@@ -7,9 +7,9 @@ import {
   apiUpdatePlot,
   apiAddFarmMember,
   apiRemoveFarmMember,
-} from "../services/api";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+} from "../../services/api";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import {
   IconArrowLeft,
   IconMapPin,
@@ -25,7 +25,12 @@ import {
   IconUserPlus,
   IconUpload,
   IconImage,
-} from "../components/icons";
+  IconMail,
+  IconPhone,
+  IconCheck,
+  IconShield,
+  IconClipboardList,
+} from "../../components/icons";
 import "./FarmDetailPage.css";
 
 // Ảnh lô đất mặc định
@@ -578,11 +583,13 @@ export default function FarmDetailPage() {
                   </div>
                   <h3 className="member-name">{farm.user.fullName}</h3>
                   <div className="member-contact-info">
-                    <span>📧 {farm.user.email}</span>
-                    {farm.user.phone && <span>📞 {farm.user.phone}</span>}
+                    <span><IconMail size={14} strokeWidth={2} /> {farm.user.email}</span>
+                    {farm.user.phone && <span><IconPhone size={14} strokeWidth={2} /> {farm.user.phone}</span>}
                   </div>
                   <div className="member-permissions-tags">
-                    <span className="perm-tag success">✓ Toàn quyền quản lý & sở hữu</span>
+                    <span className="perm-tag">
+                      <IconCheck size={13} strokeWidth={2.4} /> Toàn quyền quản lý & sở hữu
+                    </span>
                   </div>
                 </div>
               )}
@@ -612,13 +619,21 @@ export default function FarmDetailPage() {
 
                     <h3 className="member-name">{m.user?.fullName || "Nông dân"}</h3>
                     <div className="member-contact-info">
-                      <span>📧 {m.user?.email || "—"}</span>
-                      {m.user?.phone && <span>📞 {m.user.phone}</span>}
+                      <span><IconMail size={14} strokeWidth={2} /> {m.user?.email || "—"}</span>
+                      {m.user?.phone && <span><IconPhone size={14} strokeWidth={2} /> {m.user.phone}</span>}
                     </div>
 
                     <div className="member-permissions-tags">
-                      {m.canEditLog && <span className="perm-tag success">✓ Ghi nhật ký canh tác</span>}
-                      {m.canManageInventory && <span className="perm-tag info">✓ Quản lý kho vật tư</span>}
+                      {m.canEditLog && (
+                        <span className="perm-tag">
+                          <IconCheck size={13} strokeWidth={2.4} /> Ghi nhật ký canh tác
+                        </span>
+                      )}
+                      {m.canManageInventory && (
+                        <span className="perm-tag">
+                          <IconCheck size={13} strokeWidth={2.4} /> Quản lý kho vật tư
+                        </span>
+                      )}
                     </div>
 
                     <div className="member-joined-date">
@@ -655,23 +670,46 @@ export default function FarmDetailPage() {
 
               <form onSubmit={handleSavePlot} className="farm-modal-form">
                 {!editingPlot && (
-                  <div className="location-suggestions" style={{ marginBottom: "1.25rem" }}>
-                    <span className="suggestions-label">Gợi ý tên lô & diện tích mẫu:</span>
-                    <div className="suggestions-list scrollable-chips">
-                      {PRESET_PLOTS.map((p, i) => (
-                        <button
-                          type="button"
-                          key={i}
-                          className="suggestion-chip"
-                          onClick={() => {
-                            const val = plotForm.unit === "m2" ? String(Math.round(p.area * 10000)) : String(p.area);
-                            setPlotForm({ ...plotForm, name: p.name, area: val });
-                          }}
-                        >
-                          <IconSprout size={13} strokeWidth={2} />
-                          <span>{p.name}</span>
-                        </button>
-                      ))}
+                  <div className="location-suggestions">
+                    <div className="suggestions-header">
+                      <span className="suggestions-label">
+                        <IconSprout size={16} strokeWidth={2.2} />
+                        Gợi ý tên lô & diện tích mẫu
+                      </span>
+                      <span className="suggestions-hint-badge">Bấm để điền nhanh</span>
+                    </div>
+                    <div className="suggestions-grid">
+                      {PRESET_PLOTS.map((p, i) => {
+                        const isSelected = plotForm.name === p.name;
+                        const areaFormatted = plotForm.unit === "m2"
+                          ? `${new Intl.NumberFormat("vi-VN").format(Math.round(p.area * 10000))} m²`
+                          : `${p.area} ha`;
+
+                        return (
+                          <button
+                            type="button"
+                            key={i}
+                            className={`suggestion-chip ${isSelected ? "active" : ""}`}
+                            onClick={() => {
+                              const val = plotForm.unit === "m2" ? String(Math.round(p.area * 10000)) : String(p.area);
+                              setPlotForm({ ...plotForm, name: p.name, area: val });
+                            }}
+                            title={`Điền: ${p.name} (${areaFormatted})`}
+                          >
+                            <span className="chip-icon-box">
+                              {isSelected ? (
+                                <IconCheck size={14} strokeWidth={2.5} />
+                              ) : (
+                                <IconSprout size={14} strokeWidth={2} />
+                              )}
+                            </span>
+                            <div className="chip-text-wrap">
+                              <span className="chip-name">{p.name}</span>
+                              <span className="chip-area-badge">{areaFormatted}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -798,8 +836,8 @@ export default function FarmDetailPage() {
 
                       <div className="image-url-input-wrap">
                         <input
-                          type="url"
-                          placeholder="Hoặc dán đường link ảnh (URL) tại đây..."
+                          type="text"
+                          placeholder="Hoặc dán đường link ảnh hoặc đường dẫn (/farms/...)"
                           value={plotForm.image}
                           onChange={(e) => setPlotForm({ ...plotForm, image: e.target.value })}
                           className="farm-input-sm"
@@ -895,26 +933,47 @@ export default function FarmDetailPage() {
                   </select>
                 </div>
 
-                <div className="form-group" style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  <label style={{ fontSize: '0.88rem', fontWeight: '600', color: '#334155', marginBottom: '8px', display: 'block' }}>
-                    Quyền hạn cụ thể:
-                  </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
+                <div className="member-permissions-group">
+                  <div className="permissions-group-header">
+                    <IconShield size={16} strokeWidth={2.2} />
+                    <span>Phân quyền chi tiết cho thành viên:</span>
+                  </div>
+
+                  <div className="permissions-options-list">
+                    <label className={`permission-option-card ${memberForm.canEditLog ? "active" : ""}`}>
                       <input
                         type="checkbox"
+                        className="permission-checkbox"
                         checked={memberForm.canEditLog}
                         onChange={(e) => setMemberForm({ ...memberForm, canEditLog: e.target.checked })}
                       />
-                      <span>Cho phép cập nhật nhật ký canh tác (bón phân, phun thuốc, thu hoạch)</span>
+                      <div className="permission-card-body">
+                        <div className="permission-card-title">
+                          <IconClipboardList size={15} strokeWidth={2} />
+                          <strong>Ghi nhật ký canh tác thực địa</strong>
+                        </div>
+                        <p className="permission-card-desc">
+                          Cho phép cập nhật hoạt động bón phân, phun thuốc, tưới tiêu & thu hoạch tại các lô đất.
+                        </p>
+                      </div>
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem' }}>
+
+                    <label className={`permission-option-card ${memberForm.canManageInventory ? "active" : ""}`}>
                       <input
                         type="checkbox"
+                        className="permission-checkbox"
                         checked={memberForm.canManageInventory}
                         onChange={(e) => setMemberForm({ ...memberForm, canManageInventory: e.target.checked })}
                       />
-                      <span>Cho phép quản lý & xuất nhập kho vật tư</span>
+                      <div className="permission-card-body">
+                        <div className="permission-card-title">
+                          <IconWarehouse size={15} strokeWidth={2} />
+                          <strong>Quản lý kho vật tư nông nghiệp</strong>
+                        </div>
+                        <p className="permission-card-desc">
+                          Cho phép tạo phiếu xuất/nhập, kiểm kê phân bón, hạt giống & thuốc BVTV của nông hộ.
+                        </p>
+                      </div>
                     </label>
                   </div>
                 </div>

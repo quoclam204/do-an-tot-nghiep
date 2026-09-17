@@ -25,9 +25,9 @@ import {
   IconHeadphones,
   IconPhoneCall,
   IconMapPin,
-} from '../components/icons';
-import { useAuth } from '../context/AuthContext';
-import '../styles/HomePage.css';
+} from '../../components/icons';
+import { useAuth } from '../../context/AuthContext';
+import './HomePage.css';
 
 function HomePage() {
   const { user } = useAuth();

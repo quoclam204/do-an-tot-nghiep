@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import {
   IconFlask,
   IconPlus,
@@ -12,13 +12,13 @@ import {
   IconSprout,
   IconLeaf,
   IconWarehouse,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetMaterials,
   apiCreateMaterial,
   apiGetMaterialHistory,
-} from '../services/api';
-import { api } from '../services/api';
+} from '../../services/api';
+import { api } from '../../services/api';
 import './MaterialsPage.css';
 
 const MATERIAL_TYPES = [

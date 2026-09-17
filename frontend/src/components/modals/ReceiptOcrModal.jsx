@@ -9,7 +9,7 @@ import {
   IconFlask,
   IconSprout,
   IconZap,
-} from './icons';
+} from '../icons';
 
 // Dữ liệu mẫu hóa đơn thực tế nông nghiệp để demo nhanh hoặc test
 const SAMPLE_RECEIPTS = [

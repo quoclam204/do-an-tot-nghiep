@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboardPage.css';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import { useAuth } from '../context/AuthContext';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
+import { useAuth } from '../../context/AuthContext';
 import {
   IconUsers,
   IconClock,
@@ -22,7 +22,7 @@ import {
   IconCircleDollar,
   IconShield,
   IconZap,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetUsers,
   apiAdminCreateUser,
@@ -35,7 +35,7 @@ import {
   apiGetPendingUsers,
   apiApproveUser,
   apiRejectUser
-} from '../services/api';
+} from '../../services/api';
 
 export default function AdminDashboardPage() {
   const { user } = useAuth();

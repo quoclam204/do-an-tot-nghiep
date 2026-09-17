@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { apiResetPassword } from '../services/api';
-import { IconEye, IconEyeOff } from '../components/icons';
+import { apiResetPassword } from '../../services/api';
+import { IconEye, IconEyeOff } from '../../components/icons';
 import './AuthPage.css';
 
 function ResetPasswordPage() {

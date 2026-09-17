@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import {
   IconBookOpen,
   IconPlus,
@@ -20,7 +20,7 @@ import {
   IconFlask,
   IconUsers,
   IconScale,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetSeasons,
   apiCreateSeason,
@@ -28,8 +28,8 @@ import {
   apiGetGrowthCycles,
   apiGetSeasonFinancialSummary,
   apiGetMyFarms,
-} from '../services/api';
-import { api } from '../services/api';
+} from '../../services/api';
+import { api } from '../../services/api';
 import './SeasonsPage.css';
 
 const STATUS_MAP = {

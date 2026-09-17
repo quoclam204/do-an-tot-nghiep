@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import {
   IconWarehouse,
   IconPlus,
@@ -16,7 +16,7 @@ import {
   IconFilter,
   IconDollarSign,
   IconFileText,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetInventory,
   apiCreateInventory,
@@ -25,7 +25,7 @@ import {
   apiGetMaterials,
   apiGetMyFarms,
   apiGetActivityLogs,
-} from '../services/api';
+} from '../../services/api';
 import './InventoryPage.css';
 
 const TYPE_LABELS = {

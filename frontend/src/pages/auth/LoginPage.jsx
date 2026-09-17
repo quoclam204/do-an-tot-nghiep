@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { apiLogin, apiGoogleLogin } from '../services/api';
-import GoogleLoginButton from '../components/GoogleLoginButton';
-import { IconEye, IconEyeOff } from '../components/icons';
+import { useAuth } from '../../context/AuthContext';
+import { apiLogin, apiGoogleLogin } from '../../services/api';
+import GoogleLoginButton from '../../components/GoogleLoginButton';
+import { IconEye, IconEyeOff } from '../../components/icons';
 import './AuthPage.css';
 
 function LoginPage() {

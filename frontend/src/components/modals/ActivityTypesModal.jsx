@@ -8,14 +8,14 @@ import {
   IconAlertTriangle,
   IconSprout,
   IconSettings,
-} from '../components/icons';
+} from '../icons';
 import {
   apiGetActivityTypes,
   apiCreateActivityType,
   apiUpdateActivityType,
   apiDeleteActivityType,
   apiSeedActivityTypes
-} from '../services/api';
+} from '../../services/api';
 
 const DEFAULT_ICONS = [
   { label: 'Cây / Lá', value: 'leaf' },

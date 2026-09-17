@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiForgotPassword } from '../services/api';
-import { IconCheckCircle, IconArrowLeft } from '../components/icons';
+import { apiForgotPassword } from '../../services/api';
+import { IconCheckCircle, IconArrowLeft } from '../../components/icons';
 import './AuthPage.css';
 
 function ForgotPasswordPage() {

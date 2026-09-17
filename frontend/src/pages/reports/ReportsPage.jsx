@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import {
   IconLineChart,
   IconCircleDollar,
@@ -11,7 +11,7 @@ import {
   IconSprout,
   IconCheckCircle,
   IconPrinter,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetFinancialReport,
   apiGetActivityLogs,
@@ -19,7 +19,7 @@ import {
   apiGetMaterials,
   apiGetSeasonFinancialSummary,
   apiGetMyFarms,
-} from '../services/api';
+} from '../../services/api';
 import {
   BarChart,
   Bar,

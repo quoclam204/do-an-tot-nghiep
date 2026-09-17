@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import Header from '../../components/Header';
+import Footer from '../../components/Footer';
 import {
   IconPlus,
   IconSearch,
@@ -14,14 +14,14 @@ import {
   IconFileText,
   IconScale,
   IconImage,
-} from '../components/icons';
+} from '../../components/icons';
 import {
   apiGetActivityLogs,
   apiCreateActivityLog,
   apiDeleteActivityLog,
   apiGetSeasons,
   apiGetMyFarms,
-} from '../services/api';
+} from '../../services/api';
 import './HarvestPage.css';
 
 export default function HarvestPage() {
