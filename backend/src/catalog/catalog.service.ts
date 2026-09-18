@@ -182,8 +182,40 @@ export class CatalogService {
     });
   }
   async deleteCrop(id: string) {
-    if (await this.hasChildren('cropCycle', { cropId: id }))
-      throw new ConflictException('Không thể xóa cây trồng đã có mùa vụ');
+    // Chỉ chặn xóa nếu có mùa vụ trên lô đất và vườn đang còn hoạt động
+    const activeCycles = await this.prisma.cropCycle.findMany({
+      where: {
+        cropId: id,
+        deletedAt: null,
+        plot: {
+          deletedAt: null,
+          farm: { deletedAt: null },
+        },
+      },
+      include: {
+        plot: { include: { farm: true } },
+      },
+    });
+
+    if (activeCycles.length > 0) {
+      const farmNames = [...new Set(activeCycles.map((c: any) => c.plot?.farm?.name).filter(Boolean))].join(', ');
+      throw new ConflictException(
+        `Không thể xóa cây trồng vì đang có ${activeCycles.length} mùa vụ ${farmNames ? `(tại: ${farmNames})` : ''}`,
+      );
+    }
+
+    // Dọn dẹp các mùa vụ mồ côi (nếu lô đất hoặc vườn đã bị xóa trước đó)
+    await this.prisma.cropCycle.updateMany({
+      where: { cropId: id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
+    // Đồng thời dọn dẹp các chu kỳ sinh trưởng của cây này
+    await this.prisma.growthCycle.updateMany({
+      where: { cropId: id, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+
     return this.softDelete(this.prisma.crop, id);
   }
 
@@ -1013,15 +1045,15 @@ export class CatalogService {
       createdCrops.push(crop);
     }
 
-    // 2. Tạo danh mục vật tư thông dụng toàn quốc
+    // 2. Tạo danh mục vật tư thông dụng toàn quốc (Đơn vị tính chuẩn cơ bản: kg, chai, gói)
     const materials = [
-      { name: 'Phân NPK 20-20-15 Đầu Trâu', type: 'PHAN_BON', unit: 'Bao 50kg', defaultPrice: 850000 },
-      { name: 'Phân hữu cơ nở nhập khẩu', type: 'PHAN_BON', unit: 'Bao 25kg', defaultPrice: 420000 },
-      { name: 'Phân chuồng ủ hoai mục vi sinh', type: 'PHAN_BON', unit: 'Tấn', defaultPrice: 1500000 },
-      { name: 'Vôi bột nông nghiệp khử phèn', type: 'PHAN_BON', unit: 'Bao 40kg', defaultPrice: 80000 },
-      { name: 'Thuốc trừ sâu sinh học Emamectin', type: 'THUOC_BVTV', unit: 'Chai 500ml', defaultPrice: 180000 },
-      { name: 'Thuốc trừ nấm xì mủ Ridomil Gold', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 320000 },
-      { name: 'Chế phẩm nấm Trichoderma đối kháng', type: 'THUOC_BVTV', unit: 'Gói 1kg', defaultPrice: 95000 },
+      { name: 'Phân NPK 20-20-15 Đầu Trâu (Bao 50kg)', type: 'PHAN_BON', unit: 'kg', defaultPrice: 17000 },
+      { name: 'Phân hữu cơ nở nhập khẩu (Bao 25kg)', type: 'PHAN_BON', unit: 'kg', defaultPrice: 16800 },
+      { name: 'Phân chuồng ủ hoai mục vi sinh', type: 'PHAN_BON', unit: 'kg', defaultPrice: 1500 },
+      { name: 'Vôi bột nông nghiệp khử phèn (Bao 40kg)', type: 'PHAN_BON', unit: 'kg', defaultPrice: 2000 },
+      { name: 'Thuốc trừ sâu sinh học Emamectin (Chai 500ml)', type: 'THUOC_BVTV', unit: 'chai', defaultPrice: 180000 },
+      { name: 'Thuốc trừ nấm xì mủ Ridomil Gold (Gói 1kg)', type: 'THUOC_BVTV', unit: 'gói', defaultPrice: 320000 },
+      { name: 'Chế phẩm nấm Trichoderma đối kháng (Gói 1kg)', type: 'THUOC_BVTV', unit: 'gói', defaultPrice: 95000 },
     ];
 
     const createdMaterials: any[] = [];

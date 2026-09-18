@@ -39,6 +39,7 @@ import {
   apiDeleteCrop,
   apiSeedLamDong,
   apiGetSeasons,
+  apiCreateGrowthCycle,
 } from '../../services/api';
 
 // ==================== METADATA STORAGE HELPER ====================
@@ -409,9 +410,16 @@ export default function CropsPage() {
     };
   };
 
-  // Tính số mùa vụ đang áp dụng cho từng cây
-  const getActiveSeasonsCount = (cropId) => {
-    return seasons.filter((s) => s.cropId === cropId && s.status === 'DANG_CANH_TAC').length;
+  // Tính số mùa vụ liên quan và đang canh tác cho từng cây
+  const getCropSeasonsStats = (cropId) => {
+    const cropSeasons = seasons.filter((s) => s.cropId === cropId);
+    const active = cropSeasons.filter(
+      (s) => s.status === 'ACTIVE' || s.status === 'DANG_CANH_TAC' || (!s.actualEndDate && s.status !== 'COMPLETED')
+    ).length;
+    return {
+      total: cropSeasons.length,
+      active,
+    };
   };
 
   // Danh sách cây sau khi lọc
@@ -618,6 +626,26 @@ export default function CropsPage() {
           name: formData.name.trim(),
           type: formData.type,
         });
+
+        // Tự động đồng bộ Chu kỳ sinh trưởng vào database để dùng được ngay ở trang Mùa vụ
+        if (savedCrop?.id && formData.stages && formData.stages.length > 0) {
+          try {
+            await apiCreateGrowthCycle({
+              cropId: savedCrop.id,
+              name: `Chu kỳ canh tác ${formData.name.trim()}`,
+              description: formData.description || `Quy trình sinh trưởng chuẩn cho ${formData.name.trim()}`,
+              stages: formData.stages.map((st, idx) => ({
+                name: st.name || `Giai đoạn ${idx + 1}`,
+                sequence: idx + 1,
+                durationDays: Number(st.durationDays) || 30,
+                description: st.desc || st.description || '',
+                suggestedActivities: st.desc || st.description || '',
+              })),
+            });
+          } catch (cycleErr) {
+            console.warn('Không thể đồng bộ chu kỳ vào CSDL:', cycleErr);
+          }
+        }
       }
 
       // Metadata chuyên sâu (Ảnh, Mật độ, Sâu bệnh, Đơn vị, Quy trình sinh trưởng)
@@ -657,6 +685,11 @@ export default function CropsPage() {
 
   // Xóa cây trồng
   const handleDeleteCrop = async (crop) => {
+    const { total, active } = getCropSeasonsStats(crop.id);
+    if (total > 0) {
+      alert(`Không thể xóa cây trồng "${crop.name}" vì giống này đang được liên kết với ${total} mùa vụ trong hệ thống${active > 0 ? ` (${active} vụ đang canh tác)` : ''}.\n\nĐể đảm bảo toàn vẹn nhật ký canh tác và sản lượng thu hoạch, bạn cần vào menu "Mùa vụ" để xóa các mùa vụ thuộc giống cây này trước khi xóa cây.`);
+      return;
+    }
     if (!window.confirm(`Bạn có chắc chắn muốn xóa cây trồng "${crop.name}"?`)) return;
     try {
       await apiDeleteCrop(crop.id);
@@ -805,7 +838,7 @@ export default function CropsPage() {
           <section className="crops-cards-grid">
             {filteredCrops.map((crop) => {
               const meta = getCropMeta(crop);
-              const activeCount = getActiveSeasonsCount(crop.id);
+              const { total: totalSeasons, active: activeSeasons } = getCropSeasonsStats(crop.id);
               const stagesCount = meta.stages ? meta.stages.length : 0;
 
               return (
@@ -867,7 +900,13 @@ export default function CropsPage() {
                     <div className="crop-meta-footer">
                       <div className="crop-seasons-badge">
                         <IconCalendar size={15} strokeWidth={2} />
-                        <span>Đang trồng: <strong>{activeCount} vụ</strong></span>
+                        <span>
+                          {totalSeasons > 0 ? (
+                            <>Gắn với: <strong>{totalSeasons} vụ</strong>{activeSeasons > 0 ? ` (${activeSeasons} đang trồng)` : ''}</>
+                          ) : (
+                            <>Chưa có mùa vụ</>
+                          )}
+                        </span>
                       </div>
 
                       <div className="crop-card-actions">

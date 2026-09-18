@@ -14,6 +14,7 @@ import {
   IconXCircle,
   IconCheckCircle,
   IconAlertTriangle,
+  IconBanknote,
 } from '../../components/icons';
 import {
   apiGetMyFarms, apiGetProducts, apiCreateProduct, apiUpdateProduct, apiDeleteProduct,
@@ -21,6 +22,23 @@ import {
 } from '../../services/api';
 
 const fmt = (v) => new Intl.NumberFormat('vi-VN').format(v || 0);
+
+const formatVNDWords = (num) => {
+  if (!num || isNaN(num) || num <= 0) return '';
+  if (num >= 1e9) {
+    const b = (num / 1e9).toFixed(2).replace(/\.?0+$/, '');
+    return `${b} tỷ đồng`;
+  }
+  if (num >= 1e6) {
+    const m = (num / 1e6).toFixed(2).replace(/\.?0+$/, '');
+    return `${m} triệu đồng`;
+  }
+  if (num >= 1e3) {
+    const k = (num / 1e3).toFixed(1).replace(/\.?0+$/, '');
+    return `${k} nghìn đồng`;
+  }
+  return `${Number(num).toLocaleString('vi-VN')} đồng`;
+};
 
 export default function SalesPage() {
   const { user } = useAuth();
@@ -227,8 +245,16 @@ export default function SalesPage() {
                   <div className="form-grid">
                     <label>Tên sản phẩm <input required value={productForm.name} onChange={e => setProductForm(f => ({ ...f, name: e.target.value }))} placeholder="VD: Cà phê nhân sống" /></label>
                     <label>Đơn vị <input required value={productForm.unit} onChange={e => setProductForm(f => ({ ...f, unit: e.target.value }))} placeholder="kg" /></label>
-                    <label>Giá bán (VNĐ) <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))} /></label>
-                    <label>Tồn kho <input type="number" min="0" value={productForm.stockQuantity} onChange={e => setProductForm(f => ({ ...f, stockQuantity: e.target.value }))} /></label>
+                    <label>
+                      Giá bán (VNĐ)
+                      <input required type="number" min="0" value={productForm.price} onChange={e => setProductForm(f => ({ ...f, price: e.target.value }))} placeholder="VD: 15000" />
+                      {Boolean(productForm.price && Number(productForm.price) > 0) && (
+                        <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '4px', fontSize: '0.84rem' }}>
+                          <IconBanknote size={15} strokeWidth={2.2} /> {fmt(productForm.price)} VNĐ / {productForm.unit || 'đv'} ({formatVNDWords(Number(productForm.price))})
+                        </span>
+                      )}
+                    </label>
+                    <label>Tồn kho <input type="number" min="0" value={productForm.stockQuantity} onChange={e => setProductForm(f => ({ ...f, stockQuantity: e.target.value }))} placeholder="VD: 100" /></label>
                   </div>
                   <label>Mô tả <textarea value={productForm.description} onChange={e => setProductForm(f => ({ ...f, description: e.target.value }))} rows="2" /></label>
                   <div className="form-actions">

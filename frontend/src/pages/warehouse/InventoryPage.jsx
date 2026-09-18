@@ -16,6 +16,8 @@ import {
   IconFilter,
   IconDollarSign,
   IconFileText,
+  IconBanknote,
+  IconCoins,
 } from '../../components/icons';
 import {
   apiGetInventory,
@@ -33,6 +35,23 @@ const TYPE_LABELS = {
   THUOC_BVTV: 'Thuốc BVTV',
   GIONG: 'Giống',
   KHAC: 'Khác',
+};
+
+const formatVNDWords = (num) => {
+  if (!num || isNaN(num) || num <= 0) return '';
+  if (num >= 1e9) {
+    const b = (num / 1e9).toFixed(2).replace(/\.?0+$/, '');
+    return `${b} tỷ đồng`;
+  }
+  if (num >= 1e6) {
+    const m = (num / 1e6).toFixed(2).replace(/\.?0+$/, '');
+    return `${m} triệu đồng`;
+  }
+  if (num >= 1e3) {
+    const k = (num / 1e3).toFixed(1).replace(/\.?0+$/, '');
+    return `${k} nghìn đồng`;
+  }
+  return `${Number(num).toLocaleString('vi-VN')} đồng`;
 };
 
 export default function InventoryPage() {
@@ -585,6 +604,20 @@ export default function InventoryPage() {
                       value={formData.unitPrice}
                       onChange={(e) => handleUnitPriceChange(e.target.value)}
                     />
+                    {Boolean(formData.unitPrice && Number(formData.unitPrice) > 0) && (
+                      <div className="live-price-preview" style={{ marginTop: '6px' }}>
+                        <span className="live-price-icon">
+                          <IconBanknote size={17} strokeWidth={2.2} />
+                        </span>
+                        <strong className="live-price-formatted">
+                          {Number(formData.unitPrice).toLocaleString('vi-VN')} VNĐ
+                        </strong>
+                        <span className="live-price-slash"> / {materials.find(m => m.id === formData.materialId)?.unit || 'đơn vị'}</span>
+                        <span className="live-price-words">
+                          ({formatVNDWords(Number(formData.unitPrice))})
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -597,6 +630,20 @@ export default function InventoryPage() {
                     value={formData.totalCost}
                     onChange={(e) => setFormData({ ...formData, totalCost: e.target.value })}
                   />
+                  {Boolean(formData.totalCost && Number(formData.totalCost) > 0) && (
+                    <div className="live-price-preview" style={{ marginTop: '6px' }}>
+                      <span className="live-price-icon">
+                        <IconCoins size={17} strokeWidth={2.2} />
+                      </span>
+                      <span className="live-price-label">Tổng tiền:</span>
+                      <strong className="live-price-formatted">
+                        {Number(formData.totalCost).toLocaleString('vi-VN')} VNĐ
+                      </strong>
+                      <span className="live-price-words">
+                        ({formatVNDWords(Number(formData.totalCost))})
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="modal-actions">

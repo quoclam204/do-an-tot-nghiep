@@ -12,6 +12,12 @@ import {
   IconSprout,
   IconLeaf,
   IconWarehouse,
+  IconAlertTriangle,
+  IconBanknote,
+  IconLightbulb,
+  IconInfo,
+  IconShield,
+  IconHistory,
 } from '../../components/icons';
 import {
   apiGetMaterials,
@@ -43,6 +49,90 @@ const TYPE_BADGE_CLASS = {
   KHAC: 'badge-khac',
 };
 
+// Đơn vị tính cơ bản tối giản chuẩn cho từng loại vật tư
+const STANDARD_UNITS = {
+  PHAN_BON: ['kg', 'lít', 'bao', 'tấn', 'gói'],
+  THUOC_BVTV: ['chai', 'gói', 'lít', 'ml', 'kg'],
+  GIONG: ['cây', 'kg', 'hạt', 'gói'],
+  KHAC: ['kg', 'cái', 'lít', 'cuộn', 'bộ'],
+};
+
+// Phát hiện nếu người dùng nhập số lượng hoặc quy cách đóng gói (VD: 20kg, 50kg, 500ml...)
+const isPackagingFormat = (unitStr) => {
+  if (!unitStr) return false;
+  const val = unitStr.trim().toLowerCase();
+  return /^\d+[\s\w]*$/i.test(val) || /\d+\s*(kg|g|l|ml|lit|lít|chai|bao|goi|gói|tan|tấn)/i.test(val);
+};
+
+// Trích xuất đơn vị tính cơ bản chuẩn từ quy cách (VD: "20kg" -> "kg", "500ml" -> "ml", "24 chai" -> "chai")
+const extractCleanUnit = (unitStr, defaultType = 'PHAN_BON') => {
+  if (!unitStr) return defaultType === 'PHAN_BON' ? 'kg' : 'chai';
+  const clean = unitStr.toLowerCase();
+  if (clean.includes('kg')) return 'kg';
+  if (clean.includes('tấn') || clean.includes('tan')) return 'tấn';
+  if (clean.includes('ml')) return 'ml';
+  if (clean.includes('lít') || clean.includes('lit') || clean.includes('l')) return 'lít';
+  if (clean.includes('chai')) return 'chai';
+  if (clean.includes('bao')) return 'bao';
+  if (clean.includes('gói') || clean.includes('goi')) return 'gói';
+  if (clean.includes('cây') || clean.includes('cay')) return 'cây';
+  if (clean.includes('hạt') || clean.includes('hat')) return 'hạt';
+  return defaultType === 'PHAN_BON' ? 'kg' : 'chai';
+};
+
+// Đơn vị tính cơ bản tối giản chuẩn, gọn gàng theo từng phân loại (không bị dài tràn màn hình)
+const UNITS_BY_TYPE = {
+  PHAN_BON: [
+    { value: 'kg', label: 'kg (Kilôgam)' },
+    { value: 'bao', label: 'bao (Bao)' },
+    { value: 'tấn', label: 'tấn (Tấn)' },
+    { value: 'lít', label: 'lít (Lít)' },
+    { value: 'gói', label: 'gói (Gói)' },
+    { value: '__CUSTOM__', label: 'Khác (Tự nhập)...' },
+  ],
+  THUOC_BVTV: [
+    { value: 'chai', label: 'chai (Chai)' },
+    { value: 'gói', label: 'gói (Gói)' },
+    { value: 'lít', label: 'lít (Lít)' },
+    { value: 'ml', label: 'ml (Mililít)' },
+    { value: 'kg', label: 'kg (Kilôgam)' },
+    { value: '__CUSTOM__', label: 'Khác (Tự nhập)...' },
+  ],
+  GIONG: [
+    { value: 'cây', label: 'cây (Cây giống)' },
+    { value: 'kg', label: 'kg (Kilôgam)' },
+    { value: 'hạt', label: 'hạt (Hạt)' },
+    { value: 'gói', label: 'gói (Gói)' },
+    { value: '__CUSTOM__', label: 'Khác (Tự nhập)...' },
+  ],
+  KHAC: [
+    { value: 'kg', label: 'kg (Kilôgam)' },
+    { value: 'lít', label: 'lít (Lít)' },
+    { value: 'cái', label: 'cái (Cái / Chiếc)' },
+    { value: 'cuộn', label: 'cuộn (Cuộn)' },
+    { value: 'bộ', label: 'bộ (Bộ)' },
+    { value: '__CUSTOM__', label: 'Khác (Tự nhập)...' },
+  ],
+};
+
+// Đọc tiền tệ Việt Nam thân thiện (VD: 15000 -> "15 nghìn đồng")
+const formatVNDWords = (num) => {
+  if (!num || isNaN(num) || num <= 0) return '';
+  if (num >= 1e9) {
+    const b = (num / 1e9).toFixed(2).replace(/\.?0+$/, '');
+    return `${b} tỷ đồng`;
+  }
+  if (num >= 1e6) {
+    const m = (num / 1e6).toFixed(2).replace(/\.?0+$/, '');
+    return `${m} triệu đồng`;
+  }
+  if (num >= 1e3) {
+    const k = (num / 1e3).toFixed(1).replace(/\.?0+$/, '');
+    return `${k} nghìn đồng`;
+  }
+  return `${num.toLocaleString('vi-VN')} đồng`;
+};
+
 const emptyForm = {
   name: '',
   type: 'PHAN_BON',
@@ -58,6 +148,7 @@ export default function MaterialsPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Lịch sử thay đổi vật tư
@@ -138,11 +229,15 @@ export default function MaterialsPage() {
   const openAddModal = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setIsCustomUnit(false);
     setShowModal(true);
   };
 
   const openEditModal = (item) => {
     setEditingId(item.id);
+    const list = UNITS_BY_TYPE[item.type] || UNITS_BY_TYPE.PHAN_BON;
+    const hasPreset = list.some((u) => u.value === item.unit);
+    setIsCustomUnit(!hasPreset && Boolean(item.unit));
     setForm({
       name: item.name,
       type: item.type,
@@ -155,18 +250,47 @@ export default function MaterialsPage() {
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
+    setIsCustomUnit(false);
     setForm(emptyForm);
+  };
+
+  const handleTypeChange = (newType) => {
+    let defaultUnit = 'kg';
+    if (newType === 'PHAN_BON') defaultUnit = 'kg';
+    else if (newType === 'THUOC_BVTV') defaultUnit = 'chai';
+    else if (newType === 'GIONG') defaultUnit = 'cây';
+    else defaultUnit = 'kg';
+
+    setIsCustomUnit(false);
+    setForm((prev) => ({
+      ...prev,
+      type: newType,
+      unit: defaultUnit,
+    }));
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.defaultPrice) return;
+
+    let finalUnit = form.unit.trim();
+    if (isPackagingFormat(finalUnit)) {
+      const cleanUnit = extractCleanUnit(finalUnit, form.type);
+      const confirmClean = window.confirm(
+        `Đơn vị tính "${finalUnit}" dường như là quy cách đóng gói (số lượng).\n\nBạn có muốn tự động đổi thành "${cleanUnit}" để nông dân có thể xuất kho bón lẻ từng ${cleanUnit} không?\n\n• Bấm [OK] để đổi thành "${cleanUnit}"\n• Bấm [Hủy] để giữ nguyên "${finalUnit}"`
+      );
+      if (confirmClean) {
+        finalUnit = cleanUnit;
+        setForm((prev) => ({ ...prev, unit: cleanUnit }));
+      }
+    }
+
     try {
       setSaving(true);
       const payload = {
         name: form.name.trim(),
         type: form.type,
-        unit: form.unit.trim(),
+        unit: finalUnit,
         defaultPrice: Number(form.defaultPrice),
       };
       if (editingId) {
@@ -362,7 +486,8 @@ export default function MaterialsPage() {
                                 gap: '3px'
                               }}
                             >
-                              📜 Lịch sử
+                              <IconHistory size={13} strokeWidth={2} />
+                              <span>Lịch sử</span>
                             </button>
                             <button
                               className="btn-mat-edit"
@@ -414,47 +539,117 @@ export default function MaterialsPage() {
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="VD: Phân NPK 16-16-8"
+                    placeholder="VD: Phân NPK 16-16-8, Ridomil Gold..."
+                    className="modal-input"
                   />
                 </div>
+
                 <div className="modal-row">
                   <div className="modal-field">
                     <label>Phân loại</label>
                     <select
                       value={form.type}
-                      onChange={(e) => setForm({ ...form, type: e.target.value })}
+                      onChange={(e) => handleTypeChange(e.target.value)}
+                      className="modal-select"
                     >
                       <option value="PHAN_BON">Phân bón</option>
                       <option value="THUOC_BVTV">Thuốc BVTV</option>
-                      <option value="GIONG">Giống</option>
-                      <option value="KHAC">Khác</option>
+                      <option value="GIONG">Giống cây trồng</option>
+                      <option value="KHAC">Vật tư khác</option>
                     </select>
                   </div>
+
                   <div className="modal-field">
-                    <label>Đơn vị tính</label>
+                    <label>
+                      Đơn vị tính <span className="required">*</span>
+                    </label>
+                    <select
+                      required
+                      value={isCustomUnit ? '__CUSTOM__' : form.unit}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '__CUSTOM__') {
+                          setIsCustomUnit(true);
+                          setForm({ ...form, unit: '' });
+                        } else {
+                          setIsCustomUnit(false);
+                          setForm({ ...form, unit: val });
+                        }
+                      }}
+                      className="modal-select"
+                    >
+                      {(UNITS_BY_TYPE[form.type] || UNITS_BY_TYPE.PHAN_BON).map((u) => (
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Nếu người dùng chọn Tự nhập đơn vị riêng */}
+                {isCustomUnit && (
+                  <div className="modal-field">
+                    <label>Tên đơn vị tính tùy chỉnh</label>
                     <input
                       required
                       value={form.unit}
                       onChange={(e) => setForm({ ...form, unit: e.target.value })}
-                      placeholder="kg, lít, bao, chai..."
+                      placeholder="VD: tép, ống, cuộn, can..."
+                      className="modal-input"
+                      autoFocus
                     />
                   </div>
-                </div>
+                )}
+
+                {/* Ô Đơn giá mặc định - Chỉ nhập số */}
                 <div className="modal-field">
                   <label>
-                    Đơn giá mặc định (VNĐ) <span className="required">*</span>
+                    Đơn giá tham khảo (VNĐ / {form.unit || 'đơn vị'}) <span className="required">*</span>
                   </label>
-                  <input
-                    required
-                    type="number"
-                    min="0"
-                    step="100"
-                    value={form.defaultPrice}
-                    onChange={(e) => setForm({ ...form, defaultPrice: e.target.value })}
-                    placeholder="VD: 15000"
-                  />
+                  <div className="price-input-wrapper">
+                    <input
+                      required
+                      type="number"
+                      min="0"
+                      step="100"
+                      value={form.defaultPrice}
+                      onChange={(e) => setForm({ ...form, defaultPrice: e.target.value })}
+                      placeholder="VD: 15000"
+                      className="modal-input price-input"
+                    />
+                    <span className="price-badge-unit">
+                      đ / {form.unit || 'đv'}
+                    </span>
+                  </div>
+
+                  {/* Hiển thị trực tiếp giá tiền Việt Nam chạy tự động bên dưới */}
+                  {Boolean(form.defaultPrice && Number(form.defaultPrice) > 0) && (
+                    <div className="live-price-preview">
+                      <span className="live-price-icon">
+                        <IconBanknote size={17} strokeWidth={2.2} />
+                      </span>
+                      <span className="live-price-label">Thành tiền:</span>
+                      <strong className="live-price-formatted">
+                        {Number(form.defaultPrice).toLocaleString('vi-VN')} VNĐ
+                      </strong>
+                      {form.unit && <span className="live-price-slash"> / {form.unit}</span>}
+                      <span className="live-price-words">
+                        ({formatVNDWords(Number(form.defaultPrice))})
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Dòng ghi chú nhỏ tinh tế */}
+                <div className="mat-modal-footnote">
+                  <span className="footnote-icon">
+                    <IconLightbulb size={16} strokeWidth={2.2} />
+                  </span>
+                  <span>Đơn vị tính dùng khi xuất kho bón/phun lẻ. Quy cách (như <em>Bao 20kg</em>, <em>Chai 500ml</em>) bạn nên ghi vào <strong>Tên vật tư</strong>.</span>
                 </div>
               </div>
+
               <div className="modal-footer">
                 <button type="button" className="btn-modal-cancel" onClick={closeModal}>
                   Hủy bỏ
@@ -474,16 +669,18 @@ export default function MaterialsPage() {
         <div className="materials-modal-overlay" onClick={() => setHistoryModalOpen(false)}>
           <div className="materials-modal" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>
-                📜 Lịch sử thay đổi vật tư: {selectedMaterial?.name}
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconHistory size={20} strokeWidth={2} />
+                <span>Lịch sử thay đổi vật tư: {selectedMaterial?.name}</span>
               </h3>
               <button className="modal-close-btn" onClick={() => setHistoryModalOpen(false)}>
                 <IconX size={16} strokeWidth={2.5} />
               </button>
             </div>
             <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem' }}>
-                💡 Mọi thay đổi về tên, đơn vị, giá hoặc điều chỉnh vật tư đều được lưu trữ vĩnh viễn nhằm đảm bảo các mùa vụ canh tác trong quá khứ không bị sai lệch số liệu.
+              <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                <IconInfo size={16} strokeWidth={2} style={{ color: '#0284c7', flexShrink: 0, marginTop: '2px' }} />
+                <span>Mọi thay đổi về tên, đơn vị, giá hoặc điều chỉnh vật tư đều được lưu trữ vĩnh viễn nhằm đảm bảo các mùa vụ canh tác trong quá khứ không bị sai lệch số liệu.</span>
               </p>
               {historyLoading ? (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>Đang tải lịch sử...</div>
@@ -544,7 +741,19 @@ export default function MaterialsPage() {
       {deleteConfirmItem && (
         <div className="materials-modal-overlay" onClick={() => setDeleteConfirmItem(null)}>
           <div className="materials-modal" style={{ maxWidth: '480px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: '3rem', margin: '1rem 0 0.5rem' }}>⚠️</div>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: '#fee2e2',
+              color: '#dc2626',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '1rem auto 0.75rem'
+            }}>
+              <IconAlertTriangle size={28} strokeWidth={2.2} />
+            </div>
             <h3 style={{ margin: '0 0 0.5rem' }}>Xác nhận xóa vật tư</h3>
             <p style={{ color: '#475569', fontSize: '0.95rem', margin: '0 1rem 1rem' }}>
               Bạn có chắc chắn muốn xóa vật tư <strong>"{deleteConfirmItem.name}"</strong>?
@@ -557,9 +766,15 @@ export default function MaterialsPage() {
               margin: '0 1.5rem 1.5rem',
               textAlign: 'left',
               fontSize: '0.85rem',
-              color: '#065f46'
+              color: '#065f46',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px'
             }}>
-              🛡️ <strong>Bảo toàn dữ liệu lịch sử:</strong> Lịch sử của vật tư này vẫn được hệ thống lưu trữ vĩnh viễn. Các vụ mùa và nhật ký canh tác đã sử dụng vật tư này trước đây sẽ không bị ảnh hưởng hay mất dữ liệu chi phí!
+              <IconShield size={18} strokeWidth={2} style={{ color: '#059669', flexShrink: 0, marginTop: '2px' }} />
+              <div>
+                <strong>Bảo toàn dữ liệu lịch sử:</strong> Lịch sử của vật tư này vẫn được hệ thống lưu trữ vĩnh viễn. Các vụ mùa và nhật ký canh tác đã sử dụng vật tư này trước đây sẽ không bị ảnh hưởng hay mất dữ liệu chi phí!
+              </div>
             </div>
             <div className="modal-footer" style={{ justifyContent: 'center', gap: '0.75rem' }}>
               <button type="button" className="btn-modal-cancel" onClick={() => setDeleteConfirmItem(null)}>
