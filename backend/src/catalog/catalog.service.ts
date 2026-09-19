@@ -775,9 +775,6 @@ export class CatalogService {
           totalMaterialCost += itemCost;
           materialsData.push({
             materialId: material.id,
-            materialName: material.name,
-            unit: material.unit,
-            unitPrice: unitPrice,
             quantityUsed: qty,
             cost: itemCost,
           });
@@ -878,9 +875,6 @@ export class CatalogService {
             data: {
               activityLogId: id,
               materialId: material.id,
-              materialName: material.name,
-              unit: material.unit,
-              unitPrice: unitPrice,
               quantityUsed: qty,
               cost: itemCost,
             },
@@ -930,9 +924,9 @@ export class CatalogService {
     const where: any = { deletedAt: null };
     if (cropCycleId) where.cropCycleId = cropCycleId;
     if (farmId || plotId) {
-      where.cropCycle = { deletedAt: null };
+      where.cropCycle = { deletedAt: null, ...(where.cropCycle || {}) };
       if (plotId) where.cropCycle.plotId = plotId;
-      if (farmId) where.cropCycle = { ...where.cropCycle, plot: { farmId } };
+      if (farmId) where.cropCycle = { ...where.cropCycle, plot: { farmId, deletedAt: null } };
     }
     if (startDate || endDate) {
       where.activityDate = {};
