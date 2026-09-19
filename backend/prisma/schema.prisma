@@ -284,9 +284,6 @@ model ActivityMaterial {
   id              String    @id @default(uuid()) @db.Uuid
   activityLogId   String    @db.Uuid
   materialId      String    @db.Uuid
-  materialName    String?   // Snapshot tên vật tư tại thời điểm sử dụng
-  unit            String?   // Snapshot đơn vị
-  unitPrice       Float?    // Snapshot đơn giá
   quantityUsed    Float
   cost            Float     // Chi phí vật tư (quantityUsed * đơn giá)
 
