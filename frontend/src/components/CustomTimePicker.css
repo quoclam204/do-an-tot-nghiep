@@ -1,0 +1,299 @@
+.custom-time-picker-container {
+  position: relative;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* ── Ô hiển thị chính (gọn gàng, trên 1 dòng duy nhất) ── */
+.custom-time-input-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 40px;
+  padding: 0 0.75rem;
+  background: #ffffff;
+  border: 1px solid var(--ms-gray-300, #cbd5e1);
+  border-radius: var(--radius-sm, 6px);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.custom-time-input-box:hover {
+  border-color: #107c10;
+}
+
+.custom-time-input-box.focused {
+  border-color: #107c10;
+  box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.15);
+}
+
+.time-display-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.time-primary-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+.time-vn-badge {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.time-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-now-compact {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-now-compact:hover {
+  background: #16a34a;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+
+.clock-icon {
+  color: #64748b;
+}
+
+/* ── BẢNG DROPDOWN NHỎ GỌN, TINH TẾ ── */
+.custom-time-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1050;
+  width: 260px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  animation: fadeInDown 0.15s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tabs lọc ca (1 dòng 4 nút vừa vặn) */
+.dropdown-filter-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 3px;
+  gap: 2px;
+}
+
+.filter-tab {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.filter-tab:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.filter-tab.active {
+  background: #ffffff;
+  color: #047857;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Tiêu đề 2 cột */
+.dropdown-columns-header {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  text-align: center;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 5px 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+/* Thân 2 cột */
+.dropdown-columns-body {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  height: 190px;
+  background: #ffffff;
+}
+
+.time-column {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  padding: 3px 0;
+}
+
+.time-column::-webkit-scrollbar {
+  width: 4px;
+}
+
+.time-column::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.hours-col {
+  border-right: 1px solid #f1f5f9;
+}
+
+/* Dòng từng giờ */
+.hour-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.hour-item:hover {
+  background: #f0fdf4;
+}
+
+.hour-item.active {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.hour-item.active .hour-vn {
+  color: #dcfce7;
+}
+
+.hour-24 {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.hour-vn {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* Dòng từng phút */
+.minute-item {
+  padding: 6px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.minute-item:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.minute-item.active {
+  background: #16a34a;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* Chân bảng chọn */
+.dropdown-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-footer-now {
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.btn-footer-now:hover {
+  background: #15803d;
+}
+
+.btn-footer-done {
+  background: transparent;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-footer-done:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}

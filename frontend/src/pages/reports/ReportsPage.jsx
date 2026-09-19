@@ -95,7 +95,7 @@ export default function ReportsPage() {
       }
 
       const [finRes, logsRes, seasonSumRes] = await Promise.all([
-        apiGetFinancialReport(query.cropCycleId).catch(() => null),
+        apiGetFinancialReport({ cropCycleId: query.cropCycleId, farmId: farmToUse, startDate: query.startDate, endDate: query.endDate }).catch(() => null),
         apiGetActivityLogs(query.cropCycleId, farmToUse).catch(() => []),
         seasonToUse ? apiGetSeasonFinancialSummary(seasonToUse).catch(() => null) : Promise.resolve(null),
       ]);

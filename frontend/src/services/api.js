@@ -303,8 +303,15 @@ export const apiDeleteActivityLog = async (id) => {
 };
 
 /** Lấy báo cáo kinh tế / tài chính */
-export const apiGetFinancialReport = async (cropCycleId) => {
-    const response = await api.get('/catalog/financial-report', { params: { cropCycleId } });
+export const apiGetFinancialReport = async (cropCycleIdOrParams, farmId) => {
+    let params = {};
+    if (typeof cropCycleIdOrParams === 'object' && cropCycleIdOrParams !== null) {
+        params = cropCycleIdOrParams;
+    } else {
+        if (cropCycleIdOrParams) params.cropCycleId = cropCycleIdOrParams;
+        if (farmId) params.farmId = farmId;
+    }
+    const response = await api.get('/catalog/financial-report', { params });
     return response.data;
 };
 

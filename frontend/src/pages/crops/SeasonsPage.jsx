@@ -351,7 +351,7 @@ export default function SeasonsPage() {
                   cursor: 'pointer'
                 }}
               >
-                <option value="">🏡 Tất cả trang trại</option>
+                <option value="">Tất cả trang trại</option>
                 {farms.map((f) => (
                   <option key={f.id} value={f.id}>{f.name}</option>
                 ))}
