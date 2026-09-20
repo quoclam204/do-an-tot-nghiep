@@ -13,10 +13,11 @@ export class ActivityTypesService {
     }
 
     const where: any = { deletedAt: null };
-    if (farmId) {
+    const validFarmId = farmId && farmId !== 'undefined' && farmId !== 'null' && farmId.trim() !== '' ? farmId.trim() : null;
+    if (validFarmId) {
       where.OR = [
         { farmId: null },  // global
-        { farmId },        // riêng nông hộ
+        { farmId: validFarmId }, // riêng nông hộ
       ];
     } else {
       where.farmId = null; // chỉ global

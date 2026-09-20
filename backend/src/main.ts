@@ -25,22 +25,7 @@ async function bootstrap() {
     }),
   );
 
-  const frontendDist = join(process.cwd(), '..', 'frontend', 'dist');
-  if (existsSync(frontendDist)) {
-    const serveStatic = (express as any).static || (express as any).default?.static;
-    if (serveStatic) {
-      app.getHttpAdapter().getInstance().use(serveStatic(frontendDist));
-    }
-    app.getHttpAdapter().getInstance().use((request: any, response: any, next: any) => {
-      const apiPaths = ['/catalog', '/auth', '/users', '/farms'];
-      if (request.method === 'GET' && !apiPaths.some((path) => request.path.startsWith(path))) {
-        response.sendFile(join(frontendDist, 'index.html'));
-        return;
-      }
-      next();
-    });
-  }
-
+  // Bật CORS cho các domain frontend
   app.enableCors({
     origin: (origin, callback) => {
       const frontendEnv = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
@@ -64,6 +49,22 @@ async function bootstrap() {
     },
     credentials: true,
   });
+
+  const frontendDist = join(process.cwd(), '..', 'frontend', 'dist');
+  if (existsSync(frontendDist)) {
+    const serveStatic = (express as any).static || (express as any).default?.static;
+    if (serveStatic) {
+      app.getHttpAdapter().getInstance().use(serveStatic(frontendDist));
+    }
+    app.getHttpAdapter().getInstance().use((request: any, response: any, next: any) => {
+      const apiPaths = ['/catalog', '/auth', '/users', '/farms', '/activity-types', '/sales'];
+      if (request.method === 'GET' && !apiPaths.some((path) => request.path.startsWith(path))) {
+        response.sendFile(join(frontendDist, 'index.html'));
+        return;
+      }
+      next();
+    });
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

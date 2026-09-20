@@ -772,16 +772,13 @@ export default function FarmingLogPage() {
                       color: '#047857',
                       border: '1px solid #a7f3d0',
                       borderRadius: '6px',
-                      padding: '2px 8px',
-                      fontSize: '0.75rem',
+                      padding: '3px 9px',
+                      fontSize: '0.8rem',
                       fontWeight: '600',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
+                      cursor: 'pointer'
                     }}
                   >
-                    <IconSettings size={13} /> Thêm / Sửa loại hoạt động
+                    + Thêm / Sửa hoạt động
                   </button>
                 </div>
                 <select
@@ -1500,6 +1497,11 @@ export default function FarmingLogPage() {
         onClose={() => setIsActivityModalOpen(false)}
         farmId={selectedFarmId}
         onTypesChanged={loadData}
+        selectedActivityCode={form.activityType}
+        onSelectActivity={(code, item) => {
+          setForm((prev) => ({ ...prev, activityType: code }));
+          showToast(`Đã chọn hoạt động: ${item.name}`);
+        }}
       />
 
       {/* MODAL BÓC TÁCH CHI TIẾT CHI PHÍ */}

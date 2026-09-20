@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ActivityTypesModal.css';
 import {
-  IconPlus,
-  IconPenLine,
-  IconTrash,
-  IconCheckCircle,
-  IconAlertTriangle,
-  IconSprout,
-  IconSettings,
-} from '../icons';
-import {
   apiGetActivityTypes,
   apiCreateActivityType,
   apiUpdateActivityType,
@@ -17,26 +8,23 @@ import {
   apiSeedActivityTypes
 } from '../../services/api';
 
-const DEFAULT_ICONS = [
-  { label: 'Cây / Lá', value: 'leaf' },
-  { label: 'Phân bón', value: 'flask' },
-  { label: 'Tưới nước', value: 'droplets' },
-  { label: 'Thu hoạch', value: 'shopping-bag' },
-  { label: 'Cắt tỉa', value: 'scissors' },
-  { label: 'Làm đất', value: 'shovel' },
-  { label: 'Phun thuốc', value: 'shield' },
-  { label: 'Khác', value: 'sun' },
-];
-
-export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesChanged }) {
+export default function ActivityTypesModal({
+  isOpen,
+  onClose,
+  farmId,
+  onTypesChanged,
+  onSelectActivity,
+  selectedActivityCode
+}) {
   const [types, setTypes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [isListOpen, setIsListOpen] = useState(false); // Thu gọn danh sách thành dropdown
+  const [searchTerm, setSearchTerm] = useState('');
+
   const [formData, setFormData] = useState({
     name: '',
-    code: '',
-    description: '',
-    icon: 'leaf'
+    description: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -45,16 +33,24 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
   useEffect(() => {
     if (isOpen) {
       loadTypes();
+      setIsListOpen(false); // Mặc định mở modal là thu gọn danh sách
     }
   }, [isOpen, farmId]);
+
+  const showSuccessMsg = (msg) => {
+    setSuccess(msg);
+    setError('');
+    setTimeout(() => setSuccess(''), 3000);
+  };
 
   const loadTypes = async () => {
     setLoading(true);
     setError('');
     try {
       const data = await apiGetActivityTypes(farmId);
-      setTypes(data || []);
+      setTypes(Array.isArray(data) ? data : []);
     } catch (err) {
+      setSuccess('');
       setError(err.response?.data?.message || 'Không thể tải danh sách loại hoạt động');
     } finally {
       setLoading(false);
@@ -65,8 +61,9 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
     setLoading(true);
     try {
       await apiSeedActivityTypes();
-      setSuccess('Đã khởi tạo các loại hoạt động mẫu thành công!');
+      showSuccessMsg('Đã khởi tạo các hoạt động mẫu thành công!');
       await loadTypes();
+      setIsListOpen(true); // Tự mở ra sau khi seed để người dùng xem
       if (onTypesChanged) onTypesChanged();
     } catch (err) {
       setError(err.response?.data?.message || 'Lỗi khi khởi tạo danh mục mẫu');
@@ -75,17 +72,23 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
     }
   };
 
+  // Lưu hoạt động (thêm mới hoặc sửa)
   const handleSave = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      setError('Vui lòng nhập tên loại hoạt động');
+      setError('Vui lòng nhập tên hoạt động');
       return;
     }
 
-    // Tự sinh code nếu trống
-    const code = formData.code.trim()
-      ? formData.code.trim().toUpperCase().replace(/\s+/g, '_')
-      : formData.name.trim().toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "_");
+    // Tự động sinh mã ngầm
+    const code = formData.name
+      .trim()
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Z0-9]/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "") || `HOAT_DONG_${Date.now().toString().slice(-4)}`;
 
     setLoading(true);
     setError('');
@@ -94,27 +97,25 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
     try {
       if (editingId) {
         await apiUpdateActivityType(editingId, {
-          name: formData.name,
-          description: formData.description,
-          icon: formData.icon
+          name: formData.name.trim(),
+          description: formData.description?.trim() || null
         });
-        setSuccess('Cập nhật loại hoạt động thành công!');
+        showSuccessMsg('Đã cập nhật hoạt động thành công!');
       } else {
         await apiCreateActivityType({
-          name: formData.name,
+          name: formData.name.trim(),
           code,
-          description: formData.description,
-          icon: formData.icon,
+          description: formData.description?.trim() || null,
           farmId: farmId || null
         });
-        setSuccess('Thêm mới loại hoạt động thành công!');
+        showSuccessMsg(`Đã thêm hoạt động "${formData.name.trim()}"!`);
       }
-      setFormData({ name: '', code: '', description: '', icon: 'leaf' });
+      setFormData({ name: '', description: '' });
       setEditingId(null);
       await loadTypes();
       if (onTypesChanged) onTypesChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'Lỗi khi lưu loại hoạt động');
+      setError(err.response?.data?.message || 'Lỗi khi lưu hoạt động');
     } finally {
       setLoading(false);
     }
@@ -124,17 +125,17 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
     setEditingId(item.id);
     setFormData({
       name: item.name,
-      code: item.code,
-      description: item.description || '',
-      icon: item.icon || 'leaf'
+      description: item.description || ''
     });
     setError('');
     setSuccess('');
+    // Giữ danh sách mở khi đang chọn sửa
+    setIsListOpen(true);
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', code: '', description: '', icon: 'leaf' });
+    setFormData({ name: '', description: '' });
     setError('');
   };
 
@@ -142,184 +143,230 @@ export default function ActivityTypesModal({ isOpen, onClose, farmId, onTypesCha
     setLoading(true);
     try {
       await apiDeleteActivityType(id);
-      setSuccess('Đã xóa loại hoạt động');
+      showSuccessMsg('Đã xóa hoạt động thành công');
       setConfirmDeleteId(null);
       await loadTypes();
       if (onTypesChanged) onTypesChanged();
     } catch (err) {
-      setError(err.response?.data?.message || 'Không thể xóa loại hoạt động này (có thể là loại mặc định)');
+      setError(err.response?.data?.message || 'Không thể xóa hoạt động này');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleSelect = (item) => {
+    if (onSelectActivity) {
+      onSelectActivity(item.code, item);
+    }
+    onClose();
+  };
+
+  // Lọc theo từ khóa tìm kiếm nếu có
+  const filteredTypes = types.filter((t) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.trim().toLowerCase();
+    return (
+      (t.name && t.name.toLowerCase().includes(term)) ||
+      (t.description && t.description.toLowerCase().includes(term))
+    );
+  });
 
   if (!isOpen) return null;
 
   return (
     <div className="activity-modal-overlay" onClick={onClose}>
       <div className="activity-modal-content" onClick={(e) => e.stopPropagation()}>
+        {/* Header gọn gàng */}
         <div className="activity-modal-header">
-          <div className="activity-modal-title">
-            <span className="activity-icon-badge"><IconSettings size={18} /></span>
-            <div>
-              <h3>Quản lý Loại Hoạt Động Canh Tác</h3>
-              <p className="subtitle">Tự do thêm, sửa, xóa loại hoạt động phù hợp với mô hình nông trại của bạn</p>
-            </div>
+          <div>
+            <h3>Quản lý loại hoạt động canh tác</h3>
+            <p className="subtitle">Tùy chỉnh danh mục công việc phù hợp với mô hình vườn của bạn</p>
           </div>
-          <button className="btn-close" onClick={onClose}>&times;</button>
+          <button className="btn-close" onClick={onClose} title="Đóng">&times;</button>
         </div>
 
-        {error && (
-          <div className="activity-alert error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IconAlertTriangle size={18} /> <span>{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="activity-alert success" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IconCheckCircle size={18} /> <span>{success}</span>
-          </div>
-        )}
+        {/* Thông báo */}
+        {error && <div className="activity-alert error">{error}</div>}
+        {success && <div className="activity-alert success">{success}</div>}
 
         <div className="activity-modal-body">
-          {/* Form thêm / sửa */}
-          <form className="activity-form-card" onSubmit={handleSave}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              {editingId ? (
-                <>
-                  <IconPenLine size={16} /> Chỉnh sửa loại hoạt động
-                </>
-              ) : (
-                <>
-                  <IconPlus size={16} /> Thêm loại hoạt động mới
-                </>
-              )}
-            </h4>
-            <div className="activity-form-row">
-              <div className="form-group flex-2">
+          {/* Form thêm / sửa ngắn gọn */}
+          <form className="compact-add-card" onSubmit={handleSave}>
+            <div className="compact-card-title">
+              {editingId ? 'Chỉnh sửa hoạt động' : 'Thêm hoạt động mới'}
+            </div>
+
+            <div className="compact-form-row">
+              <div className="compact-field-name">
                 <label>Tên hoạt động <span className="req">*</span></label>
                 <input
                   type="text"
-                  placeholder="VD: Bao trái cây, Thụ phấn bổ sung..."
+                  className="compact-input"
+                  placeholder="VD: Bao trái cây, Thụ phấn..."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
+                  autoFocus
                 />
               </div>
-              <div className="form-group flex-1">
-                <label>Mã ký hiệu</label>
+
+              <div className="compact-field-desc">
+                <label>Ghi chú / Mô tả (tùy chọn)</label>
                 <input
                   type="text"
-                  placeholder="VD: BAO_TRAI"
-                  value={formData.code}
-                  disabled={!!editingId}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  className="compact-input"
+                  placeholder="Ghi chú thêm nếu cần..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
               </div>
-              <div className="form-group flex-1">
-                <label>Biểu tượng</label>
-                <select
-                  value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+
+              <div className="compact-field-actions">
+                <button
+                  type="submit"
+                  className="btn-compact-submit"
+                  disabled={loading || !formData.name.trim()}
                 >
-                  {DEFAULT_ICONS.map((ic) => (
-                    <option key={ic.value} value={ic.value}>
-                      {ic.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Mô tả chi tiết / Hướng dẫn kỹ thuật</label>
-              <input
-                type="text"
-                placeholder="Ghi chú thêm về quy trình, liều lượng, lưu ý..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-
-            <div className="form-actions-row">
-              {editingId && (
-                <button type="button" className="btn-secondary" onClick={handleCancelEdit}>
-                  Hủy sửa
+                  {loading ? 'Lưu...' : editingId ? 'Lưu' : '+ Thêm'}
                 </button>
-              )}
-              <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Đang lưu...' : editingId ? 'Lưu thay đổi' : 'Thêm hoạt động'}
-              </button>
+                {editingId && (
+                  <button
+                    type="button"
+                    className="btn-compact-cancel"
+                    onClick={handleCancelEdit}
+                  >
+                    Hủy
+                  </button>
+                )}
+              </div>
             </div>
           </form>
 
-          {/* Danh sách các loại hoạt động */}
-          <div className="activity-list-section">
-            <div className="activity-list-header">
-              <h4>Danh sách loại hoạt động ({types.length})</h4>
-              {types.length === 0 && (
-                <button className="btn-seed" onClick={handleSeed} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  <IconSprout size={16} /> Tạo danh mục mặc định chuẩn
-                </button>
-              )}
-            </div>
+          {/* Gom danh sách hoạt động thành Dropdown xổ xuống khi ấn */}
+          <div className="activity-dropdown-section">
+            <button
+              type="button"
+              className={`activity-dropdown-trigger ${isListOpen ? 'is-open' : ''}`}
+              onClick={() => setIsListOpen(!isListOpen)}
+            >
+              <div className="dropdown-trigger-info">
+                <span className="dropdown-trigger-title">
+                  Danh sách hoạt động đã có ({types.length})
+                </span>
+                <span className="dropdown-trigger-hint">
+                  {isListOpen ? 'Bấm để thu gọn danh sách' : 'Bấm vào đây để xem, sửa hoặc xóa hoạt động'}
+                </span>
+              </div>
+              <span className="dropdown-arrow-badge">
+                {isListOpen ? '▲ Thu gọn' : '▼ Mở xem'}
+              </span>
+            </button>
 
-            {loading && types.length === 0 ? (
-              <div className="loading-spinner">Đang tải danh mục...</div>
-            ) : (
-              <div className="activity-items-grid">
-                {types.map((item) => (
-                  <div key={item.id} className={`activity-type-item ${item.isSystem ? 'is-system' : 'custom'}`}>
-                    <div className="item-info">
-                      <div className="item-title-row">
-                        <span className="item-name">{item.name}</span>
-                        <span className="item-code-tag">{item.code}</span>
-                        {item.isSystem ? (
-                          <span className="badge-system" title="Loại chuẩn của hệ thống">Mặc định</span>
-                        ) : (
-                          <span className="badge-custom" title="Nông hộ tự định nghĩa">Tự tạo</span>
-                        )}
-                      </div>
-                      {item.description && <p className="item-desc">{item.description}</p>}
-                    </div>
+            {/* Nội dung danh sách xổ xuống */}
+            {isListOpen && (
+              <div className="activity-dropdown-content">
+                <div className="dropdown-content-tools">
+                  {types.length > 5 && (
+                    <input
+                      type="text"
+                      className="compact-search-input"
+                      placeholder="Tìm nhanh theo tên..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  )}
+                  {types.length === 0 && (
+                    <button
+                      type="button"
+                      className="btn-compact-seed"
+                      onClick={handleSeed}
+                      disabled={loading}
+                    >
+                      Tạo danh mục mẫu
+                    </button>
+                  )}
+                </div>
 
-                    <div className="item-actions">
-                      <button
-                        className="btn-item-edit"
-                        title="Chỉnh sửa"
-                        onClick={() => handleEdit(item)}
+                {loading && types.length === 0 ? (
+                  <div className="compact-loading">Đang tải danh sách...</div>
+                ) : filteredTypes.length === 0 ? (
+                  <div className="compact-empty">Không tìm thấy hoạt động nào</div>
+                ) : (
+                  <div className="compact-list-scroll">
+                    {filteredTypes.map((item) => (
+                      <div
+                        key={item.id}
+                        className={`compact-item-row ${item.isSystem ? 'is-system' : 'is-custom'}`}
                       >
-                        <IconPenLine size={14} />
-                      </button>
-                      {!item.isSystem && (
-                        confirmDeleteId === item.id ? (
-                          <div className="confirm-delete-box">
-                            <span>Xóa?</span>
-                            <button
-                              className="btn-confirm-yes"
-                              onClick={() => handleDelete(item.id)}
-                            >
-                              Có
-                            </button>
-                            <button
-                              className="btn-confirm-no"
-                              onClick={() => setConfirmDeleteId(null)}
-                            >
-                              Không
-                            </button>
-                          </div>
-                        ) : (
+                        <div className="compact-item-left">
+                          <span className="compact-item-name">{item.name}</span>
+                          {item.description && (
+                            <span className="compact-item-desc" title={item.description}>
+                              — {item.description}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="compact-item-right">
+                          {item.isSystem ? (
+                            <span className="tag-system">Mặc định</span>
+                          ) : (
+                            <span className="tag-custom">Tự tạo</span>
+                          )}
+
                           <button
-                            className="btn-item-delete"
-                            title="Xóa loại này"
-                            onClick={() => setConfirmDeleteId(item.id)}
+                            type="button"
+                            className={`btn-compact-select ${item.code === selectedActivityCode ? 'is-selected' : ''}`}
+                            onClick={() => handleSelect(item)}
+                            title={`Chọn "${item.name}" cho nhật ký`}
                           >
-                            <IconTrash size={14} />
+                            {item.code === selectedActivityCode ? 'Đang chọn' : 'Chọn'}
                           </button>
-                        )
-                      )}
-                    </div>
+
+                          <button
+                            type="button"
+                            className="btn-compact-edit"
+                            onClick={() => handleEdit(item)}
+                            title="Chỉnh sửa"
+                          >
+                            Sửa
+                          </button>
+
+                          {!item.isSystem && (
+                            confirmDeleteId === item.id ? (
+                              <div className="compact-inline-confirm">
+                                <span>Xóa?</span>
+                                <button
+                                  type="button"
+                                  className="btn-confirm-yes"
+                                  onClick={() => handleDelete(item.id)}
+                                >
+                                  Có
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-confirm-no"
+                                  onClick={() => setConfirmDeleteId(null)}
+                                >
+                                  Không
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn-compact-delete"
+                                onClick={() => setConfirmDeleteId(item.id)}
+                                title="Xóa hoạt động này"
+                              >
+                                Xóa
+                              </button>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
