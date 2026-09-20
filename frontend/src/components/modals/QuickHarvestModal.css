@@ -1,0 +1,354 @@
+/* Modal Ghi Nhận Thu Hoạch Nhanh - DalatAgri */
+.harvest-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: harvestFadeIn 0.2s ease-out;
+}
+
+@keyframes harvestFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.harvest-modal-container {
+  background: #ffffff;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  animation: harvestSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes harvestSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header */
+.harvest-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: #f0fdf4;
+  border-bottom: 1.5px solid #dcfce7;
+}
+
+.harvest-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.harvest-modal-icon {
+  width: 44px;
+  height: 44px;
+  background: #dcfce7;
+  color: #15803d;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.harvest-modal-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #166534;
+}
+
+.harvest-modal-subtitle {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.82rem;
+  color: #4b5563;
+  line-height: 1.35;
+}
+
+.harvest-modal-btn-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.harvest-modal-btn-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Alert Error */
+.harvest-modal-alert {
+  margin: 1rem 1.5rem 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Body & Form */
+.harvest-modal-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.harvest-form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.harvest-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.harvest-form-group.flex-1 {
+  flex: 1;
+}
+
+.harvest-form-label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.text-required {
+  color: #dc2626;
+}
+
+.harvest-form-input {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.harvest-form-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.harvest-input-bold {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.harvest-date-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.harvest-btn-today {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 8px;
+  padding: 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.harvest-btn-today:hover,
+.harvest-btn-today.active {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+
+/* Wrap unit (kg, đ/kg) */
+.harvest-input-unit-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.harvest-input-unit-wrap input {
+  padding-right: 3.2rem;
+}
+
+.harvest-input-unit {
+  position: absolute;
+  right: 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  pointer-events: none;
+}
+
+/* Khung tính nhẩm tiền to rõ */
+.harvest-revenue-preview-box {
+  background: #f8fafc;
+  border: 2px dashed #10b981;
+  border-radius: 12px;
+  padding: 1rem 1.15rem;
+}
+
+.harvest-revenue-top {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.harvest-revenue-icon {
+  width: 42px;
+  height: 42px;
+  background: #ecfdf5;
+  color: #059669;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.harvest-revenue-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.harvest-revenue-amount {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #059669;
+  line-height: 1.2;
+}
+
+.harvest-revenue-amount small {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #10b981;
+}
+
+.harvest-calc-formula {
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.harvest-calc-formula .text-green {
+  color: #059669;
+  font-weight: 700;
+}
+
+.harvest-calc-hint {
+  margin-top: 0.45rem;
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+/* Footer Buttons */
+.harvest-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.harvest-btn-cancel {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  padding: 0.7rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.harvest-btn-cancel:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.harvest-btn-submit {
+  background: #15803d;
+  border: 1px solid #15803d;
+  color: #ffffff;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 6px -1px rgba(21, 128, 61, 0.2);
+  transition: all 0.15s;
+}
+
+.harvest-btn-submit:hover:not(:disabled) {
+  background: #166534;
+  border-color: #166534;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 10px -1px rgba(21, 128, 61, 0.3);
+}
+
+.harvest-btn-submit:disabled,
+.harvest-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .harvest-form-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

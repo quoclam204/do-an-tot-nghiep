@@ -442,13 +442,15 @@ export default function ReportsPage() {
             </div>
             <div className="reports-kpi-card">
               <div className="kpi-top">
-                <span className="kpi-label-text">Lượt canh tác</span>
+                <span className="kpi-label-text">Tổng lượt ghi nhật ký</span>
                 <div className="kpi-icon-circle purple">
                   <IconClipboardList size={20} strokeWidth={2} />
                 </div>
               </div>
               <span className="kpi-value-text text-purple">{logsCount}</span>
-              <span className="kpi-sub-text">Nhật ký đã ghi nhận</span>
+              <span className="kpi-sub-text">
+                Chăm sóc: <strong>{financials?.careLogsCount || 0}</strong> lần | Thu hoạch: <strong>{financials?.harvestLogsCount || 0}</strong> đợt
+              </span>
             </div>
           </div>
 

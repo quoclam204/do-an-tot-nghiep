@@ -250,13 +250,25 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
+              type="button"
               className={`ocr-btn-config ${showKeyConfig ? 'active' : ''}`}
-              onClick={() => setShowKeyConfig(!showKeyConfig)}
+              onClick={(e) => {
+                e.preventDefault();
+                setShowKeyConfig(!showKeyConfig);
+              }}
               title="Cài đặt khóa AI Gemini (Nhận dạng chuẩn xác 100%)"
             >
               🔑 Cấu hình AI
             </button>
-            <button className="ocr-btn-close" onClick={onClose} title="Đóng">
+            <button
+              type="button"
+              className="ocr-btn-close"
+              onClick={(e) => {
+                e.preventDefault();
+                onClose();
+              }}
+              title="Đóng"
+            >
               <IconX size={18} strokeWidth={2.2} />
             </button>
           </div>
@@ -276,15 +288,23 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                   className="ocr-key-input"
                 />
                 <button
+                  type="button"
                   className="ocr-btn-save-key"
-                  onClick={() => handleSaveApiKey(geminiApiKey)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleSaveApiKey(geminiApiKey);
+                  }}
                 >
                   Lưu
                 </button>
                 {geminiApiKey && (
                   <button
+                    type="button"
                     className="ocr-btn-clear-key"
-                    onClick={() => handleSaveApiKey('')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleSaveApiKey('');
+                    }}
                   >
                     Xóa
                   </button>
@@ -354,7 +374,15 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
 
               {previewUrl && !isScanning && (
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button className="ocr-btn-primary" onClick={handleStartScan} style={{ flex: 1 }}>
+                  <button
+                    type="button"
+                    className="ocr-btn-primary"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleStartScan();
+                    }}
+                    style={{ flex: 1 }}
+                  >
                     <IconSearch size={16} strokeWidth={2.2} />
                     <span>{result ? 'Quét lại ảnh này' : 'Bắt đầu Quét OCR'}</span>
                   </button>
@@ -593,7 +621,14 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
 
                 {/* Nút hành động */}
                 <div className="ocr-action-footer">
-                  <button className="ocr-btn-apply" onClick={handleApply}>
+                  <button
+                    type="button"
+                    className="ocr-btn-apply"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleApply();
+                    }}
+                  >
                     <IconCheckCircle size={16} strokeWidth={2.4} />
                     <span>Áp dụng vào Form Nhật Ký</span>
                   </button>

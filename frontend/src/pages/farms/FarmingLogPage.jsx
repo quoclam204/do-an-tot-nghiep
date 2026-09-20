@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import './FarmingLogPage.css';
 import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
+import QuickHarvestModal from '../../components/modals/QuickHarvestModal';
+import FinancialExplanationModal from '../../components/modals/FinancialExplanationModal';
 import CustomTimePicker from '../../components/CustomTimePicker';
 import {
   IconClipboardList,
@@ -102,6 +104,15 @@ export default function FarmingLogPage() {
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [isOcrOpen, setIsOcrOpen] = useState(false);
+  const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+  const [explainTab, setExplainTab] = useState('ALL');
+
+  const handleOpenCardDetail = (tab = 'ALL') => {
+    setExplainTab(tab);
+    setIsExplainModalOpen(true);
+  };
+  const [editingHarvestLog, setEditingHarvestLog] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
@@ -116,7 +127,7 @@ export default function FarmingLogPage() {
   const [editingLogId, setEditingLogId] = useState(null);
   const [shiftFilter, setShiftFilter] = useState('ALL');
 
-  // Form State
+  // Form State (Chỉ phục vụ hoạt động chăm sóc & chi phí canh tác)
   const [form, setForm] = useState({
     cropCycleId: '',
     activityType: 'BON_PHAN',
@@ -135,10 +146,6 @@ export default function FarmingLogPage() {
     // Khác
     otherCostName: '',
     otherCosts: '',
-    // Thu hoạch
-    harvestQuantity: '',
-    unitPrice: '',
-    revenue: '',
   });
 
   const COLORS = ['#16a34a', '#0284c7', '#d97706', '#dc2626', '#8b5cf6'];
@@ -219,19 +226,6 @@ export default function FarmingLogPage() {
     }));
   };
 
-  // Tự động tính doanh thu thu hoạch: Sản lượng * Đơn giá
-  const handleHarvestChange = (field, value) => {
-    setForm((prev) => {
-      const rawDigits = String(value).replace(/\D/g, '');
-      const parsedVal = field === 'unitPrice' ? (rawDigits ? Number(rawDigits) : '') : value;
-      const updated = { ...prev, [field]: parsedVal };
-      const qty = Number(field === 'harvestQuantity' ? value : prev.harvestQuantity || 0);
-      const price = Number(field === 'unitPrice' ? parsedVal : prev.unitPrice || 0);
-      updated.revenue = qty > 0 && price > 0 ? Math.round(qty * price) : '';
-      return updated;
-    });
-  };
-
   // Áp dụng dữ liệu từ quét hóa đơn OCR vào Form
   const handleApplyOcr = (extractedData) => {
     let matchedMatId = '';
@@ -265,6 +259,15 @@ export default function FarmingLogPage() {
         ? `${extractedData.notes} [Đã trích xuất tự động qua OCR]`
         : prev.notes,
     }));
+
+    showToast('Đã trích xuất thông tin hóa đơn vào Form thành công!', 'success');
+    // Cuộn mượt xuống Form để nông dân thấy số liệu đã được điền sẵn
+    setTimeout(() => {
+      const formEl = document.querySelector('.farming-form-card, .farming-form-section, form');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   // Seed mẫu dữ liệu chuẩn
@@ -319,6 +322,13 @@ export default function FarmingLogPage() {
 
   // Bắt đầu sửa nhật ký
   const handleStartEdit = (log) => {
+    // Nếu là nhật ký thu hoạch -> Mở Modal Thu Hoạch Nhanh
+    if (log.activityType === 'THU_HOACH') {
+      setEditingHarvestLog(log);
+      setIsHarvestModalOpen(true);
+      return;
+    }
+
     setEditingLogId(log.id);
     const mat = log.materials?.[0];
     const { name: parsedCostName, cleanNotes } = extractOtherCostName(log.notes);
@@ -337,9 +347,6 @@ export default function FarmingLogPage() {
       laborWagePerDay: log.laborWagePerDay || 350000,
       otherCostName: parsedCostName,
       otherCosts: log.otherCosts ? String(log.otherCosts) : '',
-      harvestQuantity: log.harvestQuantity ? String(log.harvestQuantity) : '',
-      unitPrice: log.unitPrice ? String(log.unitPrice) : '',
-      revenue: log.revenue ? String(log.revenue) : '',
     });
     // Cuộn mượt đến form nhập
     window.scrollTo({ top: 380, behavior: 'smooth' });
@@ -353,9 +360,6 @@ export default function FarmingLogPage() {
       notes: '',
       quantityUsed: '',
       materialCost: '',
-      harvestQuantity: '',
-      unitPrice: '',
-      revenue: '',
       otherCostName: '',
       otherCosts: '',
     }));
@@ -397,12 +401,6 @@ export default function FarmingLogPage() {
         payload.materials = [];
       }
 
-      if (form.activityType === 'THU_HOACH') {
-        payload.harvestQuantity = Number(form.harvestQuantity || 0);
-        payload.unitPrice = Number(String(form.unitPrice || 0).replace(/\D/g, ''));
-        payload.revenue = Number(String(form.revenue || 0).replace(/\D/g, ''));
-      }
-
       let savedLog;
       if (editingLogId) {
         savedLog = await apiUpdateActivityLog(editingLogId, payload);
@@ -425,9 +423,6 @@ export default function FarmingLogPage() {
         notes: '',
         quantityUsed: '',
         materialCost: '',
-        harvestQuantity: '',
-        unitPrice: '',
-        revenue: '',
         otherCostName: '',
         otherCosts: '',
       }));
@@ -576,6 +571,14 @@ export default function FarmingLogPage() {
             </select>
           )}
           <button
+            className="btn-open-harvest-header"
+            onClick={() => setIsHarvestModalOpen(true)}
+            title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
+          >
+            <IconSprout size={16} strokeWidth={2.2} />
+            <span>Ghi Thu Hoạch</span>
+          </button>
+          <button
             className="btn-open-ocr"
             onClick={() => setIsOcrOpen(true)}
             title="Chụp hoặc tải ảnh hóa đơn để AI tự điền form"
@@ -586,13 +589,41 @@ export default function FarmingLogPage() {
         </div>
       </div>
 
+      {/* THANH TIÊU ĐỀ KHU VỰC THẺ TÀI CHÍNH */}
+      <div className="kpi-header-row">
+        <div className="kpi-header-title">
+          <IconCalculator size={17} strokeWidth={2.4} />
+          <span>TỔNG QUAN HIỆU QUẢ KINH TẾ</span>
+        </div>
+      </div>
+
       {/* DASHBOARD TÀI CHÍNH (KPI CARDS) */}
       <div className="kpi-grid">
+        {/* THẺ 1: TỔNG CHI PHÍ ĐẦU TƯ */}
         <div className="kpi-card bg-red-light">
-          <div className="kpi-top-row">
+          <div
+            className="kpi-top-row"
+            onClick={() => handleOpenCardDetail('EXPENSE')}
+            title="Bấm để xem chi tiết cách tính chi phí đầu tư"
+            style={{ cursor: 'pointer' }}
+          >
             <span className="kpi-label">TỔNG CHI PHÍ ĐẦU TƯ</span>
-            <div className="kpi-icon-wrap text-red">
-              <IconCircleDollar size={20} strokeWidth={2} />
+            <div className="kpi-top-actions">
+              <button
+                type="button"
+                className="btn-text-breakdown"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCardDetail('EXPENSE');
+                }}
+                title="Xem chi tiết các khoản chi phí đầu tư"
+              >
+                <IconInfo size={13} strokeWidth={2.2} />
+                <span>Chi tiết</span>
+              </button>
+              <div className="kpi-icon-wrap text-red">
+                <IconCircleDollar size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
           <span className="kpi-value text-red">
@@ -604,11 +635,31 @@ export default function FarmingLogPage() {
           </div>
         </div>
 
-        <div className="kpi-card bg-blue-light">
-          <div className="kpi-top-row">
+        {/* THẺ 2: TỔNG DOANH THU THU HOẠCH */}
+        <div className="kpi-card bg-blue-light kpi-card-harvest-highlight">
+          <div
+            className="kpi-top-row"
+            onClick={() => handleOpenCardDetail('REVENUE')}
+            title="Bấm để xem chi tiết cách tính doanh thu thu hoạch"
+            style={{ cursor: 'pointer' }}
+          >
             <span className="kpi-label">TỔNG DOANH THU THU HOẠCH</span>
-            <div className="kpi-icon-wrap text-blue">
-              <IconLineChart size={20} strokeWidth={2} />
+            <div className="kpi-top-actions">
+              <button
+                type="button"
+                className="btn-text-breakdown"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCardDetail('REVENUE');
+                }}
+                title="Xem chi tiết các đợt bán nông sản"
+              >
+                <IconInfo size={13} strokeWidth={2.2} />
+                <span>Chi tiết</span>
+              </button>
+              <div className="kpi-icon-wrap text-blue">
+                <IconLineChart size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
           <span className="kpi-value text-blue">
@@ -617,13 +668,42 @@ export default function FarmingLogPage() {
           <div className="kpi-subtext">
             Sản lượng thu hoạch: {(financials?.totalHarvestQty || 0).toLocaleString()} kg
           </div>
+          <button
+            type="button"
+            className="btn-kpi-harvest-action"
+            onClick={() => setIsHarvestModalOpen(true)}
+            title="Bấm để mở bảng ghi nhận thu hoạch và tính tiền bán nhanh chóng"
+          >
+            <IconSprout size={15} strokeWidth={2.2} />
+            <span>+ Ghi Nhận Thu Hoạch Ngay</span>
+          </button>
         </div>
 
+        {/* THẺ 3: LỢI NHUẬN RÒNG */}
         <div className="kpi-card bg-green-light">
-          <div className="kpi-top-row">
+          <div
+            className="kpi-top-row"
+            onClick={() => handleOpenCardDetail('PROFIT')}
+            title="Bấm để xem chi tiết cách tính lợi nhuận ròng và ROI"
+            style={{ cursor: 'pointer' }}
+          >
             <span className="kpi-label">LỢI NHUẬN RÒNG (NET PROFIT)</span>
-            <div className="kpi-icon-wrap text-green">
-              <IconCalculator size={20} strokeWidth={2} />
+            <div className="kpi-top-actions">
+              <button
+                type="button"
+                className="btn-text-breakdown"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCardDetail('PROFIT');
+                }}
+                title="Xem chi tiết công thức tính tiền lãi thực tế"
+              >
+                <IconInfo size={13} strokeWidth={2.2} />
+                <span>Chi tiết</span>
+              </button>
+              <div className="kpi-icon-wrap text-green">
+                <IconCalculator size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
           <span
@@ -637,15 +717,37 @@ export default function FarmingLogPage() {
           </div>
         </div>
 
+        {/* THẺ 4: TỔNG LƯỢT GHI NHẬT KÝ */}
         <div className="kpi-card bg-purple-light">
-          <div className="kpi-top-row">
-            <span className="kpi-label">SỐ LƯỢT CANH TÁC</span>
-            <div className="kpi-icon-wrap text-purple">
-              <IconClipboardList size={20} strokeWidth={2} />
+          <div
+            className="kpi-top-row"
+            onClick={() => handleOpenCardDetail('LOGS')}
+            title="Bấm để xem chi tiết các lượt chăm sóc & thu hoạch"
+            style={{ cursor: 'pointer' }}
+          >
+            <span className="kpi-label">TỔNG LƯỢT GHI NHẬT KÝ</span>
+            <div className="kpi-top-actions">
+              <button
+                type="button"
+                className="btn-text-breakdown"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenCardDetail('LOGS');
+                }}
+                title="Xem chi tiết phân loại chăm sóc và thu hoạch"
+              >
+                <IconInfo size={13} strokeWidth={2.2} />
+                <span>Chi tiết</span>
+              </button>
+              <div className="kpi-icon-wrap text-purple">
+                <IconClipboardList size={18} strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <span className="kpi-value text-purple">{financials?.logsCount || 0}</span>
-          <div className="kpi-subtext">Nhật ký đã ghi nhận vào hệ thống</div>
+          <span className="kpi-value text-purple">{financials?.logsCount ?? logs.length}</span>
+          <div className="kpi-subtext">
+            Chăm sóc: <strong>{financials?.careLogsCount ?? logs.filter((l) => l.activityType !== 'THU_HOACH').length}</strong> lần | Thu hoạch: <strong>{financials?.harvestLogsCount ?? logs.filter((l) => l.activityType === 'THU_HOACH').length}</strong> đợt
+          </div>
         </div>
       </div>
 
@@ -763,7 +865,7 @@ export default function FarmingLogPage() {
 
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ margin: 0 }}>Loại Hoạt Động</label>
+                  <label style={{ margin: 0 }}>Loại Hoạt Động Chăm Sóc</label>
                   <button
                     type="button"
                     onClick={() => setIsActivityModalOpen(true)}
@@ -787,11 +889,13 @@ export default function FarmingLogPage() {
                   className="form-control"
                 >
                   {activityTypes.length > 0 ? (
-                    activityTypes.map((t) => (
-                      <option key={t.id || t.code} value={t.code}>
-                        {t.name}
-                      </option>
-                    ))
+                    activityTypes
+                      .filter((t) => (t.code || t.id) !== 'THU_HOACH' && !t.name?.toLowerCase().includes('thu hoạch'))
+                      .map((t) => (
+                        <option key={t.id || t.code} value={t.code}>
+                          {t.name}
+                        </option>
+                      ))
                   ) : (
                     <>
                       <option value="BON_PHAN">Bón phân (Gốc / Lá)</option>
@@ -799,7 +903,6 @@ export default function FarmingLogPage() {
                       <option value="CAT_TIA">Cắt tỉa cành / Tạo tán</option>
                       <option value="LAM_CO">Làm cỏ / Xới đất</option>
                       <option value="TUOI_NUOC">Tưới tiêu nước</option>
-                      <option value="THU_HOACH">Thu hoạch nông sản</option>
                     </>
                   )}
                 </select>
@@ -1041,71 +1144,6 @@ export default function FarmingLogPage() {
                 </p>
               )}
             </div>
-
-            {/* DÀNH RIÊNG KHI THU HOẠCH */}
-            {form.activityType === 'THU_HOACH' && (
-              <div className="form-section-box bg-harvest">
-                <span className="section-title">
-                  <IconSprout size={16} strokeWidth={2} />
-                  <span>Kết Quả Thu Hoạch & Doanh Thu Bán Nông Sản</span>
-                </span>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Sản lượng thu được (kg)</label>
-                    <input
-                      type="number"
-                      step="any"
-                      value={form.harvestQuantity}
-                      onChange={(e) => handleHarvestChange('harvestQuantity', e.target.value)}
-                      placeholder="VD: 2500"
-                      className="form-control font-bold"
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Đơn giá bán (VNĐ / kg)</label>
-                    <div className="currency-input-wrap">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={formatVnd(form.unitPrice)}
-                        onChange={(e) => handleHarvestChange('unitPrice', e.target.value)}
-                        placeholder="VD: 85.000"
-                        className="form-control"
-                        required
-                      />
-                      <span className="currency-addon">VNĐ</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Tổng Doanh Thu Ước Tính (VNĐ)</label>
-                  <div className="currency-input-wrap">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={formatVnd(form.revenue)}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        setForm((prev) => ({
-                          ...prev,
-                          revenue: raw ? Number(raw) : '',
-                        }));
-                      }}
-                      placeholder="0"
-                      className="form-control text-green font-bold text-lg"
-                    />
-                    <span className="currency-addon">VNĐ</span>
-                  </div>
-                  {Number(form.harvestQuantity) > 0 && Number(form.unitPrice) > 0 && (
-                    <div className="cost-calc-hint">
-                      <span>💡 {form.harvestQuantity} kg × {formatVnd(form.unitPrice)} đ = </span>
-                      <strong className="text-green">{formatVnd(form.revenue || 0)} VNĐ</strong>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* MỤC CHI PHÍ PHÁT SINH KHÁC */}
             <div className="form-section-box">
@@ -1510,6 +1548,38 @@ export default function FarmingLogPage() {
         onClose={() => setBreakdownLog(null)}
         log={breakdownLog}
         formatActivityName={formatActivityName}
+      />
+
+      {/* MODAL GHI NHẬN THU HOẠCH NHANH */}
+      <QuickHarvestModal
+        isOpen={isHarvestModalOpen}
+        onClose={() => {
+          setIsHarvestModalOpen(false);
+          setEditingHarvestLog(null);
+        }}
+        seasons={seasons}
+        defaultCropCycleId={form.cropCycleId || (seasons[0]?.id || '')}
+        editingLog={editingHarvestLog}
+        onSuccess={({ message, type }) => {
+          showToast(message, type || 'success');
+          // Tự động tải lại nhật ký và chỉ số tài chính mới nhất
+          Promise.all([
+            apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
+            apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
+          ]).then(([freshLogs, finRes]) => {
+            if (freshLogs) setLogs(freshLogs);
+            if (finRes) setFinancials(finRes);
+          });
+        }}
+      />
+
+      {/* MODAL GIẢI THÍCH CHI TIẾT CÁCH TÍNH TÀI CHÍNH */}
+      <FinancialExplanationModal
+        isOpen={isExplainModalOpen}
+        onClose={() => setIsExplainModalOpen(false)}
+        financials={financials}
+        logs={logs}
+        initialTab={explainTab}
       />
     </div>
   );

@@ -65,6 +65,11 @@
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
 html,
 body {
   margin: 0;
@@ -73,6 +78,9 @@ body {
   overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   background: var(--bg-surface);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (max-width: 768px) {
@@ -196,4 +204,70 @@ textarea {
   border-color: var(--ms-green-dark);
   transform: none;
   box-shadow: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   SMOOTH PERFORMANCE & FLUID TRANSITIONS
+═══════════════════════════════════════════════════ */
+
+/* Smooth page entrance (dùng opacity thuần túy để giữ nguyên vị trí cố định của Header) */
+.main,
+.page-container,
+.auth-container,
+.dashboard-container {
+  animation: pageSmoothFade 0.2s ease-out forwards;
+}
+
+@keyframes pageSmoothFade {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Micro-interaction & Smooth tactile feedback */
+button,
+a,
+input,
+select,
+textarea {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:active,
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-text-breakdown:active {
+  transform: scale(0.975);
+}
+
+/* GPU Hardware Acceleration on Modals */
+.explain-modal-container,
+.harvest-modal-container,
+.ocr-modal-container,
+.modal-container,
+.modal-overlay {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth Table Row Hover */
+table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+/* Smooth Card Hover */
+.kpi-card,
+.mobile-log-card,
+.card,
+.stat-card,
+.farm-card,
+.crop-card,
+.season-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }

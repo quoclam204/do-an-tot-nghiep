@@ -992,6 +992,10 @@ export class CatalogService {
     const netProfit = totalRevenue - totalExpense;
     const roiPercentage = totalExpense > 0 ? (netProfit / totalExpense) * 100 : 0;
 
+    // Phân loại số lượt chăm sóc vs thu hoạch
+    const harvestLogsCount = logs.filter((l: any) => l.activityType === 'THU_HOACH').length;
+    const careLogsCount = logs.length - harvestLogsCount;
+
     // Chuyển costByMonth thành mảng sắp xếp theo thời gian
     const costTrends = Object.entries(costByMonth)
       .sort(([a], [b]) => a.localeCompare(b))
@@ -1011,6 +1015,8 @@ export class CatalogService {
       costTrends,
       materialConsumption: Object.values(materialConsumption),
       logsCount: logs.length,
+      harvestLogsCount,
+      careLogsCount,
     };
   }
 
