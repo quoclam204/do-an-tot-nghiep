@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -743,8 +744,10 @@ export class CatalogService {
   async createActivityLog(input: any) {
     const cropCycle = await this.prisma.cropCycle.findFirst({
       where: { id: input.cropCycleId, deletedAt: null },
+      include: { plot: true },
     });
     if (!cropCycle) throw new NotFoundException('Không tìm thấy mùa vụ canh tác');
+    const farmId = (cropCycle as any).plot?.farmId;
 
     const activityDate = input.activityDate ? new Date(input.activityDate) : new Date();
     const isHiredLabor = Boolean(input.isHiredLabor);
@@ -770,7 +773,15 @@ export class CatalogService {
         });
         if (material) {
           const qty = Math.max(0, Number(item.quantityUsed || 0));
-          const unitPrice = material.defaultPrice;
+          const inv = farmId
+            ? await (this.prisma as any).inventory.findFirst({
+                where: { farmId, materialId: material.id, deletedAt: null },
+                include: { material: true },
+              })
+            : null;
+          const unitPrice = (inv && inv.quantity > 0 && inv.totalCost > 0)
+            ? Math.round(inv.totalCost / inv.quantity)
+            : (material.defaultPrice || 0);
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
           totalMaterialCost += itemCost;
           materialsData.push({
@@ -778,6 +789,19 @@ export class CatalogService {
             quantityUsed: qty,
             cost: itemCost,
           });
+
+          // Trừ trực tiếp số lượng và giá trị trong kho của nông trại nếu có
+          if (inv && qty > 0) {
+            const newQty = Math.max(0, inv.quantity - qty);
+            const newTotalCost = Math.round(newQty * unitPrice);
+            await (this.prisma as any).inventory.update({
+              where: { id: inv.id },
+              data: {
+                quantity: newQty,
+                totalCost: newTotalCost,
+              },
+            });
+          }
         }
       }
     }
@@ -838,14 +862,57 @@ export class CatalogService {
     return result;
   }
 
-  deleteActivityLog(id: string) {
+  async deleteActivityLog(id: string) {
+    const log: any = await (this.prisma.activityLog as any).findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        materials: true,
+        cropCycle: { include: { plot: true } },
+      },
+    });
+    if (!log) throw new NotFoundException('Không tìm thấy nhật ký canh tác');
+
+    const farmId = log.cropCycle?.plot?.farmId;
+    if (farmId && log.materials && log.materials.length > 0) {
+      for (const m of log.materials) {
+        if (m.quantityUsed > 0) {
+          const inv = await (this.prisma as any).inventory.findFirst({
+            where: { farmId, materialId: m.materialId, deletedAt: null },
+            include: { material: true },
+          });
+          if (inv) {
+            const unitPrice = (inv.quantity > 0 && inv.totalCost > 0)
+              ? Math.round(inv.totalCost / inv.quantity)
+              : (inv.material?.defaultPrice || 0);
+            const newQty = inv.quantity + m.quantityUsed;
+            const newTotalCost = Math.round(newQty * unitPrice);
+            await (this.prisma as any).inventory.update({
+              where: { id: inv.id },
+              data: {
+                quantity: newQty,
+                totalCost: newTotalCost,
+              },
+            });
+          }
+        }
+      }
+    }
+
     return this.softDelete(this.prisma.activityLog, id);
   }
 
   /** Cập nhật nhật ký canh tác */
   async updateActivityLog(id: string, input: any) {
-    const log: any = await (this.prisma.activityLog as any).findFirst({ where: { id, deletedAt: null } });
+    const log: any = await (this.prisma.activityLog as any).findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        materials: true,
+        cropCycle: { include: { plot: true } },
+      },
+    });
     if (!log) throw new NotFoundException('Không tìm thấy nhật ký canh tác');
+
+    const farmId = log.cropCycle?.plot?.farmId;
 
     const isHiredLabor = input.isHiredLabor !== undefined ? Boolean(input.isHiredLabor) : log.isHiredLabor;
     const laborWorkers = isHiredLabor ? Number(input.laborWorkers ?? log.laborWorkers ?? 0) : 0;
@@ -863,12 +930,49 @@ export class CatalogService {
     // Cập nhật vật tư nếu có
     let totalMaterialCost = 0;
     if (Array.isArray(input.materials)) {
+      // 1. Hoàn trả lại kho các vật tư cũ của nhật ký này
+      if (farmId && log.materials && log.materials.length > 0) {
+        for (const oldM of log.materials) {
+          if (oldM.quantityUsed > 0) {
+            const inv = await (this.prisma as any).inventory.findFirst({
+              where: { farmId, materialId: oldM.materialId, deletedAt: null },
+              include: { material: true },
+            });
+            if (inv) {
+              const unitPrice = (inv.quantity > 0 && inv.totalCost > 0)
+                ? Math.round(inv.totalCost / inv.quantity)
+                : (inv.material?.defaultPrice || 0);
+              const newQty = inv.quantity + oldM.quantityUsed;
+              await (this.prisma as any).inventory.update({
+                where: { id: inv.id },
+                data: {
+                  quantity: newQty,
+                  totalCost: Math.round(newQty * unitPrice),
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // 2. Xóa các activityMaterial cũ
       await this.prisma.activityMaterial.deleteMany({ where: { activityLogId: id } });
+
+      // 3. Thêm mới và khấu trừ kho
       for (const item of input.materials) {
+        if (!item.materialId || !isUUID(item.materialId)) continue;
         const material = await this.prisma.material.findFirst({ where: { id: item.materialId, deletedAt: null } });
         if (material) {
           const qty = Number(item.quantityUsed || 0);
-          const unitPrice = material.defaultPrice;
+          const inv = farmId
+            ? await (this.prisma as any).inventory.findFirst({
+                where: { farmId, materialId: material.id, deletedAt: null },
+                include: { material: true },
+              })
+            : null;
+          const unitPrice = (inv && inv.quantity > 0 && inv.totalCost > 0)
+            ? Math.round(inv.totalCost / inv.quantity)
+            : (material.defaultPrice || 0);
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
           totalMaterialCost += itemCost;
           await (this.prisma as any).activityMaterial.create({
@@ -879,6 +983,18 @@ export class CatalogService {
               cost: itemCost,
             },
           });
+
+          // Trừ lại tồn kho theo số lượng mới
+          if (inv && qty > 0) {
+            const newQty = Math.max(0, inv.quantity - qty);
+            await (this.prisma as any).inventory.update({
+              where: { id: inv.id },
+              data: {
+                quantity: newQty,
+                totalCost: Math.round(newQty * unitPrice),
+              },
+            });
+          }
         }
       }
     } else {
@@ -1222,10 +1338,21 @@ export class CatalogService {
     });
   }
   // ==================== INVENTORY ====================
-  async findInventory(farmId?: string) {
+  async findInventory(userId?: string, role?: string, farmId?: string) {
     const where: any = { deletedAt: null };
-    if (farmId) where.farmId = farmId;
-    return this.prisma.inventory.findMany({
+    if (farmId) {
+      where.farmId = farmId;
+    }
+    if (role && role !== 'ADMIN' && userId) {
+      where.farm = {
+        deletedAt: null,
+        OR: [
+          { userId },
+          { members: { some: { userId } } },
+        ],
+      };
+    }
+    const items = await this.prisma.inventory.findMany({
       where,
       include: {
         material: true,
@@ -1233,10 +1360,78 @@ export class CatalogService {
       },
       orderBy: { updatedAt: 'desc' },
     });
+
+    return Promise.all(
+      items.map(async (item) => {
+        let totalCost = item.totalCost;
+        const defaultPrice = item.material?.defaultPrice || 0;
+        // Tự động khôi phục nếu dữ liệu cũ bị tính thành 0
+        if ((!totalCost || totalCost <= 0) && item.quantity > 0 && defaultPrice > 0) {
+          totalCost = Math.round(item.quantity * defaultPrice);
+          await (this.prisma as any).inventory.update({
+            where: { id: item.id },
+            data: { totalCost },
+          });
+        }
+        const unitPrice = item.quantity > 0 && totalCost > 0
+          ? Math.round(totalCost / item.quantity)
+          : defaultPrice;
+
+        return {
+          ...item,
+          totalCost,
+          unitPrice,
+        };
+      }),
+    );
   }
 
-  async createInventory(data: { farmId: string; materialId: string; quantity: number; totalCost: number }) {
+  async createInventory(
+    data: { farmId: string; materialId: string; quantity: number; totalCost: number },
+    userId?: string,
+    role?: string,
+  ) {
     this.requirePositive(data.quantity, 'quantity');
+
+    if (role && role !== 'ADMIN' && userId) {
+      const farm = await this.prisma.farm.findFirst({
+        where: {
+          id: data.farmId,
+          deletedAt: null,
+          OR: [
+            { userId },
+            { members: { some: { userId } } },
+          ],
+        },
+      });
+      if (!farm) {
+        throw new ForbiddenException('Bạn không có quyền quản lý tồn kho của nông hộ này');
+      }
+    }
+
+    // Kiểm tra xem vật tư này đã có trong kho của nông hộ chưa
+    const existing = await this.prisma.inventory.findFirst({
+      where: {
+        farmId: data.farmId,
+        materialId: data.materialId,
+        deletedAt: null,
+      },
+    });
+
+    if (existing) {
+      return this.prisma.inventory.update({
+        where: { id: existing.id },
+        data: {
+          quantity: existing.quantity + Number(data.quantity),
+          totalCost: existing.totalCost + Number(data.totalCost || 0),
+        },
+        include: {
+          material: true,
+          farm: true,
+        },
+      });
+    }
+
     return this.prisma.inventory.create({
       data: {
         farmId: data.farmId,
@@ -1251,7 +1446,30 @@ export class CatalogService {
     });
   }
 
-  async updateInventory(id: string, data: { quantity?: number; totalCost?: number }) {
+  async updateInventory(
+    id: string,
+    data: { quantity?: number; totalCost?: number },
+    userId?: string,
+    role?: string,
+  ) {
+    const item = await this.prisma.inventory.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        farm: {
+          include: { members: true },
+        },
+      },
+    });
+    if (!item) throw new NotFoundException('Không tìm thấy bản ghi tồn kho');
+
+    if (role && role !== 'ADMIN' && userId) {
+      const isOwner = item.farm?.userId === userId;
+      const isMember = item.farm?.members?.some((m: any) => m.userId === userId);
+      if (!isOwner && !isMember) {
+        throw new ForbiddenException('Bạn không có quyền chỉnh sửa tồn kho của nông hộ này');
+      }
+    }
+
     const updateData: any = {};
     if (data.quantity !== undefined) updateData.quantity = Number(data.quantity);
     if (data.totalCost !== undefined) updateData.totalCost = Number(data.totalCost);
@@ -1265,7 +1483,25 @@ export class CatalogService {
     });
   }
 
-  async deleteInventory(id: string) {
+  async deleteInventory(id: string, userId?: string, role?: string) {
+    const item = await this.prisma.inventory.findFirst({
+      where: { id, deletedAt: null },
+      include: {
+        farm: {
+          include: { members: true },
+        },
+      },
+    });
+    if (!item) throw new NotFoundException('Không tìm thấy bản ghi tồn kho');
+
+    if (role && role !== 'ADMIN' && userId) {
+      const isOwner = item.farm?.userId === userId;
+      const isMember = item.farm?.members?.some((m: any) => m.userId === userId);
+      if (!isOwner && !isMember) {
+        throw new ForbiddenException('Bạn không có quyền xóa tồn kho của nông hộ này');
+      }
+    }
+
     return this.softDelete(this.prisma.inventory, id);
   }
 }

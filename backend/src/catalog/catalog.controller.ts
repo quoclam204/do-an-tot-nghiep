@@ -184,23 +184,27 @@ export class CatalogController {
 
   // ==================== INVENTORY ====================
   @Get('inventory')
-  findInventory(@Query('farmId') farmId?: string) {
-    return this.catalogService.findInventory(farmId);
+  @UseGuards(JwtAuthGuard)
+  findInventory(@Request() req: any, @Query('farmId') farmId?: string) {
+    return this.catalogService.findInventory(req.user?.userId, req.user?.role, farmId);
   }
 
   @Post('inventory')
-  createInventory(@Body() body: any) {
-    return this.catalogService.createInventory(body);
+  @UseGuards(JwtAuthGuard)
+  createInventory(@Request() req: any, @Body() body: any) {
+    return this.catalogService.createInventory(body, req.user?.userId, req.user?.role);
   }
 
   @Patch('inventory/:id')
-  updateInventory(@Param('id') id: string, @Body() body: any) {
-    return this.catalogService.updateInventory(id, body);
+  @UseGuards(JwtAuthGuard)
+  updateInventory(@Request() req: any, @Param('id') id: string, @Body() body: any) {
+    return this.catalogService.updateInventory(id, body, req.user?.userId, req.user?.role);
   }
 
   @Delete('inventory/:id')
-  deleteInventory(@Param('id') id: string) {
-    return this.catalogService.deleteInventory(id);
+  @UseGuards(JwtAuthGuard)
+  deleteInventory(@Request() req: any, @Param('id') id: string) {
+    return this.catalogService.deleteInventory(id, req.user?.userId, req.user?.role);
   }
 
   // ==================== SEED LÂM ĐỒNG ====================
