@@ -288,12 +288,15 @@ export default function FarmsPage() {
     return farms.reduce((sum, f) => sum + (f.plots?.length || 0), 0);
   }, [farms]);
 
-  // Lọc theo tìm kiếm
+  // Lọc theo tìm kiếm (Tên nông hộ, địa chỉ, HOẶC tên các lô đất canh tác bên trong)
   const filteredFarms = useMemo(() => {
+    if (!searchTerm) return farms;
+    const term = searchTerm.toLowerCase();
     return farms.filter(
       (f) =>
-        f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (f.location && f.location.toLowerCase().includes(searchTerm.toLowerCase()))
+        f.name.toLowerCase().includes(term) ||
+        (f.location && f.location.toLowerCase().includes(term)) ||
+        (f.plots && f.plots.some((p) => p.name?.toLowerCase().includes(term)))
     );
   }, [farms, searchTerm]);
 
@@ -364,7 +367,7 @@ export default function FarmsPage() {
             </span>
             <input
               type="text"
-              placeholder="Tìm kiếm nông hộ theo tên hoặc địa chỉ"
+              placeholder="Tìm kiếm theo tên nông hộ, địa chỉ hoặc tên lô đất..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -410,10 +413,10 @@ export default function FarmsPage() {
                 <div key={farm.id} className="farm-card-item">
                   <div className="farm-card-cover">
                     <img src={farmImg} alt={farm.name} onError={(e) => { e.target.src = DEFAULT_FARM_IMAGE; }} />
-                    <span className="farm-card-badge">
-                      <IconCheckCircle size={13} strokeWidth={2.4} />
+                    <div className="farm-card-badge">
+                      <IconCheckCircle size={13} strokeWidth={2.5} />
                       <span>Trang trại hoạt động</span>
-                    </span>
+                    </div>
                   </div>
 
                   <div className="farm-card-body">
@@ -445,6 +448,27 @@ export default function FarmsPage() {
                         <span>Số lô: <strong>{plotsCount} lô trồng</strong></span>
                       </div>
                     </div>
+
+                    {/* Hiển thị danh sách các lô đất bên trong để bác nông dân nhận biết ngay */}
+                    {farm.plots && farm.plots.length > 0 && (
+                      <div className="farm-plots-preview-box">
+                        <span className="plots-preview-title">Lô đất canh tác:</span>
+                        <div className="plots-preview-tags">
+                          {farm.plots.map((p) => (
+                            <Link
+                              key={p.id}
+                              to={`/farms/${farm.id}`}
+                              className="plot-preview-pill"
+                              title={`Bấm để xem chi tiết lô ${p.name}`}
+                            >
+                              <IconSprout size={13} className="pill-icon" />
+                              <span className="pill-name">{p.name}</span>
+                              {p.area ? <span className="pill-area">({p.area} ha)</span> : null}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="farm-card-footer">
                       <Link to={`/farms/${farm.id}`} className="farm-btn-manage">

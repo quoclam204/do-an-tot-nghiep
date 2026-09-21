@@ -87,11 +87,10 @@ function Header() {
     { path: '/materials', label: 'Vật tư', desc: 'Phân bón, thuốc BVTV & hạt giống', icon: IconFlask },
     { path: '/inventory', label: 'Tồn kho', desc: 'Theo dõi xuất nhập tồn vật tư', icon: IconClipboardList },
     { path: '/harvest', label: 'Thu hoạch', desc: 'Sản lượng & ghi nhận thu hoạch', icon: IconScale },
-    { path: '/sales', label: 'Bán hàng', desc: 'Sản phẩm, đơn hàng & xuất hóa đơn', icon: IconShoppingBag },
+    // { path: '/sales', label: 'Bán hàng', desc: 'Sản phẩm, đơn hàng & xuất hóa đơn', icon: IconShoppingBag },
   ];
 
   const isManagementActive = managementLinks
-    .filter((item) => item.path !== '/sales')
     .some((item) => location.pathname.startsWith(item.path));
 
   return (
@@ -164,9 +163,10 @@ function Header() {
               )}
             </div>
 
-            <Link to="/sales" className={isActive('/sales') ? 'active-nav-link' : ''}>
+            {/* Tạm thời tắt Bán hàng */}
+            {/* <Link to="/sales" className={isActive('/sales') ? 'active-nav-link' : ''}>
               Bán hàng
-            </Link>
+            </Link> */}
 
             <Link to="/reports" className={isActive('/reports') ? 'active-nav-link' : ''}>
               Báo cáo

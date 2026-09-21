@@ -37,6 +37,15 @@ const TYPE_LABELS = {
   KHAC: 'Khác',
 };
 
+const ACTIVITY_LABELS = {
+  BON_PHAN: 'Bón phân',
+  PHUN_THUOC: 'Phun thuốc BVTV',
+  CAT_TIA: 'Cắt tỉa cành',
+  LAM_CO: 'Làm cỏ / Xới đất',
+  TUOI_NUOC: 'Tưới nước',
+  THU_HOACH: 'Thu hoạch',
+};
+
 const formatVNDWords = (num) => {
   if (!num || isNaN(num) || num <= 0) return '';
   if (num >= 1e9) {
@@ -137,21 +146,38 @@ export default function InventoryPage() {
   // Statistics
   const stats = useMemo(() => {
     const totalItems = inventories.length;
-    const totalValue = inventories.reduce((sum, item) => sum + (Number(item.totalCost) || 0), 0);
+    const totalValue = inventories.reduce((sum, item) => {
+      const val = Number(item.totalCost) > 0
+        ? Number(item.totalCost)
+        : (Number(item.quantity || 0) * Number(item.material?.defaultPrice || 0));
+      return sum + val;
+    }, 0);
     const lowStockCount = inventories.filter((item) => Number(item.quantity) <= 5).length;
     const outOfStockCount = inventories.filter((item) => Number(item.quantity) <= 0).length;
 
     return { totalItems, totalValue, lowStockCount, outOfStockCount };
   }, [inventories]);
 
+  // Selected material in modal for unit & price info
+  const selectedMaterial = useMemo(() => {
+    return materials.find((m) => m.id === formData.materialId) || null;
+  }, [materials, formData.materialId]);
+
   // Handle open add modal
   const handleOpenAdd = () => {
+    if (!farms || farms.length === 0) {
+      showToast('Bạn chưa có nông hộ nào. Vui lòng tạo nông hộ trước khi nhập kho!', 'error');
+      return;
+    }
+    const defaultFarmId = selectedFarm || farms[0]?.id || '';
+    const defaultMat = materials[0];
+    const defaultPrice = defaultMat ? Number(defaultMat.defaultPrice) || 0 : 0;
     setFormData({
-      farmId: farms[0]?.id || '',
-      materialId: materials[0]?.id || '',
+      farmId: defaultFarmId,
+      materialId: defaultMat?.id || '',
       quantity: '',
-      unitPrice: materials[0]?.defaultPrice || '',
-      totalCost: '',
+      unitPrice: defaultPrice,
+      totalCost: 0,
     });
     setShowAddModal(true);
   };
@@ -159,13 +185,13 @@ export default function InventoryPage() {
   // Handle material selection change in Add Modal to auto-fill unitPrice
   const handleMaterialChange = (materialId) => {
     const mat = materials.find((m) => m.id === materialId);
-    const price = mat ? mat.defaultPrice : 0;
+    const price = mat ? Number(mat.defaultPrice) || 0 : 0;
     const qty = Number(formData.quantity) || 0;
     setFormData((prev) => ({
       ...prev,
       materialId,
       unitPrice: price,
-      totalCost: qty > 0 && price > 0 ? qty * price : prev.totalCost,
+      totalCost: qty > 0 && price > 0 ? qty * price : 0,
     }));
   };
 
@@ -176,26 +202,15 @@ export default function InventoryPage() {
     setFormData((prev) => ({
       ...prev,
       quantity: qty,
-      totalCost: num > 0 && price > 0 ? num * price : prev.totalCost,
-    }));
-  };
-
-  // Handle unit price change
-  const handleUnitPriceChange = (price) => {
-    const numPrice = Number(price) || 0;
-    const qty = Number(formData.quantity) || 0;
-    setFormData((prev) => ({
-      ...prev,
-      unitPrice: price,
-      totalCost: qty > 0 && numPrice > 0 ? qty * numPrice : prev.totalCost,
+      totalCost: num > 0 && price > 0 ? num * price : 0,
     }));
   };
 
   // Submit Add / Import
   const handleSaveAdd = async (e) => {
     e.preventDefault();
-    if (!formData.farmId || !formData.materialId || !formData.quantity) {
-      showToast('Vui lòng điền đầy đủ nông hộ, vật tư và số lượng', 'error');
+    if (!formData.farmId || !formData.materialId || !formData.quantity || Number(formData.quantity) <= 0) {
+      showToast('Vui lòng chọn nông hộ, vật tư và nhập số lượng hợp lệ (> 0)', 'error');
       return;
     }
 
@@ -206,7 +221,7 @@ export default function InventoryPage() {
         quantity: Number(formData.quantity),
         totalCost: Number(formData.totalCost || 0),
       });
-      showToast('Nhập kho vật tư thành công!');
+      showToast('Nhập kho vật tư thành công (Đã cập nhật/cộng dồn vào kho)!');
       setShowAddModal(false);
       loadData();
     } catch (err) {
@@ -407,83 +422,158 @@ export default function InventoryPage() {
               <div className="empty-state">
                 <IconWarehouse size={48} className="empty-icon" />
                 <h3>Chưa có dữ liệu tồn kho</h3>
-                <p>Nhấn nút "Nhập kho mới" để bắt đầu theo dõi vật tư của trang trại.</p>
+                {farms.length === 0 ? (
+                  <p>Tài khoản của bạn chưa thuộc về nông hộ/trang trại nào. Vui lòng tạo nông hộ trong mục <strong>Quản lý &gt; Vườn trại & Phân lô</strong> trước khi quản lý tồn kho.</p>
+                ) : (
+                  <p>Nhấn nút "Nhập kho mới" để bắt đầu theo dõi vật tư của trang trại.</p>
+                )}
                 <button className="btn btn-primary" onClick={handleOpenAdd}>
                   <IconPlus size={16} /> Nhập kho ngay
                 </button>
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="inventory-table">
-                  <thead>
-                    <tr>
-                      <th>Vật tư</th>
-                      <th>Nhóm</th>
-                      <th>Nông hộ</th>
-                      <th>Số lượng tồn</th>
-                      <th>Ước tính giá trị</th>
-                      <th>Trạng thái</th>
-                      <th className="text-center">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredInventories.map((item) => {
-                      const qty = Number(item.quantity);
-                      let statusBadge = <span className="status-tag status-ok">Đầy đủ</span>;
-                      if (qty <= 0) {
-                        statusBadge = <span className="status-tag status-out">Hết hàng</span>;
-                      } else if (qty <= 5) {
-                        statusBadge = <span className="status-tag status-low">Sắp hết</span>;
-                      }
+              <>
+                {/* Desktop View: Table */}
+                <div className="table-responsive desktop-view">
+                  <table className="inventory-table">
+                    <thead>
+                      <tr>
+                        <th>Vật tư</th>
+                        <th>Nhóm</th>
+                        <th>Nông hộ</th>
+                        <th>Số lượng tồn</th>
+                        <th>Ước tính giá trị</th>
+                        <th>Trạng thái</th>
+                        <th className="text-center">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredInventories.map((item) => {
+                        const qty = Number(item.quantity);
+                        let statusBadge = <span className="status-tag status-ok">Đầy đủ</span>;
+                        if (qty <= 0) {
+                          statusBadge = <span className="status-tag status-out">Hết hàng</span>;
+                        } else if (qty <= 5) {
+                          statusBadge = <span className="status-tag status-low">Sắp hết</span>;
+                        }
 
-                      return (
-                        <tr key={item.id}>
-                          <td>
-                            <div className="item-name-cell">
-                              <strong>{item.material?.name || 'Vật tư chưa đặt tên'}</strong>
-                              <span className="item-unit">({item.material?.unit || 'Đơn vị'})</span>
-                            </div>
-                          </td>
-                          <td>
+                        return (
+                          <tr key={item.id}>
+                            <td>
+                              <div className="item-name-cell">
+                                <strong>{item.material?.name || 'Vật tư chưa đặt tên'}</strong>
+                                <span className="item-unit">({item.material?.unit || 'Đơn vị'})</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`type-badge badge-${item.material?.type?.toLowerCase()}`}>
+                                {TYPE_LABELS[item.material?.type] || item.material?.type || 'Chung'}
+                              </span>
+                            </td>
+                            <td>{item.farm?.name || 'N/A'}</td>
+                            <td>
+                              <div className="stock-quantity">
+                                <span className="qty-number">{qty.toLocaleString('vi-VN')}</span>
+                                <span className="qty-unit">{item.material?.unit}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <strong>{((Number(item.totalCost) > 0 ? Number(item.totalCost) : (Number(item.quantity || 0) * Number(item.material?.defaultPrice || 0)))).toLocaleString('vi-VN')} đ</strong>
+                            </td>
+                            <td>{statusBadge}</td>
+                            <td className="text-center">
+                              <div className="action-btns">
+                                <button
+                                  className="action-btn edit-btn"
+                                  title="Kiểm kê / Điều chỉnh"
+                                  onClick={() => handleOpenAdjust(item)}
+                                >
+                                  <IconPenLine size={16} />
+                                </button>
+                                <button
+                                  className="action-btn delete-btn"
+                                  title="Xóa"
+                                  onClick={() => handleDelete(item.id, item.material?.name)}
+                                >
+                                  <IconTrash size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile View: Cards */}
+                <div className="mobile-inventory-list mobile-view">
+                  {filteredInventories.map((item) => {
+                    const qty = Number(item.quantity);
+                    let statusBadge = <span className="status-tag status-ok">Đầy đủ</span>;
+                    if (qty <= 0) {
+                      statusBadge = <span className="status-tag status-out">Hết hàng</span>;
+                    } else if (qty <= 5) {
+                      statusBadge = <span className="status-tag status-low">Sắp hết</span>;
+                    }
+
+                    return (
+                      <div className="mobile-inventory-card" key={item.id}>
+                        <div className="mic-top-row">
+                          <div className="mic-title-wrap">
+                            <h4 className="mic-item-name">{item.material?.name || 'Vật tư chưa đặt tên'}</h4>
+                            <span className="mic-item-unit">({item.material?.unit || 'Đơn vị'})</span>
+                          </div>
+                          <div className="mic-badges">
                             <span className={`type-badge badge-${item.material?.type?.toLowerCase()}`}>
                               {TYPE_LABELS[item.material?.type] || item.material?.type || 'Chung'}
                             </span>
-                          </td>
-                          <td>{item.farm?.name || 'N/A'}</td>
-                          <td>
-                            <div className="stock-quantity">
-                              <span className="qty-number">{qty.toLocaleString('vi-VN')}</span>
-                              <span className="qty-unit">{item.material?.unit}</span>
+                            {statusBadge}
+                          </div>
+                        </div>
+
+                        <div className="mic-farm-row">
+                          <IconWarehouse size={15} className="mic-farm-icon" />
+                          <span className="mic-farm-name">{item.farm?.name || 'Chưa gắn nông hộ'}</span>
+                        </div>
+
+                        <div className="mic-metrics-grid">
+                          <div className="mic-metric-item">
+                            <span className="mic-metric-label">Số lượng tồn</span>
+                            <div className="mic-metric-value">
+                              <span className="mic-qty-num">{qty.toLocaleString('vi-VN')}</span>
+                              <span className="mic-qty-unit">{item.material?.unit}</span>
                             </div>
-                          </td>
-                          <td>
-                            <strong>{(Number(item.totalCost) || 0).toLocaleString('vi-VN')} đ</strong>
-                          </td>
-                          <td>{statusBadge}</td>
-                          <td className="text-center">
-                            <div className="action-btns">
-                              <button
-                                className="action-btn edit-btn"
-                                title="Kiểm kê / Điều chỉnh"
-                                onClick={() => handleOpenAdjust(item)}
-                              >
-                                <IconPenLine size={16} />
-                              </button>
-                              <button
-                                className="action-btn delete-btn"
-                                title="Xóa"
-                                onClick={() => handleDelete(item.id, item.material?.name)}
-                              >
-                                <IconTrash size={16} />
-                              </button>
+                          </div>
+
+                          <div className="mic-metric-item">
+                            <span className="mic-metric-label">Ước tính giá trị</span>
+                            <div className="mic-metric-value">
+                              <span className="mic-cost-num">{((Number(item.totalCost) > 0 ? Number(item.totalCost) : (Number(item.quantity || 0) * Number(item.material?.defaultPrice || 0)))).toLocaleString('vi-VN')} đ</span>
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          </div>
+                        </div>
+
+                        <div className="mic-actions">
+                          <button
+                            className="mic-btn mic-btn-edit"
+                            onClick={() => handleOpenAdjust(item)}
+                          >
+                            <IconPenLine size={15} /> Kiểm kê / Điều chỉnh
+                          </button>
+                          <button
+                            className="mic-btn mic-btn-delete"
+                            onClick={() => handleDelete(item.id, item.material?.name)}
+                            title="Xóa"
+                          >
+                            <IconTrash size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </>
         ) : (
@@ -494,11 +584,13 @@ export default function InventoryPage() {
               <p>Tự động ghi nhận mỗi khi bà con lưu nhật ký bón phân, phun thuốc, chăm sóc cây trồng.</p>
             </div>
 
-            <div className="table-responsive">
+            {/* Desktop View: History Table */}
+            <div className="table-responsive desktop-view">
               <table className="inventory-table">
                 <thead>
                   <tr>
                     <th>Ngày dùng</th>
+                    <th>Nông hộ / Lô</th>
                     <th>Hoạt động canh tác</th>
                     <th>Vật tư đã dùng</th>
                     <th>Số lượng</th>
@@ -507,30 +599,130 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {activityLogs
-                    .filter((log) => log.materials && log.materials.length > 0)
-                    .map((log) =>
-                      log.materials.map((m, idx) => (
-                        <tr key={`${log.id}-${idx}`}>
-                          <td>{new Date(log.activityDate).toLocaleDateString('vi-VN')}</td>
-                          <td>
-                            <span className="activity-badge">{log.activityType}</span>
+                  {(() => {
+                    const filteredLogs = activityLogs.filter((log) => {
+                      const hasMat = log.materials && log.materials.length > 0;
+                      const matchFarm = !selectedFarm || log.cropCycle?.plot?.farmId === selectedFarm;
+                      return hasMat && matchFarm;
+                    });
+
+                    if (filteredLogs.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={7} className="text-center py-6 text-muted" style={{ padding: '2rem' }}>
+                            Chưa có lịch sử xuất dùng vật tư nào cho nông hộ đã chọn.
                           </td>
-                          <td>
-                            <strong>{m.material?.name || 'Vật tư'}</strong>
-                          </td>
-                          <td>
-                            {m.quantity} {m.material?.unit || ''}
-                          </td>
-                          <td>
-                            <strong>{(m.totalPrice || 0).toLocaleString('vi-VN')} đ</strong>
-                          </td>
-                          <td>{log.notes || '—'}</td>
                         </tr>
-                      ))
-                    )}
+                      );
+                    }
+
+                    return filteredLogs.map((log) =>
+                      log.materials.map((m, idx) => {
+                        const qtyUsed = m.quantityUsed ?? m.quantity ?? 0;
+                        const costVal = Number(m.cost ?? m.totalPrice ?? 0) > 0
+                          ? Number(m.cost ?? m.totalPrice)
+                          : qtyUsed * Number(m.material?.defaultPrice || 0);
+
+                        return (
+                          <tr key={`${log.id}-${idx}`}>
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              {new Date(log.activityDate).toLocaleDateString('vi-VN')}
+                            </td>
+                            <td>
+                              <strong>{log.cropCycle?.plot?.farm?.name || 'Nông hộ'}</strong>
+                              {log.cropCycle?.plot?.name && (
+                                <div className="text-muted-xs" style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                  Lô: {log.cropCycle?.plot?.name}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <span className={`activity-badge badge-${log.activityType?.toLowerCase()}`}>
+                                {ACTIVITY_LABELS[log.activityType] || log.activityType}
+                              </span>
+                            </td>
+                            <td>
+                              <strong>{m.material?.name || 'Vật tư'}</strong>
+                            </td>
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              <strong>{qtyUsed.toLocaleString('vi-VN')}</strong> {m.material?.unit || ''}
+                            </td>
+                            <td style={{ whiteSpace: 'nowrap' }}>
+                              <strong style={{ color: '#dc2626' }}>{costVal.toLocaleString('vi-VN')} đ</strong>
+                            </td>
+                            <td>{log.notes || '—'}</td>
+                          </tr>
+                        );
+                      })
+                    );
+                  })()}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile View: History Cards */}
+            <div className="mobile-history-list mobile-view">
+              {(() => {
+                const filteredLogs = activityLogs.filter((log) => {
+                  const hasMat = log.materials && log.materials.length > 0;
+                  const matchFarm = !selectedFarm || log.cropCycle?.plot?.farmId === selectedFarm;
+                  return hasMat && matchFarm;
+                });
+
+                if (filteredLogs.length === 0) {
+                  return (
+                    <div style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b' }}>
+                      Chưa có lịch sử xuất dùng vật tư nào.
+                    </div>
+                  );
+                }
+
+                return filteredLogs.map((log) =>
+                  log.materials.map((m, idx) => {
+                    const qtyUsed = m.quantityUsed ?? m.quantity ?? 0;
+                    const costVal = Number(m.cost ?? m.totalPrice ?? 0) > 0
+                      ? Number(m.cost ?? m.totalPrice)
+                      : qtyUsed * Number(m.material?.defaultPrice || 0);
+
+                    return (
+                      <div className="mobile-history-card" key={`${log.id}-${idx}`}>
+                        <div className="mhc-header">
+                          <div className="mhc-date">
+                            <IconCalendar size={14} />
+                            <span>{new Date(log.activityDate).toLocaleDateString('vi-VN')}</span>
+                            {log.cropCycle?.plot?.farm?.name && (
+                              <span style={{ fontSize: '0.78rem', color: '#64748b', marginLeft: 4 }}>
+                                • {log.cropCycle.plot.farm.name}
+                              </span>
+                            )}
+                          </div>
+                          <span className={`activity-badge badge-${log.activityType?.toLowerCase()}`}>
+                            {ACTIVITY_LABELS[log.activityType] || log.activityType}
+                          </span>
+                        </div>
+                        <div className="mhc-body">
+                          <div className="mhc-mat-name">{m.material?.name || 'Vật tư'}</div>
+                          <div className="mhc-stats">
+                            <div className="mhc-stat">
+                              <span className="mhc-label">Đã dùng:</span>
+                              <strong>{qtyUsed.toLocaleString('vi-VN')} {m.material?.unit || ''}</strong>
+                            </div>
+                            <div className="mhc-stat">
+                              <span className="mhc-label">Chi phí:</span>
+                              <strong style={{ color: '#dc2626' }}>{costVal.toLocaleString('vi-VN')} đ</strong>
+                            </div>
+                          </div>
+                          {log.notes && (
+                            <div className="mhc-notes">
+                              <span className="mhc-label">Ghi chú:</span> {log.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                );
+              })()}
             </div>
           </div>
         )}
@@ -574,7 +766,7 @@ export default function InventoryPage() {
                     <option value="">-- Chọn vật tư --</option>
                     {materials.map((m) => (
                       <option key={m.id} value={m.id}>
-                        {m.name} ({m.unit} - Giá chuẩn: {Number(m.defaultPrice).toLocaleString()}đ)
+                        {m.name} ({m.unit} - Giá chuẩn: {Number(m.defaultPrice).toLocaleString('vi-VN')}đ)
                       </option>
                     ))}
                   </select>
@@ -582,66 +774,51 @@ export default function InventoryPage() {
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Số lượng nhập *</label>
+                    <label>
+                      Số lượng nhập * {selectedMaterial?.unit && <span className="unit-hint">({selectedMaterial.unit})</span>}
+                    </label>
                     <input
                       type="number"
                       step="any"
                       min="0.01"
-                      placeholder="VD: 50"
+                      placeholder={`VD: 50`}
                       value={formData.quantity}
                       onChange={(e) => handleQuantityChange(e.target.value)}
                       required
+                      autoFocus
                     />
                   </div>
 
                   <div className="form-group">
-                    <label>Đơn giá nhập (VNĐ)</label>
-                    <input
-                      type="number"
-                      step="any"
-                      min="0"
-                      placeholder="VD: 850000"
-                      value={formData.unitPrice}
-                      onChange={(e) => handleUnitPriceChange(e.target.value)}
-                    />
-                    {Boolean(formData.unitPrice && Number(formData.unitPrice) > 0) && (
-                      <div className="live-price-preview" style={{ marginTop: '6px' }}>
-                        <span className="live-price-icon">
-                          <IconBanknote size={17} strokeWidth={2.2} />
-                        </span>
-                        <strong className="live-price-formatted">
-                          {Number(formData.unitPrice).toLocaleString('vi-VN')} VNĐ
-                        </strong>
-                        <span className="live-price-slash"> / {materials.find(m => m.id === formData.materialId)?.unit || 'đơn vị'}</span>
-                        <span className="live-price-words">
-                          ({formatVNDWords(Number(formData.unitPrice))})
-                        </span>
-                      </div>
-                    )}
+                    <label>Đơn giá niêm yết (Cố định)</label>
+                    <div className="readonly-price-box">
+                      <span className="price-num">
+                        {Number(formData.unitPrice || 0).toLocaleString('vi-VN')} đ
+                      </span>
+                      <span className="price-unit">/ {selectedMaterial?.unit || 'đơn vị'}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Tổng giá trị nhập (VNĐ)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="Tự tính hoặc nhập thủ công"
-                    value={formData.totalCost}
-                    onChange={(e) => setFormData({ ...formData, totalCost: e.target.value })}
-                  />
-                  {Boolean(formData.totalCost && Number(formData.totalCost) > 0) && (
-                    <div className="live-price-preview" style={{ marginTop: '6px' }}>
-                      <span className="live-price-icon">
-                        <IconCoins size={17} strokeWidth={2.2} />
-                      </span>
-                      <span className="live-price-label">Tổng tiền:</span>
-                      <strong className="live-price-formatted">
-                        {Number(formData.totalCost).toLocaleString('vi-VN')} VNĐ
-                      </strong>
-                      <span className="live-price-words">
-                        ({formatVNDWords(Number(formData.totalCost))})
-                      </span>
+                {/* Khối Tổng giá trị nhập kho (Tự động tính, không cho sửa) */}
+                <div className="total-calculation-card">
+                  <div className="calc-header">
+                    <span className="calc-title">
+                      <IconCoins size={17} className="calc-icon" /> Tổng giá trị nhập kho
+                    </span>
+                    <span className="calc-badge">Tự động tính</span>
+                  </div>
+
+                  <div className="calc-amount">
+                    <span className="amount-number">
+                      {Number(formData.totalCost || 0).toLocaleString('vi-VN')}
+                    </span>
+                    <span className="amount-currency">VNĐ</span>
+                  </div>
+
+                  {Number(formData.totalCost) > 0 && (
+                    <div className="calc-words">
+                      Bằng chữ: <em>{formatVNDWords(Number(formData.totalCost))}</em>
                     </div>
                   )}
                 </div>
@@ -651,7 +828,7 @@ export default function InventoryPage() {
                     Hủy bỏ
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    Xác nhận nhập kho
+                    <IconCheckCircle size={18} /> Xác nhận nhập kho
                   </button>
                 </div>
               </form>

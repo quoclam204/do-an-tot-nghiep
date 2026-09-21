@@ -1,4 +1,4 @@
-/* HarvestPage.css */
+/* HarvestPage.css - Thân thiện cho nông dân & Tối ưu hiển thị Mobile */
 
 .harvest-page-wrapper {
   min-height: 100vh;
@@ -10,43 +10,217 @@
 
 .harvest-main {
   flex: 1;
-  padding-top: 2rem;
-  padding-bottom: 3rem;
+  padding-top: 1.75rem;
+  padding-bottom: 3.5rem;
 }
 
-/* Toast */
+/* ── Toast Thông Báo (Chuẩn DalatAgri: Phải trên PC, Giữa trên Mobile) ── */
 .harvest-toast {
   position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
+  top: 68px;
+  right: 24px;
   z-index: 9999;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
+  padding: 0.85rem 1.35rem;
+  border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  animation: slideIn 0.3s ease-out;
+  gap: 0.65rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  animation: toastSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .harvest-toast.success {
   background-color: #ecfdf5;
   color: #065f46;
-  border: 1px solid #a7f3d0;
+  border: 1.5px solid #a7f3d0;
 }
 
 .harvest-toast.error {
   background-color: #fef2f2;
   color: #991b1b;
-  border: 1px solid #fecaca;
+  border: 1.5px solid #fecaca;
 }
 
-.bg-purple { background-color: #f3e8ff; color: #7e22ce; }
-.bg-yellow { background-color: #fef9c3; color: #a16207; }
-.text-green { color: #059669 !important; }
+/* ── Top Bar ── */
+.harvest-add-btn {
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
 
-/* Table */
+/* ── KPI Stats Cards ── */
+.harvest-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.harvest-stats-grid .stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bg-green { background-color: #ecfdf5; color: #059669; }
+.bg-yellow { background-color: #fefce8; color: #ca8a04; }
+.bg-blue { background-color: #eff6ff; color: #2563eb; }
+.bg-purple { background-color: #faf5ff; color: #9333ea; }
+
+.stat-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.stat-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.stat-value.text-green {
+  color: #059669 !important;
+}
+
+.ton-subtext {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+/* ── Filter Bar ── */
+.harvest-filter-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.harvest-filter-card .search-box {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.harvest-filter-card .search-box input {
+  width: 100%;
+  padding: 0.65rem 2rem 0.65rem 2.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.harvest-filter-card .search-box input:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.85rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.clear-btn {
+  position: absolute;
+  right: 0.65rem;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.filter-selects-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.filter-select {
+  padding: 0.65rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 0.92rem;
+  font-weight: 500;
+  outline: none;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+.filter-select:focus {
+  border-color: #059669;
+}
+
+/* ── Visibility Switch (Desktop vs Mobile) ── */
+.desktop-view {
+  display: block;
+}
+
+.mobile-view {
+  display: none;
+}
+
+/* ── Desktop Table ── */
+.table-responsive {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
 .harvest-table {
   width: 100%;
   border-collapse: collapse;
@@ -55,17 +229,18 @@
 
 .harvest-table th {
   background-color: #f8fafc;
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 0.95rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #475569;
   border-bottom: 1px solid #e2e8f0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .harvest-table td {
-  padding: 1rem;
+  padding: 1.05rem 1rem;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.95rem;
   vertical-align: middle;
@@ -75,29 +250,45 @@
   background-color: #f8fafc;
 }
 
+.plot-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
 .crop-tag {
   background-color: #ecfdf5;
   color: #047857;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.65rem;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.85rem;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .qty-tag {
   font-weight: 700;
-  color: #1e293b;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.unit-price-tag {
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .revenue-val {
   color: #059669;
   font-size: 1.05rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .notes-text {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: #64748b;
-  max-width: 250px;
+  max-width: 260px;
   display: inline-block;
   white-space: nowrap;
   overflow: hidden;
@@ -106,12 +297,15 @@
 
 .delete-action-btn {
   background: none;
-  border: 1px solid #cbd5e1;
-  padding: 0.4rem;
+  border: 1px solid #e2e8f0;
+  padding: 0.45rem;
   border-radius: 6px;
   cursor: pointer;
-  color: #64748b;
-  transition: all 0.15s;
+  color: #94a3b8;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-action-btn:hover {
@@ -120,27 +314,499 @@
   border-color: #fca5a5;
 }
 
-/* ── Mobile Responsive for Harvest ── */
+/* ── Modal Ghi Nhận Thu Hoạch (Gọn gàng & Trực quan) ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 0.75rem;
+}
+
+.harvest-modal-card {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-header {
+  padding: 0.9rem 1.25rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.compact-modal-body {
+  padding: 1rem 1.25rem 1.15rem 1.25rem;
+}
+
+.compact-group {
+  margin-bottom: 0.7rem;
+}
+
+.compact-group.mb-0 {
+  margin-bottom: 0;
+}
+
+.compact-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.25rem;
+}
+
+.compact-group input,
+.compact-group select {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  box-sizing: border-box;
+  font-family: inherit;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.compact-group input:focus,
+.compact-group select:focus {
+  border-color: #059669;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+}
+
+.modal-select-lg {
+  font-weight: 500;
+  background-color: #fcfcfc;
+}
+
+.input-number-highlight {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.compact-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.label-with-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.auto-calc-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.input-revenue-highlight {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #047857 !important;
+  background-color: #f0fdf4 !important;
+  border-color: #86efac !important;
+}
+
+.compact-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.modal-btn-cancel {
+  padding: 0.55rem 1.1rem;
+  border-radius: 7px;
+  font-size: 0.9rem;
+}
+
+.modal-btn-save {
+  padding: 0.55rem 1.25rem;
+  border-radius: 7px;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+/* ── Empty & Loading ── */
+.empty-state {
+  text-align: center;
+  padding: 3.5rem 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.empty-state h3 {
+  margin: 1rem 0 0.5rem 0;
+  color: #1e293b;
+}
+
+.empty-state p {
+  color: #64748b;
+  max-width: 480px;
+  margin: 0 auto 1.5rem auto;
+  font-size: 0.95rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+  font-size: 1rem;
+}
+
+/* ==========================================================
+   ── MOBILE RESPONSIVE CHO NÔNG DÂN (MÀN HÌNH <= 768px) ──
+   ========================================================== */
 @media (max-width: 768px) {
   .harvest-main {
     padding-top: 1rem !important;
-    padding-bottom: 90px !important;
+    padding-bottom: 85px !important;
   }
 
-  .table-responsive {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+  /* Toast ở giữa trên mobile */
+  .harvest-toast {
+    top: 58px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+    width: 92% !important;
+    max-width: 380px !important;
+    justify-content: center !important;
+    font-size: 0.9rem !important;
+    padding: 0.75rem 1rem !important;
   }
 
-  .harvest-table {
-    min-width: 580px !important;
+  /* Top bar */
+  .page-top-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.85rem !important;
+    margin-bottom: 1.25rem !important;
   }
 
-  .delete-action-btn {
-    min-width: 40px;
-    min-height: 40px;
+  .harvest-add-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* KPI Cards chuyển sang 2x2 grid */
+  .harvest-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .harvest-stats-grid .stat-card {
+    padding: 0.8rem 0.85rem !important;
+    gap: 0.65rem !important;
+  }
+
+  .stat-icon {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 8px !important;
+  }
+
+  .stat-icon svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .stat-label {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.15rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.1rem !important;
+  }
+
+  /* Bộ lọc xếp dọc dễ dùng ngón tay */
+  .harvest-filter-card {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    padding: 0.85rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .harvest-filter-card .search-box {
+    width: 100% !important;
+  }
+
+  .filter-selects-group {
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+  }
+
+  .filter-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* Ẩn bảng ngang trên desktop - Hiện danh sách Thẻ trên Mobile */
+  .desktop-view {
+    display: none !important;
+  }
+
+  .mobile-view {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* ── Mobile Harvest Card: Đơn giản, rõ ràng, trực quan ── */
+  .mobile-harvest-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.95rem 1rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  /* Hàng trên: Ngày thu hoạch + Nút xóa */
+  .mhc-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .mhc-date-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 0.3rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .mhc-delete-btn {
+    background: #fff;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+
+  .mhc-delete-btn:active {
+    background: #fef2f2;
+  }
+
+  /* Cây trồng & Vườn / Lô trồng */
+  .mhc-crop-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .mhc-crop-pill {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mhc-plot-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  /* Lưới 3 số liệu: Sản lượng - Đơn giá - Tiền thu được */
+  .mhc-metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.3fr;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+  }
+
+  .mhc-metric-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mhc-metric-label {
+    font-size: 0.72rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .mhc-metric-val {
+    font-size: 0.95rem;
+    color: #0f172a;
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    white-space: nowrap;
+  }
+
+  .mhc-metric-val strong {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .mhc-unit {
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .mhc-metric-box.highlight-revenue {
+    background: #ecfdf5;
+    border-radius: 6px;
+    padding: 0.2rem 0.4rem;
+    margin: -0.2rem -0.2rem;
+  }
+
+  .mhc-metric-box.highlight-revenue .mhc-metric-label {
+    color: #065f46;
+  }
+
+  .mhc-metric-box.highlight-revenue .revenue-text {
+    color: #059669;
+  }
+
+  .mhc-metric-box.highlight-revenue .revenue-text strong {
+    font-size: 1.1rem;
+  }
+
+  /* Ghi chú & Thương lái */
+  .mhc-notes-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #475569;
+    background: #fdfefe;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .mhc-notes-icon {
+    color: #94a3b8;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .mhc-notes-content {
+    word-break: break-word;
+  }
+
+  /* Modal trên di động: Gọn gàng, vừa vặn màn hình */
+  .harvest-modal-card {
+    max-width: 95vw !important;
+    max-height: 94vh !important;
+    overflow-y: auto !important;
+    border-radius: 14px !important;
+  }
+
+  .compact-modal-body {
+    padding: 0.85rem 1rem !important;
+  }
+
+  .compact-row {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .compact-group {
+    margin-bottom: 0.6rem !important;
+  }
+
+  .compact-group input,
+  .compact-group select {
+    padding: 0.5rem 0.65rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  .compact-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1.35fr !important;
+    gap: 0.5rem !important;
+    margin-top: 0.75rem !important;
+    padding-top: 0.45rem !important;
+  }
+
+  .modal-btn-cancel,
+  .modal-btn-save {
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.92rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 }
+
+

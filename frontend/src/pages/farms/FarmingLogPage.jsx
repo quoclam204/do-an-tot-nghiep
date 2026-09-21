@@ -27,6 +27,7 @@ import {
   IconSettings,
   IconAlertCircle,
   IconInfo,
+  IconX,
 } from '../../components/icons';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
@@ -34,6 +35,7 @@ import {
   apiGetCrops,
   apiGetSeasons,
   apiGetMaterials,
+  apiGetInventory,
   apiGetActivityLogs,
   apiCreateActivityLog,
   apiUpdateActivityLog,
@@ -95,6 +97,7 @@ export default function FarmingLogPage() {
   const [crops, setCrops] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
   const [financials, setFinancials] = useState(null);
   const [activityTypes, setActivityTypes] = useState([]);
@@ -166,7 +169,7 @@ export default function FarmingLogPage() {
         }
       }
 
-      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes] = await Promise.all([
+      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
         apiGetCrops().catch(() => []),
         apiGetSeasons(farmToUse).catch(() => []),
         apiGetMaterials().catch(() => []),
@@ -174,6 +177,7 @@ export default function FarmingLogPage() {
         farmsRes && farmsRes.length > 0 ? Promise.resolve(farmsRes) : apiGetMyFarms().catch(() => []),
         apiGetFinancialReport(undefined, farmToUse).catch(() => null),
         apiGetActivityTypes(farmToUse).catch(() => []),
+        farmToUse ? apiGetInventory(farmToUse).catch(() => []) : Promise.resolve([]),
       ]);
 
       setCrops(cropsRes || []);
@@ -183,6 +187,7 @@ export default function FarmingLogPage() {
       if (!farms || farms.length === 0) setFarms(currentFarmsRes || []);
       setFinancials(finRes);
       setActivityTypes(typesRes || []);
+      setInventory(invRes || []);
 
       if (seasonsRes && seasonsRes.length > 0 && !form.cropCycleId) {
         setForm((prev) => ({ ...prev, cropCycleId: seasonsRes[0].id }));
@@ -198,16 +203,23 @@ export default function FarmingLogPage() {
     loadData();
   }, [selectedFarmId]);
 
-  const selectedMaterial = useMemo(
-    () => materials.find((m) => m.id === form.materialId),
-    [materials, form.materialId]
+  const selectedInventoryItem = useMemo(
+    () => inventory.find((inv) => inv.materialId === form.materialId),
+    [inventory, form.materialId]
   );
 
-  // Tự động tính tiền vật tư khi chọn vật tư và nhập số lượng
+  const selectedMaterial = useMemo(() => {
+    if (selectedInventoryItem?.material) return selectedInventoryItem.material;
+    return materials.find((m) => m.id === form.materialId);
+  }, [selectedInventoryItem, materials, form.materialId]);
+
+  // Tự động tính tiền vật tư khi chọn vật tư và nhập số lượng (ưu tiên đơn giá thực tế trong kho)
   const handleMaterialChange = (materialId) => {
-    const selected = materials.find((m) => m.id === materialId);
+    const invItem = inventory.find((inv) => inv.materialId === materialId);
+    const selected = invItem?.material || materials.find((m) => m.id === materialId);
+    const unitPrice = invItem?.unitPrice ?? selected?.defaultPrice ?? 0;
     const qty = Number(form.quantityUsed || 0);
-    const cost = selected && qty > 0 ? Math.round(qty * selected.defaultPrice) : 0;
+    const cost = selected && qty > 0 ? Math.round(qty * unitPrice) : 0;
     setForm((prev) => ({
       ...prev,
       materialId,
@@ -217,8 +229,10 @@ export default function FarmingLogPage() {
 
   const handleQtyChange = (qtyStr) => {
     const qty = Number(qtyStr || 0);
-    const selected = materials.find((m) => m.id === form.materialId);
-    const cost = selected && qty > 0 ? Math.round(qty * selected.defaultPrice) : 0;
+    const invItem = inventory.find((inv) => inv.materialId === form.materialId);
+    const selected = invItem?.material || materials.find((m) => m.id === form.materialId);
+    const unitPrice = invItem?.unitPrice ?? selected?.defaultPrice ?? 0;
+    const cost = selected && qty > 0 ? Math.round(qty * unitPrice) : 0;
     setForm((prev) => ({
       ...prev,
       quantityUsed: qtyStr,
@@ -230,12 +244,21 @@ export default function FarmingLogPage() {
   const handleApplyOcr = (extractedData) => {
     let matchedMatId = '';
     if (extractedData.materialName) {
-      const found = materials.find(
-        (m) =>
-          m.name.toLowerCase().includes(extractedData.materialName.toLowerCase()) ||
-          extractedData.materialName.toLowerCase().includes(m.name.toLowerCase())
+      const foundInv = inventory.find(
+        (inv) =>
+          inv.material?.name?.toLowerCase().includes(extractedData.materialName.toLowerCase()) ||
+          extractedData.materialName.toLowerCase().includes(inv.material?.name?.toLowerCase())
       );
-      if (found) matchedMatId = found.id;
+      if (foundInv) {
+        matchedMatId = foundInv.materialId;
+      } else {
+        const found = materials.find(
+          (m) =>
+            m.name.toLowerCase().includes(extractedData.materialName.toLowerCase()) ||
+            extractedData.materialName.toLowerCase().includes(m.name.toLowerCase())
+        );
+        if (found) matchedMatId = found.id;
+      }
     }
 
     setForm((prev) => ({
@@ -390,6 +413,16 @@ export default function FarmingLogPage() {
       };
 
       if (form.materialId && Number(form.quantityUsed) > 0) {
+        const invItem = inventory.find((inv) => inv.materialId === form.materialId);
+        if (!editingLogId && invItem && Number(form.quantityUsed) > Number(invItem.quantity)) {
+          showToast(
+            `Số lượng sử dụng (${form.quantityUsed}) vượt quá tồn kho hiện có (${invItem.quantity})!`,
+            'error'
+          );
+          setSubmitting(false);
+          return;
+        }
+
         payload.materials = [
           {
             materialId: form.materialId,
@@ -427,13 +460,15 @@ export default function FarmingLogPage() {
         otherCosts: '',
       }));
 
-      // Cập nhật ngầm số liệu tài chính & danh sách nhật ký mà không làm chớp/đơ màn hình
+      // Cập nhật ngầm số liệu tài chính, nhật ký & tồn kho mà không làm chớp/đơ màn hình
       Promise.all([
         apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
         apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
-      ]).then(([freshLogs, finRes]) => {
+        selectedFarmId ? apiGetInventory(selectedFarmId).catch(() => null) : Promise.resolve(null),
+      ]).then(([freshLogs, finRes, freshInv]) => {
         if (freshLogs) setLogs(freshLogs);
         if (finRes) setFinancials(finRes);
+        if (freshInv) setInventory(freshInv);
       });
     } catch (err) {
       const msg = Array.isArray(err.response?.data?.message)
@@ -452,12 +487,14 @@ export default function FarmingLogPage() {
         setLogs((prev) => prev.filter((l) => l.id !== id));
         showToast('Đã xóa nhật ký thành công!');
         await apiDeleteActivityLog(id);
-        const [freshLogs, finRes] = await Promise.all([
+        const [freshLogs, finRes, freshInv] = await Promise.all([
           apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
           apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
+          selectedFarmId ? apiGetInventory(selectedFarmId).catch(() => null) : Promise.resolve(null),
         ]);
         if (freshLogs) setLogs(freshLogs);
         if (finRes) setFinancials(finRes);
+        if (freshInv) setInventory(freshInv);
       } catch (err) {
         showToast('Lỗi khi xóa: ' + (err.response?.data?.message || err.message), 'error');
         await loadData();
@@ -526,9 +563,9 @@ export default function FarmingLogPage() {
       {toast.show && (
         <div className={`farming-toast ${toast.type}`}>
           {toast.type === 'success' ? (
-            <IconCheckCircle size={18} strokeWidth={2.4} />
+            <IconCheckCircle size={22} strokeWidth={2.4} />
           ) : (
-            <IconAlertCircle size={18} strokeWidth={2.4} />
+            <IconAlertCircle size={22} strokeWidth={2.4} />
           )}
           <span>{toast.message}</span>
         </div>
@@ -1029,51 +1066,80 @@ export default function FarmingLogPage() {
                   className="form-control"
                 >
                   <option value="">-- Không sử dụng vật tư / Chỉ dùng nhân công --</option>
-                  {materials.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name} ({m.type === 'PHAN_BON' ? 'Phân bón' : 'Thuốc BVTV'}) -{' '}
-                      {m.defaultPrice.toLocaleString()} đ/{m.unit}
+                  {inventory.length === 0 ? (
+                    <option value="" disabled>-- Kho chưa có vật tư nào (Vui lòng nhập kho tại trang Tồn kho) --</option>
+                  ) : (
+                    inventory.map((inv) => {
+                      const m = inv.material || {};
+                      const isOutOfStock = Number(inv.quantity || 0) <= 0;
+                      return (
+                        <option key={inv.id} value={inv.materialId} disabled={isOutOfStock}>
+                          {m.name || 'Vật tư'} ({m.type === 'PHAN_BON' ? 'Phân bón' : 'Thuốc BVTV'}) — Tồn kho: {inv.quantity} {m.unit || 'đơn vị'} {isOutOfStock ? '(HẾT HÀNG)' : `— ${Number(inv.unitPrice || m.defaultPrice || 0).toLocaleString('vi-VN')} đ/${m.unit || 'đơn vị'}`}
+                        </option>
+                      );
+                    })
+                  )}
+                  {!inventory.some((inv) => inv.materialId === form.materialId) && form.materialId && selectedMaterial && (
+                    <option value={form.materialId}>
+                      {selectedMaterial.name} ({selectedMaterial.unit}) - [Đã dùng trong nhật ký này]
                     </option>
-                  ))}
+                  )}
                 </select>
               </div>
 
               {form.materialId && (
                 <div className="form-row">
                   <div className="form-group">
-                    <label>Số lượng dùng</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <label style={{ margin: 0 }}>Số lượng dùng ({selectedMaterial?.unit || 'đơn vị'})</label>
+                      {selectedInventoryItem && (
+                        <span style={{ fontSize: '0.8rem', color: selectedInventoryItem.quantity > 0 ? '#15803d' : '#b91c1c', fontWeight: 600 }}>
+                          Tồn kho: {selectedInventoryItem.quantity} {selectedMaterial?.unit || ''}
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="number"
                       step="any"
+                      min="0"
                       value={form.quantityUsed}
                       onChange={(e) => handleQtyChange(e.target.value)}
-                      placeholder="VD: 5"
+                      placeholder="VD: 1"
                       className="form-control"
                       required
                     />
+                    {selectedInventoryItem && Number(form.quantityUsed) > Number(selectedInventoryItem.quantity) && (
+                      <span style={{ color: '#ef4444', fontSize: '0.78rem', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <IconAlertCircle size={14} /> Vượt quá số lượng tồn kho ({selectedInventoryItem.quantity})!
+                      </span>
+                    )}
                   </div>
                   <div className="form-group">
-                    <label>Thành tiền vật tư (VNĐ)</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                      <label style={{ margin: 0 }}>Thành tiền vật tư (VNĐ)</label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Tự động tính</span>
+                    </div>
                     <div className="currency-input-wrap">
                       <input
                         type="text"
-                        inputMode="numeric"
+                        readOnly
+                        tabIndex={-1}
                         value={formatVnd(form.materialCost)}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g, '');
-                          setForm((prev) => ({
-                            ...prev,
-                            materialCost: raw ? Number(raw) : '',
-                          }));
-                        }}
                         placeholder="0"
                         className="form-control font-bold text-green"
+                        style={{
+                          backgroundColor: '#f8fafc',
+                          cursor: 'not-allowed',
+                          color: '#059669',
+                          borderColor: '#e2e8f0',
+                          userSelect: 'none',
+                        }}
                       />
                       <span className="currency-addon">VNĐ</span>
                     </div>
                     {selectedMaterial && Number(form.quantityUsed) > 0 && (
                       <div className="cost-calc-hint">
-                        <span>💡 {form.quantityUsed} {selectedMaterial.unit || 'đơn vị'} × {formatVnd(selectedMaterial.defaultPrice)} đ = </span>
+                        <span>💡 {form.quantityUsed} {selectedMaterial.unit || 'đơn vị'} × {formatVnd(selectedInventoryItem?.unitPrice ?? selectedMaterial.defaultPrice ?? 0)} đ = </span>
                         <strong>{formatVnd(form.materialCost || 0)} VNĐ</strong>
                       </div>
                     )}
@@ -1341,10 +1407,10 @@ export default function FarmingLogPage() {
                           </div>
                         )}
                       </td>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <div className="cost-stack-cell">
-                          <span className="cost-main-value">
-                            {(log.cost || 0) > 0 ? `${log.cost.toLocaleString('vi-VN')} đ` : '-'}
+                          <span className="cost-main-value" style={{ whiteSpace: 'nowrap' }}>
+                            {(log.cost || 0) > 0 ? `${Number(log.cost).toLocaleString('vi-VN')}\u00A0đ` : '-'}
                           </span>
                           {(log.cost || 0) > 0 && (
                             <button
@@ -1359,11 +1425,15 @@ export default function FarmingLogPage() {
                           )}
                         </div>
                       </td>
-                      <td className="font-bold text-green">
+                      <td className="font-bold text-green" style={{ whiteSpace: 'nowrap' }}>
                         {(log.revenue || 0) > 0 ? (
-                          <div>
-                            +{log.revenue.toLocaleString()} đ
-                            <div className="subtext-muted">({log.harvestQuantity} kg)</div>
+                          <div style={{ whiteSpace: 'nowrap' }}>
+                            <span style={{ whiteSpace: 'nowrap', display: 'inline-block' }}>
+                              +{Number(log.revenue).toLocaleString('vi-VN')}&nbsp;đ
+                            </span>
+                            <div className="subtext-muted" style={{ whiteSpace: 'nowrap' }}>
+                              ({log.harvestQuantity}&nbsp;kg)
+                            </div>
                           </div>
                         ) : (
                           '-'
@@ -1508,9 +1578,9 @@ export default function FarmingLogPage() {
                     </div>
                     {(log.revenue || 0) > 0 && (
                       <div className="finance-item">
-                        <span className="f-label">Doanh thu ({log.harvestQuantity} kg):</span>
-                        <span className="f-rev font-bold text-green">
-                          +{log.revenue.toLocaleString()} đ
+                        <span className="f-label">Doanh thu ({log.harvestQuantity}&nbsp;kg):</span>
+                        <span className="f-rev font-bold text-green" style={{ whiteSpace: 'nowrap' }}>
+                          +{Number(log.revenue).toLocaleString('vi-VN')}&nbsp;đ
                         </span>
                       </div>
                     )}
