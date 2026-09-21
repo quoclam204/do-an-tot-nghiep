@@ -27,16 +27,22 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (newToken, userData) => {
-    // TODO 2: Lưu newToken và userData vào state
-    //         Đồng thời lưu vào localStorage để giữ đăng nhập khi refresh
     setUser(userData);
     setToken(newToken);
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('token', newToken);
   };
 
+  const updateUser = (updatedData) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...updatedData };
+      localStorage.setItem('user', JSON.stringify(next));
+      return next;
+    });
+  };
+
   const logout = () => {
-    // TODO 3: Xóa state và xóa localStorage
     setUser(null);
     setToken(null);
     localStorage.removeItem('user');
@@ -44,7 +50,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

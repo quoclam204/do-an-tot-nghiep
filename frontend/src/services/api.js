@@ -469,3 +469,23 @@ export const apiGetStatistics = async () => {
     const response = await api.get('/users/statistics');
     return response.data;
 };
+
+// ── Admin Extended APIs ─────────────────────────────────────────
+/** Admin lấy tất cả nông trại toàn hệ thống */
+export const apiAdminGetAllFarms = async (params = {}) => {
+    const response = await api.get('/catalog/admin/farms', { params });
+    return response.data;
+};
+
+/** Admin lấy tất cả nhật ký toàn hệ thống */
+export const apiAdminGetAllActivityLogs = async (params = {}) => {
+    const response = await api.get('/catalog/admin/activity-logs', { params });
+    return response.data;
+};
+
+/** Admin đặt lại mật khẩu người dùng */
+export const apiAdminResetPassword = async (userId, newPassword) => {
+    const response = await api.post(`/users/${userId}/reset-password`, { newPassword });
+    return response.data;
+};
+

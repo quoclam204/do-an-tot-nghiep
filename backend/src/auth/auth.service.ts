@@ -80,6 +80,7 @@ export class AuthService {
     const user = await this.usersService.findOrCreateGoogleUser({
       email: payload.email,
       name: payload.name || payload.given_name || 'Người dùng Google',
+      picture: payload.picture || null,
     });
 
     return {

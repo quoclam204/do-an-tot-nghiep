@@ -27,7 +27,7 @@ export class UsersService {
 
   /** Lấy danh sách tất cả người dùng (chỉ ADMIN) */
   async findAll() {
-    return (this.prisma.user as any).findMany({
+    const users = await (this.prisma.user as any).findMany({
       where: { deletedAt: null },
       select: {
         id: true,
@@ -49,12 +49,25 @@ export class UsersService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    try {
+      const avatars = await this.prisma.$queryRawUnsafe<any[]>(
+        `SELECT id, "avatarUrl" FROM "User" WHERE "avatarUrl" IS NOT NULL`,
+      );
+      const avatarMap = new Map((avatars || []).map((a) => [a.id, a.avatarUrl]));
+      for (const u of users) {
+        u.avatarUrl = avatarMap.get(u.id) || null;
+      }
+    } catch {}
+
+    return users;
   }
 
   /** Lấy thông tin 1 người dùng theo ID */
   async findById(id: string) {
+    let user: any = null;
     try {
-      const user = await (this.prisma.user as any).findFirst({
+      user = await (this.prisma.user as any).findFirst({
         where: { id, deletedAt: null },
         select: {
           id: true,
@@ -75,30 +88,45 @@ export class UsersService {
           },
         },
       });
-      if (user) return user;
     } catch {
       // Fallback nếu cột approvalStatus chưa được migrate trong database
     }
 
-    return (this.prisma.user as any).findFirst({
-      where: { id, deletedAt: null },
-      select: {
-        id: true,
-        email: true,
-        phone: true,
-        fullName: true,
-        role: true,
-        isActive: true,
-        emailVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-        farms: {
-          where: { deletedAt: null },
-          select: { id: true, name: true, location: true, totalArea: true },
+    if (!user) {
+      user = await (this.prisma.user as any).findFirst({
+        where: { id, deletedAt: null },
+        select: {
+          id: true,
+          email: true,
+          phone: true,
+          fullName: true,
+          role: true,
+          isActive: true,
+          emailVerified: true,
+          lastLoginAt: true,
+          createdAt: true,
+          updatedAt: true,
+          farms: {
+            where: { deletedAt: null },
+            select: { id: true, name: true, location: true, totalArea: true },
+          },
         },
-      },
-    });
+      });
+    }
+
+    if (user) {
+      try {
+        const rows = await this.prisma.$queryRawUnsafe<any[]>(
+          `SELECT "avatarUrl" FROM "User" WHERE id = $1::uuid LIMIT 1`,
+          id,
+        );
+        user.avatarUrl = rows?.[0]?.avatarUrl || null;
+      } catch {
+        user.avatarUrl = null;
+      }
+    }
+
+    return user;
   }
 
   /** Tìm user theo email (nội bộ) */
@@ -127,7 +155,7 @@ export class UsersService {
   }
 
   /** Tìm hoặc tạo người dùng từ Google payload */
-  async findOrCreateGoogleUser(payload: { email: string; name?: string }) {
+  async findOrCreateGoogleUser(payload: { email: string; name?: string; picture?: string }) {
     const email = payload.email.trim().toLowerCase();
     let user = await this.prisma.user.findFirst({
       where: { email, deletedAt: null },
@@ -137,12 +165,13 @@ export class UsersService {
       if (!user.isActive) {
         throw new UnauthorizedException('Tài khoản này đã bị vô hiệu hóa');
       }
-      user = await this.prisma.user.update({
+      user = await (this.prisma.user as any).update({
         where: { id: user.id },
         data: {
           emailVerified: true,
           failedLoginAttempts: 0,
           lastLoginAt: new Date(),
+          ...(payload.picture && !(user as any).avatarUrl ? { avatarUrl: payload.picture } : {}),
         },
       });
       return user;
@@ -151,7 +180,7 @@ export class UsersService {
     const randomPassword = randomBytes(32).toString('hex');
     const passwordHash = await this.hashPassword(randomPassword);
 
-    return this.prisma.user.create({
+    const newUser = await (this.prisma.user as any).create({
       data: {
         email,
         passwordHash,
@@ -161,6 +190,21 @@ export class UsersService {
         lastLoginAt: new Date(),
       },
     });
+
+    if (payload.picture) {
+      try {
+        await this.prisma.$executeRawUnsafe(
+          `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;`
+        );
+        await this.prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "avatarUrl" = $1 WHERE id = $2::uuid`,
+          payload.picture,
+          newUser.id,
+        );
+      } catch {}
+    }
+
+    return newUser;
   }
 
   /** Cập nhật thông tin cá nhân (chỉ owner hoặc ADMIN) */
@@ -168,16 +212,53 @@ export class UsersService {
     const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
     if (!user) throw new BadRequestException('Người dùng không tồn tại');
 
-    return this.prisma.user.update({
+    // 1. Cập nhật các trường cơ bản bằng Prisma
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
         ...(dto.fullName && { fullName: dto.fullName.trim() }),
         ...(dto.phone !== undefined && { phone: dto.phone || null }),
       },
       select: {
-        id: true, email: true, phone: true, fullName: true, role: true, updatedAt: true,
+        id: true,
+        email: true,
+        phone: true,
+        fullName: true,
+        role: true,
+        updatedAt: true,
       },
     });
+
+    // 2. Nếu có avatarUrl, cập nhật an toàn bằng raw SQL
+    let currentAvatar: string | null = null;
+    if (dto.avatarUrl !== undefined) {
+      try {
+        await this.prisma.$executeRawUnsafe(
+          `ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;`
+        );
+        await this.prisma.$executeRawUnsafe(
+          `UPDATE "User" SET "avatarUrl" = $1 WHERE id = $2::uuid`,
+          dto.avatarUrl || null,
+          id,
+        );
+        currentAvatar = dto.avatarUrl || null;
+      } catch (err) {
+        console.error('Lỗi khi lưu avatarUrl vào CSDL:', err);
+      }
+    } else {
+      try {
+        const rows = await this.prisma.$queryRawUnsafe<any[]>(
+          `SELECT "avatarUrl" FROM "User" WHERE id = $1::uuid LIMIT 1`,
+          id,
+        );
+        if (rows && rows[0]) currentAvatar = rows[0].avatarUrl;
+      } catch {}
+    }
+
+    return {
+      ...updatedUser,
+      avatarUrl: currentAvatar,
+    };
   }
 
   /** Thay đổi vai trò người dùng (chỉ ADMIN) */
@@ -320,44 +401,64 @@ export class UsersService {
 
   /** Thống kê tổng quan cho admin dashboard */
   async getStatistics() {
-    const [totalUsers, activeUsers, pendingUsers, totalFarms, totalSeasons, totalLogs] = await Promise.all([
-      this.prisma.user.count({ where: { deletedAt: null } }),
-      this.prisma.user.count({ where: { deletedAt: null, isActive: true } }),
-      (this.prisma.user as any).count({ where: { deletedAt: null, approvalStatus: 'PENDING' } }),
-      this.prisma.farm.count({ where: { deletedAt: null } }),
-      this.prisma.cropCycle.count({ where: { deletedAt: null } }),
-      this.prisma.activityLog.count({ where: { deletedAt: null } }),
-    ]);
+    try {
+      const [totalUsers, activeUsers, pendingUsers, totalFarms, totalSeasons, totalLogs] = await Promise.all([
+        this.prisma.user.count({ where: { deletedAt: null } }).catch(() => 0),
+        this.prisma.user.count({ where: { deletedAt: null, isActive: true } }).catch(() => 0),
+        this.prisma.user.count({ where: { deletedAt: null, approvalStatus: 'PENDING' } as any }).catch(() => 0),
+        this.prisma.farm.count({ where: { deletedAt: null } }).catch(() => 0),
+        this.prisma.cropCycle.count({ where: { deletedAt: null } }).catch(() => 0),
+        this.prisma.activityLog.count({ where: { deletedAt: null } }).catch(() => 0),
+      ]);
 
-    // Thống kê users theo role
-    const usersByRole = await this.prisma.user.groupBy({
-      by: ['role'],
-      where: { deletedAt: null },
-      _count: true,
-    });
+      // Thống kê users theo role
+      let usersByRole: any[] = [];
+      try {
+        const grouped = await this.prisma.user.groupBy({
+          by: ['role'],
+          where: { deletedAt: null },
+          _count: { id: true },
+        });
+        usersByRole = grouped.map((r: any) => ({ role: r.role, count: r._count?.id || 0 }));
+      } catch (e) {
+        usersByRole = [];
+      }
 
-    // Users đăng ký gần đây (7 ngày)
-    const recentUsers = await this.prisma.user.findMany({
-      where: {
-        deletedAt: null,
-        createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-      },
-      select: { id: true, email: true, fullName: true, role: true, createdAt: true },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    });
+      // Users đăng ký gần đây (7 ngày)
+      const recentUsers = await this.prisma.user.findMany({
+        where: {
+          deletedAt: null,
+          createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+        },
+        select: { id: true, email: true, fullName: true, role: true, createdAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }).catch(() => []);
 
-    return {
-      totalUsers,
-      activeUsers,
-      pendingUsers,
-      inactiveUsers: totalUsers - activeUsers,
-      totalFarms,
-      totalSeasons,
-      totalLogs,
-      usersByRole: usersByRole.map((r: any) => ({ role: r.role, count: r._count })),
-      recentUsers,
-    };
+      return {
+        totalUsers,
+        activeUsers,
+        pendingUsers,
+        inactiveUsers: Math.max(0, totalUsers - activeUsers),
+        totalFarms,
+        totalSeasons,
+        totalLogs,
+        usersByRole,
+        recentUsers,
+      };
+    } catch (error) {
+      return {
+        totalUsers: 0,
+        activeUsers: 0,
+        pendingUsers: 0,
+        inactiveUsers: 0,
+        totalFarms: 0,
+        totalSeasons: 0,
+        totalLogs: 0,
+        usersByRole: [],
+        recentUsers: [],
+      };
+    }
   }
 
   // ────────────────────────────────────────────────
@@ -409,6 +510,7 @@ export class UsersService {
         fullName: user.fullName,
         role: user.role,
         phone: user.phone || null,
+        avatarUrl: (user as any).avatarUrl || null,
         isActive: user.isActive !== undefined ? user.isActive : true,
         createdAt: user.createdAt || new Date().toISOString(),
       },
@@ -467,5 +569,20 @@ export class UsersService {
         resetPasswordExpires: null,
       },
     });
+  }
+
+  /** Admin đặt lại mật khẩu của người dùng bất kỳ */
+  async adminResetPassword(userId: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+    if (!user) throw new BadRequestException('Không tìm thấy tài khoản người dùng');
+    if (!newPassword || newPassword.length < 6) {
+      throw new BadRequestException('Mật khẩu phải có ít nhất 6 ký tự');
+    }
+    const passwordHash = await this.hashPassword(newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+    return { message: `Đã đặt lại mật khẩu thành công cho ${user.fullName || user.email}` };
   }
 }

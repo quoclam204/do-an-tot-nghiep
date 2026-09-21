@@ -16,6 +16,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Tăng giới hạn dung lượng tải lên (hỗ trợ ảnh đại diện base64)
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
   // Bật validation pipe toàn cục (dùng class-validator để validate DTO)
   app.useGlobalPipes(
     new ValidationPipe({

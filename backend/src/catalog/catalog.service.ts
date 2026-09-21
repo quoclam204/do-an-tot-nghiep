@@ -1504,4 +1504,84 @@ export class CatalogService {
 
     return this.softDelete(this.prisma.inventory, id);
   }
+
+  // ==================== ADMIN: TOÀN HỆ THỐNG ====================
+
+  /** Lấy tất cả nông trại toàn hệ thống (chỉ ADMIN) */
+  async adminGetAllFarms(filters: { search?: string; location?: string } = {}) {
+    const where: any = { deletedAt: null };
+    if (filters.location) where.location = { contains: filters.location, mode: 'insensitive' };
+    if (filters.search) {
+      where.OR = [
+        { name: { contains: filters.search, mode: 'insensitive' } },
+        { location: { contains: filters.search, mode: 'insensitive' } },
+        { user: { fullName: { contains: filters.search, mode: 'insensitive' } } },
+      ];
+    }
+    return this.prisma.farm.findMany({
+      where,
+      include: {
+        user: { select: { id: true, fullName: true, email: true, phone: true } },
+        plots: {
+          where: { deletedAt: null },
+          include: {
+            cropCycles: {
+              where: { deletedAt: null, status: { in: ['ACTIVE', 'PLANNED'] } },
+              select: { id: true, name: true, status: true, crop: { select: { name: true, type: true } } },
+            },
+          },
+        },
+        _count: { select: { plots: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  /** Lấy tất cả nhật ký canh tác toàn hệ thống (chỉ ADMIN) */
+  async adminGetAllActivityLogs(filters: {
+    farmId?: string;
+    syncStatus?: string;
+    activityType?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+  } = {}) {
+    const where: any = { deletedAt: null };
+    if (filters.syncStatus) where.syncStatus = filters.syncStatus;
+    if (filters.activityType) where.activityType = filters.activityType;
+    if (filters.from || filters.to) {
+      where.activityDate = {};
+      if (filters.from) where.activityDate.gte = new Date(filters.from);
+      if (filters.to) where.activityDate.lte = new Date(filters.to);
+    }
+    if (filters.farmId) {
+      where.cropCycle = { plot: { farmId: filters.farmId } };
+    }
+    return this.prisma.activityLog.findMany({
+      where,
+      take: filters.limit || 100,
+      orderBy: { activityDate: 'desc' },
+      include: {
+        cropCycle: {
+          include: {
+            crop: { select: { name: true, type: true } },
+            plot: {
+              include: {
+                farm: {
+                  select: {
+                    id: true, name: true, location: true,
+                    user: { select: { id: true, fullName: true, email: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+        materials: {
+          where: { deletedAt: null },
+          include: { material: { select: { name: true, unit: true } } },
+        },
+      },
+    });
+  }
 }

@@ -40,6 +40,30 @@ export class UsersController {
     return this.usersService.updateProfile(req.user.userId, dto);
   }
 
+  /** GET /users/statistics - Thống kê tổng quan (ADMIN) */
+  @Get('statistics')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  getStatistics() {
+    return this.usersService.getStatistics();
+  }
+
+  /** GET /users/deleted - Danh sách tài khoản đã xóa (ADMIN) */
+  @Get('deleted')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  findDeleted() {
+    return this.usersService.findDeleted();
+  }
+
+  /** GET /users/pending-approvals - Danh sách tài khoản chờ duyệt (ADMIN) */
+  @Get('pending-approvals')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  findPending() {
+    return this.usersService.findPending();
+  }
+
   /** GET /users/:id - Thông tin 1 người dùng (ADMIN) */
   @Get(':id')
   @UseGuards(RolesGuard)
@@ -92,22 +116,6 @@ export class UsersController {
     return this.usersService.restoreUser(id);
   }
 
-  /** GET /users/deleted - Danh sách tài khoản đã xóa (ADMIN) */
-  @Get('deleted')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  findDeleted() {
-    return this.usersService.findDeleted();
-  }
-
-  /** GET /users/pending-approvals - Danh sách tài khoản chờ duyệt (ADMIN) */
-  @Get('pending-approvals')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN')
-  findPending() {
-    return this.usersService.findPending();
-  }
-
   /** PATCH /users/:id/approve - Phê duyệt tài khoản (ADMIN) */
   @Patch(':id/approve')
   @UseGuards(RolesGuard)
@@ -124,11 +132,11 @@ export class UsersController {
     return this.usersService.rejectUser(id, body?.reason);
   }
 
-  /** GET /users/statistics - Thống kê tổng quan (ADMIN) */
-  @Get('statistics')
+  /** POST /users/:id/reset-password - Admin đặt lại mật khẩu tạm thời (ADMIN) */
+  @Post(':id/reset-password')
   @UseGuards(RolesGuard)
   @Roles('ADMIN')
-  getStatistics() {
-    return this.usersService.getStatistics();
+  resetUserPassword(@Param('id') id: string, @Body() body: { newPassword: string }) {
+    return this.usersService.adminResetPassword(id, body.newPassword);
   }
 }

@@ -21,6 +21,7 @@ import {
   IconShoppingBag,
   IconShield,
 } from './icons';
+import UserAvatar from './UserAvatar';
 
 function Header() {
   const { user, logout } = useAuth();
@@ -189,9 +190,7 @@ function Header() {
             {user ? (
               <>
                 <Link to="/account" className="user-menu-btn" title="Tài khoản của tôi">
-                  <span className="user-avatar-hdr">
-                    {user.fullName?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
+                  <UserAvatar user={user} size={30} className="user-avatar-hdr" />
                   <span className="user-name-hdr">{user.fullName}</span>
                 </Link>
                 <button
@@ -256,9 +255,7 @@ function Header() {
               {/* Thông tin tài khoản trong Drawer */}
               {user ? (
                 <div className="mobile-drawer-user">
-                  <span className="user-avatar-hdr" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
-                    {user.fullName?.charAt(0)?.toUpperCase() || 'U'}
-                  </span>
+                  <UserAvatar user={user} size={42} className="user-avatar-hdr" />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{user.fullName}</div>
                     <div style={{ fontSize: '12px', color: '#15803d' }}>{user.role === 'ADMIN' ? 'Quản trị viên' : 'Chủ nông hộ'}</div>

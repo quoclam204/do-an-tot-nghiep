@@ -19,6 +19,7 @@ model User {
   phone                String?   @unique
   passwordHash         String
   fullName             String
+  avatarUrl            String?
   role                 UserRole  @default(OWNER)
   isActive             Boolean   @default(true)
   approvalStatus       String    @default("APPROVED") // PENDING, APPROVED, REJECTED

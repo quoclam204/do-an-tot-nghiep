@@ -666,12 +666,31 @@
     gap: 16px;
   }
 
-  .support-icon-wrap { margin: 0 auto; }
-  .support-desc { margin: 0 auto 14px; }
-  .support-contact-badges { justify-content: center; }
-  .support-action { display: flex; justify-content: center; width: 100%; }
-  .support-action .elder-btn-primary { width: 100%; }
-  .faq-answer { padding-left: 0; }
+  .support-icon-wrap {
+    margin: 0 auto;
+  }
+
+  .support-desc {
+    margin: 0 auto 14px;
+  }
+
+  .support-contact-badges {
+    justify-content: center;
+  }
+
+  .support-action {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .support-action .elder-btn-primary {
+    width: 100%;
+  }
+
+  .faq-answer {
+    padding-left: 0;
+  }
 }
 
 @media (max-width: 600px) {

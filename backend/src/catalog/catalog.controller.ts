@@ -12,6 +12,8 @@ import {
 } from '@nestjs/common';
 import { CatalogService } from './catalog.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('catalog')
 export class CatalogController {
@@ -211,5 +213,29 @@ export class CatalogController {
   @Post('seed-lamdong')
   seedLamDong() {
     return this.catalogService.seedLamDongData();
+  }
+
+  // ==================== ADMIN: TOÀN HỆ THỐNG ====================
+  /** GET /catalog/admin/farms — Tất cả nông hộ/nông trại (ADMIN) */
+  @Get('admin/farms')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  adminGetAllFarms(@Query('search') search?: string, @Query('location') location?: string) {
+    return this.catalogService.adminGetAllFarms({ search, location });
+  }
+
+  /** GET /catalog/admin/activity-logs — Tất cả nhật ký toàn hệ thống (ADMIN) */
+  @Get('admin/activity-logs')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  adminGetAllActivityLogs(
+    @Query('farmId') farmId?: string,
+    @Query('syncStatus') syncStatus?: string,
+    @Query('activityType') activityType?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.catalogService.adminGetAllActivityLogs({ farmId, syncStatus, activityType, from, to, limit: limit ? parseInt(limit) : 100 });
   }
 }

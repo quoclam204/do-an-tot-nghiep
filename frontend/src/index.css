@@ -14,7 +14,7 @@
   --ms-green-hover: #f0f8f0;
 
   /* ── Grays (Microsoft neutral palette) ── */
-  --ms-gray-50:  #fafafa;
+  --ms-gray-50: #fafafa;
   --ms-gray-100: #f5f5f5;
   --ms-gray-200: #e8e8e8;
   --ms-gray-300: #d1d1d1;
@@ -36,9 +36,9 @@
   --accent: var(--ms-green);
   --accent-bg: var(--ms-green-light);
   --accent-border: var(--ms-green-mid);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
-  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
 
   /* ── Radius (Microsoft Fluent) ── */
   --radius-sm: 4px;
@@ -84,6 +84,7 @@ body {
 }
 
 @media (max-width: 768px) {
+
   input,
   select,
   textarea {
@@ -106,7 +107,10 @@ input::-ms-clear {
   flex-direction: column;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--heading);
   font-weight: 600;
   color: var(--text-h);
@@ -162,13 +166,16 @@ textarea {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--ms-gray-300);
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ms-gray-400);
 }
@@ -222,6 +229,7 @@ textarea {
   from {
     opacity: 0.9;
   }
+
   to {
     opacity: 1;
   }
@@ -268,6 +276,6 @@ table tbody tr {
 .crop-card,
 .season-card {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }

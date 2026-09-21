@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -15,6 +15,7 @@ import {
 } from '../../services/api';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import UserAvatar, { getAvatarUrl } from '../../components/UserAvatar';
 import {
     IconUser,
     IconWarehouse,
@@ -30,6 +31,11 @@ import {
     IconLock,
     IconUnlock,
     IconLogOut,
+    IconCamera,
+    IconUpload,
+    IconMail,
+    IconShield,
+    IconRuler,
 } from '../../components/icons';
 import './AccountPage.css';
 
@@ -47,11 +53,90 @@ function ProfileTab({ currentUser, onUpdate }) {
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
 
+    // Quản lý ảnh đại diện
+    const [avatarUrl, setAvatarUrl] = useState(currentUser?.avatarUrl || '');
+    const [previewUrl, setPreviewUrl] = useState('');
+    const [avatarLoading, setAvatarLoading] = useState(false);
+    const [avatarMsg, setAvatarMsg] = useState({ type: '', text: '' });
+    const fileInputRef = useRef(null);
+
     useEffect(() => {
         if (currentUser) {
             setForm({ fullName: currentUser.fullName || '', phone: currentUser.phone || '' });
+            setAvatarUrl(currentUser.avatarUrl || '');
         }
     }, [currentUser]);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            setAvatarMsg({ type: 'error', text: 'Vui lòng chọn tệp hình ảnh hợp lệ (PNG, JPG, WebP)' });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const maxDim = 320;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                    if (width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    }
+                } else {
+                    if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                setPreviewUrl(compressedDataUrl);
+                setAvatarMsg({ type: 'info', text: 'Đã tải ảnh lên để xem trước. Nhấn "Lưu ảnh này" để hoàn tất.' });
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSaveAvatar = async (urlToSave) => {
+        setAvatarLoading(true);
+        setAvatarMsg({ type: '', text: '' });
+        try {
+            const updated = await apiUpdateMe({ avatarUrl: urlToSave });
+            setAvatarUrl(urlToSave);
+            setPreviewUrl('');
+            onUpdate(updated);
+            setAvatarMsg({ type: 'success', text: 'Đã cập nhật ảnh đại diện thành công!' });
+        } catch (err) {
+            setAvatarMsg({ type: 'error', text: err.response?.data?.message || 'Lỗi khi lưu ảnh đại diện' });
+        } finally {
+            setAvatarLoading(false);
+        }
+    };
+
+    const handleUseEmailAvatar = () => {
+        if (!currentUser?.email) return;
+        const cleanEmail = encodeURIComponent(currentUser.email.trim().toLowerCase());
+        const cleanName = encodeURIComponent(currentUser.fullName || 'User');
+        const emailAvatar = `https://unavatar.io/${cleanEmail}?fallback=https%3A%2F%2Fui-avatars.com%2Fapi%2F%3Fname%3D${cleanName}%26background%3D107C10%26color%3Dfff%26bold%3Dtrue`;
+        setPreviewUrl(emailAvatar);
+        setAvatarMsg({ type: 'info', text: 'Đang xem trước ảnh từ Email. Hãy nhấn "Lưu ảnh này" để lưu.' });
+    };
+
+    const handleRemoveAvatar = async () => {
+        if (window.confirm('Bạn có chắc muốn xóa ảnh đại diện và dùng lại ký tự mặc định?')) {
+            await handleSaveAvatar('');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -61,7 +146,7 @@ function ProfileTab({ currentUser, onUpdate }) {
         try {
             const updated = await apiUpdateMe(form);
             onUpdate(updated);
-            setSuccess('Cập nhật thành công!');
+            setSuccess('Cập nhật thông tin thành công!');
         } catch (err) {
             setError(err.response?.data?.message || 'Lỗi cập nhật');
         } finally {
@@ -82,84 +167,250 @@ function ProfileTab({ currentUser, onUpdate }) {
 
     return (
         <div className="tab-content">
-            <div className="profile-card">
-                <div className="profile-avatar">
-                    {currentUser.fullName?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-                <div className="profile-meta">
-                    <h2>{currentUser.fullName}</h2>
-                    <span className={`role-badge role-${currentUser.role?.toLowerCase()}`}>
-                        {roleLabel[currentUser.role] || currentUser.role}
-                    </span>
-                    <p className="profile-email">{currentUser.email}</p>
-                    {currentUser.lastLoginAt && (
-                        <p className="profile-last-login">
-                            Đăng nhập lần cuối: {new Date(currentUser.lastLoginAt).toLocaleString('vi-VN')}
-                        </p>
-                    )}
+            {/* 1. Hero Banner matching design in image */}
+            <div className="farms-hero-banner">
+                <div className="farms-hero-text">
+                    <div className="farms-pill-tag">
+                        <IconShield size={14} strokeWidth={2.2} />
+                        <span>QUẢN LÝ TÀI KHOẢN & HỒ SƠ NÔNG HỘ</span>
+                    </div>
+                    <h1>Hồ Sơ Nông Hộ & Tài Khoản Canh Tác</h1>
+                    <p className="farms-hero-desc">
+                        Quản lý định danh cá nhân nông hộ, cập nhật hình ảnh đại diện và thông tin liên lạc phục vụ nhật ký nông nghiệp và chứng nhận VietGAP.
+                    </p>
+
+                    <div className="farms-quick-stats">
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconUser size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number">{roleLabel[currentUser.role] || currentUser.role}</span>
+                                <span className="stat-label">Vai trò hệ thống</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconCheckCircle size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number">
+                                    {currentUser.isActive !== false ? 'Đang hoạt động' : 'Tạm khóa'}
+                                </span>
+                                <span className="stat-label">Trạng thái tài khoản</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconMail size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number" style={{ fontSize: '0.95rem' }}>
+                                    {currentUser.email ? currentUser.email.split('@')[0] : 'Tài khoản'}
+                                </span>
+                                <span className="stat-label">Định danh Email</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="section-card">
-                <h3>Cập nhật thông tin</h3>
-                <form onSubmit={handleSubmit} className="profile-form">
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label htmlFor="profile-fullname">Họ và tên</label>
-                            <input
-                                id="profile-fullname"
-                                type="text"
-                                value={form.fullName}
-                                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                                className="form-input"
-                                placeholder="Nguyễn Văn A"
-                            />
+            {/* 2. Thẻ hồ sơ nông hộ & form cập nhật */}
+            <div className="farmer-profile-card">
+                {/* Phần Avatar & Tác vụ ảnh đại diện */}
+                <div className="farmer-avatar-section">
+                    <div className="farmer-avatar-wrapper">
+                        <UserAvatar
+                            user={{ ...currentUser, avatarUrl: previewUrl || avatarUrl }}
+                            size={84}
+                            className="farmer-main-avatar"
+                        />
+                        <button
+                            type="button"
+                            className="btn-camera-float"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Chọn ảnh từ máy"
+                        >
+                            <IconCamera size={15} />
+                        </button>
+                    </div>
+
+                    <div className="farmer-meta-info">
+                        <div className="farmer-name-row">
+                            <h2 className="farmer-name">{currentUser.fullName}</h2>
+                            <span className="farms-pill-tag">
+                                {roleLabel[currentUser.role] || currentUser.role}
+                            </span>
                         </div>
-                        <div className="form-group">
-                            <label htmlFor="profile-phone">Số điện thoại</label>
-                            <input
-                                id="profile-phone"
-                                type="tel"
-                                value={form.phone}
-                                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                                className="form-input"
-                                placeholder="0xxxxxxxxx"
-                            />
+                        <p className="farmer-email">{currentUser.email}</p>
+
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleFileChange}
+                        />
+
+                        {/* Nút bấm tác vụ ảnh theo chuẩn hình ảnh */}
+                        <div className="farmer-avatar-actions">
+                            <button
+                                type="button"
+                                className="farms-btn-primary"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <IconUpload size={16} strokeWidth={2.2} />
+                                <span>Tải ảnh lên</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                className="btn-outline-green"
+                                onClick={handleUseEmailAvatar}
+                                disabled={avatarLoading}
+                                title="Đồng bộ ảnh từ tài khoản Google/Gravatar của email này"
+                            >
+                                <IconMail size={16} strokeWidth={2.2} />
+                                <span>Ảnh theo Email</span>
+                            </button>
+
+                            {avatarUrl && (
+                                <button
+                                    type="button"
+                                    className="btn-outline-danger"
+                                    onClick={handleRemoveAvatar}
+                                    disabled={avatarLoading}
+                                    title="Xóa ảnh về chữ cái mặc định"
+                                >
+                                    <IconTrash size={15} />
+                                    <span>Xóa ảnh</span>
+                                </button>
+                            )}
                         </div>
+
+                        {previewUrl && (
+                            <div className="farmer-preview-bar">
+                                <span className="preview-label">Đang xem trước ảnh mới:</span>
+                                <div className="preview-btns-group">
+                                    <button
+                                        type="button"
+                                        className="farms-btn-primary"
+                                        disabled={avatarLoading}
+                                        onClick={() => handleSaveAvatar(previewUrl)}
+                                    >
+                                        <IconCheckCircle size={15} />
+                                        <span>{avatarLoading ? 'Đang lưu...' : 'Lưu ảnh này'}</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn-outline-secondary"
+                                        disabled={avatarLoading}
+                                        onClick={() => setPreviewUrl('')}
+                                    >
+                                        Hủy
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {avatarMsg.text && (
+                            <div className={`farmer-feedback-msg ${avatarMsg.type}`}>
+                                {avatarMsg.type === 'error' ? <IconXCircle size={16} /> : <IconCheckCircle size={16} />}
+                                <span>{avatarMsg.text}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="farmer-divider" />
+
+                {/* Phần thông tin cá nhân & form cập nhật */}
+                <div className="farmer-form-section">
+                    <div className="form-section-header">
+                        <div className="farms-pill-tag">
+                            <IconPenLine size={13} strokeWidth={2.2} />
+                            <span>CẬP NHẬT THÔNG TIN</span>
+                        </div>
+                        <h3 className="section-title">Thông tin tài khoản nông hộ</h3>
                     </div>
 
-                    {success && <div className="feedback-success" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconCheckCircle size={16} /> {success}</div>}
-                    {error && <div className="feedback-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconXCircle size={16} /> {error}</div>}
+                    <form onSubmit={handleSubmit} className="farmer-edit-form">
+                        <div className="form-fields-grid">
+                            <div className="field-group">
+                                <label htmlFor="profile-fullname">Họ và tên nông hộ</label>
+                                <input
+                                    id="profile-fullname"
+                                    type="text"
+                                    value={form.fullName}
+                                    onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                                    className="farmer-input"
+                                    placeholder="Nhập họ và tên..."
+                                    required
+                                />
+                            </div>
 
-                    <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
-                    </button>
-                </form>
-            </div>
+                            <div className="field-group">
+                                <label htmlFor="profile-phone">Số điện thoại liên hệ</label>
+                                <input
+                                    id="profile-phone"
+                                    type="tel"
+                                    value={form.phone}
+                                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                                    className="farmer-input"
+                                    placeholder="Nhập số điện thoại (VD: 0912345678)..."
+                                />
+                            </div>
 
-            <div className="section-card info-only">
-                <h3>Thông tin tài khoản</h3>
-                <dl className="info-list">
-                    <div className="info-item">
-                        <dt>Email</dt>
-                        <dd>{currentUser.email}</dd>
-                    </div>
-                    <div className="info-item">
-                        <dt>Vai trò</dt>
-                        <dd>{roleLabel[currentUser.role] || currentUser.role}</dd>
-                    </div>
-                    <div className="info-item">
-                        <dt>Ngày tạo</dt>
-                        <dd>{currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('vi-VN') : 'Mới tạo'}</dd>
-                    </div>
-                    <div className="info-item">
-                        <dt>Trạng thái</dt>
-                        <dd>
-                            <span className={`status-dot ${currentUser.isActive !== false ? 'active' : 'inactive'}`} />
-                            {currentUser.isActive !== false ? 'Đang hoạt động' : 'Bị vô hiệu hóa'}
-                        </dd>
-                    </div>
-                </dl>
+                            <div className="field-group readonly-group">
+                                <label>Địa chỉ Email (Đăng nhập)</label>
+                                <input
+                                    type="email"
+                                    value={currentUser.email}
+                                    disabled
+                                    className="farmer-input readonly-input"
+                                />
+                            </div>
+
+                            <div className="field-group readonly-group">
+                                <label>Vai trò hệ thống</label>
+                                <input
+                                    type="text"
+                                    value={roleLabel[currentUser.role] || currentUser.role}
+                                    disabled
+                                    className="farmer-input readonly-input"
+                                />
+                            </div>
+                        </div>
+
+                        {currentUser.lastLoginAt && (
+                            <p className="farmer-last-login">
+                                Đăng nhập lần cuối: {new Date(currentUser.lastLoginAt).toLocaleString('vi-VN')}
+                            </p>
+                        )}
+
+                        {success && (
+                            <div className="farmer-alert alert-success">
+                                <IconCheckCircle size={18} />
+                                <span>{success}</span>
+                            </div>
+                        )}
+                        {error && (
+                            <div className="farmer-alert alert-error">
+                                <IconXCircle size={18} />
+                                <span>{error}</span>
+                            </div>
+                        )}
+
+                        <div className="form-submit-row">
+                            <button type="submit" className="farms-btn-primary btn-save-farmer" disabled={loading}>
+                                <IconCheckCircle size={18} strokeWidth={2.4} />
+                                <span>{loading ? 'Đang lưu thông tin...' : 'Lưu Thông Tin Cá Nhân'}</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
@@ -237,13 +488,63 @@ function FarmsTab() {
         }
     };
 
+    const totalAreaAll = farms.reduce((acc, f) => acc + (Number(f.totalArea) || 0), 0);
+    const totalPlotsCount = farms.reduce((acc, f) => acc + (f.plots?.length || 0), 0);
+
     return (
         <div className="tab-content">
-            <div className="tab-header-row">
-                <h2>Nông hộ của tôi</h2>
-                <button className="btn-primary" onClick={openCreate} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                    <IconPlus size={16} /> Thêm nông hộ
-                </button>
+            {/* EXACT Hero Banner from image */}
+            <div className="farms-hero-banner">
+                <div className="farms-hero-text">
+                    <div className="farms-pill-tag">
+                        <IconWarehouse size={15} strokeWidth={2.2} />
+                        <span>QUẢN LÝ NÔNG HỘ & TRANG TRẠI</span>
+                    </div>
+                    <h1>Danh Sách Nông Hộ & Lô Đất Canh Tác</h1>
+                    <p className="farms-hero-desc">
+                        Khai báo các trang trại, phân chia từng lô/vườn chuyên canh (Cà phê, Sầu riêng, Mắc ca) để chuẩn bị
+                        ghi nhật ký công việc, quản lý vật tư và theo dõi hiệu quả kinh tế theo vụ mùa.
+                    </p>
+
+                    <div className="farms-quick-stats">
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconWarehouse size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number">{farms.length}</span>
+                                <span className="stat-label">Trang trại / Nông hộ</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconRuler size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number">{totalAreaAll.toFixed(1)} <small>ha</small></span>
+                                <span className="stat-label">Tổng diện tích canh tác</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-icon-wrap">
+                                <IconSprout size={18} strokeWidth={2} />
+                            </div>
+                            <div>
+                                <span className="stat-number">{totalPlotsCount}</span>
+                                <span className="stat-label">Lô trồng đã tạo</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="farms-hero-actions">
+                    <button className="farms-btn-primary" onClick={openCreate}>
+                        <IconPlus size={18} strokeWidth={2.4} />
+                        <span>Thêm Nông Hộ Mới</span>
+                    </button>
+                </div>
             </div>
 
             {error && <div className="feedback-error" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconXCircle size={16} /> {error}</div>}
@@ -596,9 +897,7 @@ function AccountPage() {
                 <div className="account-layout">
                     <aside className="account-sidebar">
                         <div className="sidebar-user-info">
-                            <div className="sidebar-avatar">
-                                {authUser?.fullName?.charAt(0)?.toUpperCase() || '?'}
-                            </div>
+                            <UserAvatar user={currentUser || authUser} size={44} className="sidebar-avatar" />
                             <div>
                                 <strong>{authUser?.fullName}</strong>
                                 <small>{authUser?.email}</small>
