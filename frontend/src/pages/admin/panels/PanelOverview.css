@@ -1,0 +1,627 @@
+/* ============================================================
+   DalatAgri Admin Portal — PanelOverview Styles (Interactive Charts)
+   ============================================================ */
+
+.overview-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Header Toolbar ── */
+.overview-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.overview-title-group h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.overview-title-group p {
+  font-size: 13px;
+  color: var(--admin-text-muted);
+  margin: 0;
+}
+
+.overview-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.view-tabs {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
+}
+
+.view-tab-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.view-tab-btn:hover {
+  color: #1e293b;
+}
+
+.view-tab-btn.active {
+  background: #ffffff;
+  color: #107C10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #107C10;
+}
+
+/* ── KPI Grid ── */
+.overview-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.overview-kpi-tile {
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.overview-kpi-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.overview-kpi-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3.5px;
+}
+
+.overview-kpi-tile.kpi-green::before { background: #107C10; }
+.overview-kpi-tile.kpi-teal::before { background: #0d9488; }
+.overview-kpi-tile.kpi-yellow::before { background: #eab308; }
+.overview-kpi-tile.kpi-blue::before { background: #2563eb; }
+.overview-kpi-tile.kpi-orange::before { background: #f97316; }
+.overview-kpi-tile.kpi-red::before { background: #ef4444; }
+.overview-kpi-tile.kpi-gray::before { background: #94a3b8; }
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.kpi-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.kpi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.kpi-tile-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.kpi-subtext {
+  font-size: 11.5px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Charts Grid ── */
+.overview-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 20px;
+}
+
+.chart-card {
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease;
+}
+
+.chart-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.chart-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.chart-title-area {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.chart-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-title-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #f0fdf4;
+  color: #107C10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-card-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+.chart-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.chart-badge.success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.chart-badge.info {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.chart-body {
+  position: relative;
+  width: 100%;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Donut Chart Layout & Center Text ── */
+.donut-chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.donut-visual-wrap {
+  position: relative;
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.donut-center-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-center-number {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.donut-center-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+}
+
+.chart-legends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.legend-row-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.18s ease;
+}
+
+.legend-row-item:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  transform: translateX(2px);
+}
+
+.legend-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.legend-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-count {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.legend-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── Custom Recharts Tooltip ── */
+.custom-chart-tooltip {
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.tooltip-title {
+  font-weight: 700;
+  color: #94a3b8;
+  margin-bottom: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.tooltip-val-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooltip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tooltip-label {
+  color: #e2e8f0;
+}
+
+.tooltip-value {
+  font-weight: 800;
+  color: #ffffff;
+  margin-left: auto;
+}
+
+/* ── Status Health Card ── */
+.account-health-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.health-status-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+}
+
+.health-status-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.health-score-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.health-score-desc {
+  font-size: 12px;
+  color: #166534;
+  font-weight: 600;
+}
+
+.health-bars-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.health-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.health-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.health-bar-track {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.health-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.health-bar-fill.active { background: #107C10; }
+.health-bar-fill.pending { background: #f97316; }
+.health-bar-fill.inactive { background: #ef4444; }
+
+/* ── Table Section ── */
+.overview-table-card {
+  background: #ffffff;
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.table-header-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.table-header-group h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Table & Badge Styles ── */
+.panel-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.panel-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.panel-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.panel-table tr:last-child td {
+  border-bottom: none;
+}
+
+.panel-table tr:hover td {
+  background: #f8fafc;
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #334155;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.role-badge.role-admin {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.role-badge.role-owner {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.role-badge.role-worker {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.text-muted {
+  color: #64748b !important;
+}
+
+@media (max-width: 900px) {
+  .overview-charts-grid {
+    grid-template-columns: 1fr;
+  }
+  .donut-chart-container {
+    flex-direction: column;
+  }
+}
+
