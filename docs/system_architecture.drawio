@@ -1,0 +1,134 @@
+<mxfile host="app.diagrams.net" modified="2026-09-22T08:35:00.000Z" agent="Antigravity" version="24.0.0">
+  <diagram id="DalatAgriArchitectureAccurate" name="DalatAgri Architecture (B&amp;W)">
+    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="550" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== CỘT 1: CLIENT ==================== -->
+        <mxCell id="col_client" value="CLIENT (React 19 + PWA Offline-First)" style="swimlane;whiteSpace=wrap;html=1;startSize=32;rounded=1;arcSize=3;collapsible=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="30" y="30" width="240" height="470" as="geometry" />
+        </mxCell>
+
+        <!-- Web App -->
+        <mxCell id="ui_webapp" value="&lt;b&gt;Giao diện Web App&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Quản lý nông hộ, lô đất, nhật ký canh tác)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_client">
+          <mxGeometry x="15" y="50" width="210" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- IndexedDB -->
+        <mxCell id="ui_indexeddb" value="&lt;b&gt;IndexedDB (Dexie.js)&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;Lưu dữ liệu khi mất mạng&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_client">
+          <mxGeometry x="15" y="190" width="210" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Sync Engine -->
+        <mxCell id="ui_sync" value="&lt;b&gt;Sync Engine&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;Đồng bộ 2 chiều khi có mạng&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_client">
+          <mxGeometry x="15" y="345" width="210" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- Mũi tên 2 chiều giữa WebApp và IndexedDB -->
+        <mxCell id="edge_web_db" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;startArrow=classic;endArrow=classic;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="col_client" source="ui_webapp" target="ui_indexeddb">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Mũi tên từ IndexedDB -> Sync Engine -->
+        <mxCell id="edge_db_sync" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="col_client" source="ui_indexeddb" target="ui_sync">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỘT 2: SECURITY GATEWAY ==================== -->
+        <mxCell id="col_gateway" value="SECURITY GATEWAY" style="swimlane;whiteSpace=wrap;html=1;startSize=32;rounded=1;arcSize=3;collapsible=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="305" y="30" width="225" height="470" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sec_card" value="&lt;div style=&quot;text-align: left; padding: 12px; line-height: 2.1;&quot;&gt;&lt;b&gt;• HTTPS &amp;amp; CORS&lt;/b&gt;&lt;br&gt;&lt;b&gt;• JWT Rotation&lt;/b&gt;&lt;br&gt;&lt;b&gt;• Chống Brute-Force&lt;/b&gt;&lt;br&gt;&lt;b&gt;• 2FA (TOTP)&lt;/b&gt;&lt;br&gt;&lt;b&gt;• Cloudflare Turnstile&lt;/b&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_gateway">
+          <mxGeometry x="12" y="50" width="201" height="370" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỘT 3: BACKEND ==================== -->
+        <mxCell id="col_backend" value="BACKEND (NestJS 11)" style="swimlane;whiteSpace=wrap;html=1;startSize=32;rounded=1;arcSize=3;collapsible=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="565" y="30" width="340" height="470" as="geometry" />
+        </mxCell>
+
+        <!-- Controller -->
+        <mxCell id="be_controller" value="&lt;b&gt;Controller + Validation Pipe&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_backend">
+          <mxGeometry x="15" y="50" width="310" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Service Modules -->
+        <mxCell id="be_services" value="&lt;div style=&quot;text-align: left; padding: 4px 10px; line-height: 1.6;&quot;&gt;&lt;b&gt;Service Modules:&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size: 11px;&quot;&gt;• Auth (RBAC) &amp;amp; Users&lt;br&gt;• Farm &amp;amp; Plots (Vườn, lô đất)&lt;br&gt;• Catalog &amp;amp; Crop Cycles (Cây trồng)&lt;br&gt;• Activity &amp;amp; Labor Cost (Nhật ký)&lt;br&gt;• Inventory &amp;amp; Materials (Vật tư)&lt;br&gt;• Sales &amp;amp; Invoicing (Bán hàng)&lt;br&gt;• &lt;b&gt;Sync &amp;amp; Conflict Resolution&lt;/b&gt; (Idempotency)&lt;/span&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_backend">
+          <mxGeometry x="15" y="145" width="310" height="155" as="geometry" />
+        </mxCell>
+
+        <!-- Prisma ORM -->
+        <mxCell id="be_prisma" value="&lt;b&gt;Prisma ORM&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(chống SQL Injection)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#000000;strokeWidth=1.3;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_backend">
+          <mxGeometry x="15" y="350" width="310" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Edges inside Backend -->
+        <mxCell id="edge_c_s" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="col_backend" source="be_controller" target="be_services">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_s_p" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="col_backend" source="be_services" target="be_prisma">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỘT 4: CSDL & HẠ TẦNG ==================== -->
+        <mxCell id="col_infra" value="CSDL &amp; HẠ TẦNG" style="swimlane;whiteSpace=wrap;html=1;startSize=32;rounded=1;arcSize=3;collapsible=0;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;fontStyle=1;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="940" y="30" width="260" height="470" as="geometry" />
+        </mxCell>
+
+        <!-- Docker Compose (Khung nét đứt bao quanh PostgreSQL) -->
+        <mxCell id="infra_docker" value="Docker Compose (Container Host)" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=5 3;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.5;verticalAlign=top;spacingTop=8;fontStyle=1;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_infra">
+          <mxGeometry x="15" y="45" width="230" height="405" as="geometry" />
+        </mxCell>
+
+        <!-- PostgreSQL 15 Cylinder bên trong Docker Compose -->
+        <mxCell id="db_postgres" value="&lt;b&gt;PostgreSQL 15&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;ACID · Soft Delete · Index&lt;br&gt;Port 5432 (Cont) / 5433 (Host)&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=12;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_infra">
+          <mxGeometry x="30" y="85" width="200" height="155" as="geometry" />
+        </mxCell>
+
+        <!-- Docker Volume bên trong Docker Compose -->
+        <mxCell id="db_volume" value="&lt;b&gt;Docker Volume (pgdata)&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10.5px;&quot;&gt;Lưu trữ an toàn, bền bỉ&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="col_infra">
+          <mxGeometry x="30" y="315" width="200" height="85" as="geometry" />
+        </mxCell>
+
+        <!-- Mũi tên đứt nét Postgres -> Docker Volume (Mount data) -->
+        <mxCell id="edge_pg_volume" value="Mount Data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=classic;strokeColor=#000000;strokeWidth=1.4;fontSize=10;fontColor=#000000;" edge="1" parent="col_infra" source="db_postgres" target="db_volume">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CÁC MŨI TÊN KẾT NỐI LIÊN CỘT ==================== -->
+
+        <!-- 1. WebApp -> Gateway -->
+        <mxCell id="conn_web_gw" value="REST API (HTTPS)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=2;fontSize=10;fontColor=#000000;" edge="1" parent="1" source="ui_webapp" target="sec_card">
+          <mxGeometry x="-0.08" y="10" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 2. Sync Engine -> Gateway -->
+        <mxCell id="conn_sync_gw" value="REST API (HTTPS)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=2;fontSize=10;fontColor=#000000;" edge="1" parent="1" source="ui_sync" target="sec_card">
+          <mxGeometry x="-0.08" y="-10" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 3. Gateway -> Controller (Xác thực) -->
+        <mxCell id="conn_gw_be" value="Xác thực" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.15;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#000000;strokeWidth=2.2;fontSize=11;fontColor=#000000;fontStyle=1;" edge="1" parent="1" source="sec_card" target="be_controller">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Prisma -> PostgreSQL (TCP 5432) -->
+        <mxCell id="conn_prisma_db" value="TCP 5432" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.6;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=classic;strokeColor=#000000;strokeWidth=2.2;fontSize=11;fontColor=#000000;fontStyle=1;" edge="1" parent="1" source="be_prisma" target="db_postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

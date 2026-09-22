@@ -1,0 +1,342 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1420 1020" width="100%" height="100%" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Crow's foot (many) marker -->
+    <marker id="crows-foot" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 6 L 0 12 M 10 0 L 10 12" fill="none" stroke="#000000" stroke-width="1.3"/>
+    </marker>
+    <!-- One marker -->
+    <marker id="one-bar" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 2 0 L 2 10 M 6 0 L 6 10" fill="none" stroke="#000000" stroke-width="1.3"/>
+    </marker>
+  </defs>
+
+  <text x="710" y="32" text-anchor="middle" font-size="15" font-weight="bold" fill="#000000">SƠ ĐỒ CƠ SỞ DỮ LIỆU VẬT LÝ DALATAGRI (PHYSICAL ERD - CROW'S FOOT NOTATION)</text>
+
+  <!-- ==================== CỤM 1: TÀI KHOẢN & NÔNG HỘ ==================== -->
+  <!-- User -->
+  <g id="tbl_user" transform="translate(40, 50)">
+    <rect x="0" y="0" width="220" height="175" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">User (Người dùng / Chủ hộ)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000" line-height="1.5">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16">U   email: VARCHAR</text>
+      <text x="0" y="32">     phone: VARCHAR?</text>
+      <text x="0" y="48">     passwordHash: VARCHAR</text>
+      <text x="0" y="64">     fullName: VARCHAR</text>
+      <text x="0" y="80">     role: UserRole (OWNER...)</text>
+      <text x="0" y="96">     approvalStatus: VARCHAR</text>
+      <text x="0" y="112">     failedLoginAttempts: INT</text>
+      <text x="0" y="128">     lockedUntil: TIMESTAMP?</text>
+    </g>
+  </g>
+
+  <!-- RefreshToken -->
+  <g id="tbl_token" transform="translate(40, 270)">
+    <rect x="0" y="0" width="220" height="125" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">RefreshToken (Phiên Token)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK userId: UUID</text>
+      <text x="0" y="32">U   token: VARCHAR</text>
+      <text x="0" y="48">     deviceInfo: VARCHAR?</text>
+      <text x="0" y="64">     expiresAt: TIMESTAMP</text>
+      <text x="0" y="80">     revoked: BOOLEAN</text>
+    </g>
+  </g>
+
+  <!-- Farm -->
+  <g id="tbl_farm" transform="translate(310, 50)">
+    <rect x="0" y="0" width="215" height="145" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Farm (Nông trại / Vườn)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK userId: UUID (Chủ sở hữu)</text>
+      <text x="0" y="32">     name: VARCHAR</text>
+      <text x="0" y="48">     location: VARCHAR</text>
+      <text x="0" y="64">     totalArea: FLOAT (m2 / ha)</text>
+      <text x="0" y="80">     deletedAt: TIMESTAMP?</text>
+    </g>
+  </g>
+
+  <!-- FarmMember -->
+  <g id="tbl_member" transform="translate(310, 255)">
+    <rect x="0" y="0" width="215" height="140" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">FarmMember (Thành viên / Thợ)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID</text>
+      <text x="0" y="32" font-weight="bold">FK userId: UUID</text>
+      <text x="0" y="48">     role: VARCHAR (WORKER...)</text>
+      <text x="0" y="64">     canEditLog: BOOLEAN</text>
+      <text x="0" y="80">     canManageInventory: BOOLEAN</text>
+    </g>
+  </g>
+
+
+  <!-- ==================== CỤM 2: CÂY TRỒNG & CHU KỲ SINH TRƯỞNG ==================== -->
+  <!-- Crop -->
+  <g id="tbl_crop" transform="translate(580, 50)">
+    <rect x="0" y="0" width="210" height="115" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="210" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="105" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Crop (Giống cây dài ngày)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16">     name: VARCHAR (Cà phê...)</text>
+      <text x="0" y="32">     type: VARCHAR</text>
+      <text x="0" y="48">     deletedAt: TIMESTAMP?</text>
+    </g>
+  </g>
+
+  <!-- GrowthCycle -->
+  <g id="tbl_growthcycle" transform="translate(845, 50)">
+    <rect x="0" y="0" width="220" height="145" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">GrowthCycle (Chu kỳ sinh trưởng)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK cropId: UUID</text>
+      <text x="0" y="32">     name: VARCHAR (KTCB...)</text>
+      <text x="0" y="48">     totalDurationDays: INT?</text>
+      <text x="0" y="64">     yearsToFlower: FLOAT?</text>
+      <text x="0" y="80">     yearsToHarvest: FLOAT?</text>
+    </g>
+  </g>
+
+  <!-- GrowthStage -->
+  <g id="tbl_stage" transform="translate(1120, 50)">
+    <rect x="0" y="0" width="225" height="135" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="225" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="112" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">GrowthStage (Giai đoạn)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK growthCycleId: UUID</text>
+      <text x="0" y="32">     name: VARCHAR (Ra hoa...)</text>
+      <text x="0" y="48">     sequence: INT</text>
+      <text x="0" y="64">     durationDays: INT</text>
+    </g>
+  </g>
+
+
+  <!-- ==================== CỤM 3: LÔ ĐẤT, MÙA VỤ & NHẬT KÝ ==================== -->
+  <!-- Plot -->
+  <g id="tbl_plot" transform="translate(310, 435)">
+    <rect x="0" y="0" width="215" height="120" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Plot (Thửa / Lô đất)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID</text>
+      <text x="0" y="32">     name: VARCHAR (Lô 1...)</text>
+      <text x="0" y="48">     area: FLOAT</text>
+      <text x="0" y="64">     deletedAt: TIMESTAMP?</text>
+    </g>
+  </g>
+
+  <!-- CropCycle -->
+  <g id="tbl_cropcycle" transform="translate(580, 415)">
+    <rect x="0" y="0" width="220" height="175" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">CropCycle (Vụ mùa canh tác)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK plotId: UUID</text>
+      <text x="0" y="32" font-weight="bold">FK cropId: UUID</text>
+      <text x="0" y="48" font-weight="bold">FK growthCycleId: UUID?</text>
+      <text x="0" y="64">     name: VARCHAR</text>
+      <text x="0" y="80">     startDate: TIMESTAMP</text>
+      <text x="0" y="96">     status: VARCHAR (ACTIVE...)</text>
+      <text x="0" y="112">     totalYield: FLOAT? (Sản lượng)</text>
+    </g>
+  </g>
+
+  <!-- ActivityType -->
+  <g id="tbl_acttype" transform="translate(580, 630)">
+    <rect x="0" y="0" width="220" height="135" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">ActivityType (Loại hoạt động)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID? (null=global)</text>
+      <text x="0" y="32">     code: VARCHAR (BON_PHAN...)</text>
+      <text x="0" y="48">     name: VARCHAR</text>
+      <text x="0" y="64">     isSystem: BOOLEAN</text>
+    </g>
+  </g>
+
+  <!-- ActivityLog -->
+  <g id="tbl_activitylog" transform="translate(850, 415)">
+    <rect x="0" y="0" width="230" height="205" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="230" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="115" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">ActivityLog (Nhật ký canh tác)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK cropCycleId: UUID</text>
+      <text x="0" y="32">     activityType: VARCHAR</text>
+      <text x="0" y="48">     activityDate: TIMESTAMP</text>
+      <text x="0" y="64">     syncStatus: VARCHAR (SYNCED...)</text>
+      <text x="0" y="80">     isHiredLabor: BOOLEAN</text>
+      <text x="0" y="96">     laborCost: FLOAT? (Tiền công)</text>
+      <text x="0" y="112">     cost: FLOAT? (Tổng chi phí)</text>
+      <text x="0" y="128">     revenue: FLOAT? (Doanh thu)</text>
+    </g>
+  </g>
+
+
+  <!-- ==================== CỤM 4: VẬT TƯ & KHO HÀNG ==================== -->
+  <!-- Material -->
+  <g id="tbl_material" transform="translate(1135, 415)">
+    <rect x="0" y="0" width="215" height="135" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Material (Danh mục vật tư)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16">     name: VARCHAR (NPK...)</text>
+      <text x="0" y="32">     type: VARCHAR (PHAN_BON...)</text>
+      <text x="0" y="48">     unit: VARCHAR (kg, bao, lít)</text>
+      <text x="0" y="64">     defaultPrice: FLOAT</text>
+    </g>
+  </g>
+
+  <!-- ActivityMaterial -->
+  <g id="tbl_actmat" transform="translate(1135, 595)">
+    <rect x="0" y="0" width="215" height="125" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">ActivityMaterial (Vật tư dùng)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK activityLogId: UUID</text>
+      <text x="0" y="32" font-weight="bold">FK materialId: UUID</text>
+      <text x="0" y="48">     quantityUsed: FLOAT</text>
+      <text x="0" y="64">     cost: FLOAT (Thành tiền)</text>
+    </g>
+  </g>
+
+  <!-- Inventory -->
+  <g id="tbl_inventory" transform="translate(850, 245)">
+    <rect x="0" y="0" width="220" height="130" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Inventory (Tồn kho vật tư)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID</text>
+      <text x="0" y="32" font-weight="bold">FK materialId: UUID</text>
+      <text x="0" y="48">     quantity: FLOAT (Tồn kho)</text>
+      <text x="0" y="64">     totalCost: FLOAT</text>
+    </g>
+  </g>
+
+
+  <!-- ==================== CỤM 5: NÔNG SẢN & HÓA ĐƠN BÁN HÀNG ==================== -->
+  <!-- Product -->
+  <g id="tbl_product" transform="translate(310, 620)">
+    <rect x="0" y="0" width="215" height="145" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="215" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="107" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Product (Nông sản bán ra)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID</text>
+      <text x="0" y="32">     name: VARCHAR (Cà phê nhân)</text>
+      <text x="0" y="48">     unit: VARCHAR (kg, tấn, bao)</text>
+      <text x="0" y="64">     price: FLOAT (Đơn giá)</text>
+      <text x="0" y="80">     stockQuantity: FLOAT</text>
+    </g>
+  </g>
+
+  <!-- Invoice -->
+  <g id="tbl_invoice" transform="translate(40, 620)">
+    <rect x="0" y="0" width="220" height="155" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Invoice (Hóa đơn bán hàng)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK farmId: UUID</text>
+      <text x="0" y="32">U   invoiceNumber: VARCHAR</text>
+      <text x="0" y="48">     customerName: VARCHAR?</text>
+      <text x="0" y="64">     totalAmount: FLOAT</text>
+      <text x="0" y="80">     finalAmount: FLOAT</text>
+      <text x="0" y="96">     status: VARCHAR (COMPLETED)</text>
+    </g>
+  </g>
+
+  <!-- InvoiceItem -->
+  <g id="tbl_invitem" transform="translate(175, 825)">
+    <rect x="0" y="0" width="220" height="135" rx="3" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <rect x="0" y="0" width="220" height="26" rx="3" fill="#f4f4f4" stroke="#000000" stroke-width="1.5"/>
+    <text x="110" y="18" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">InvoiceItem (Chi tiết hóa đơn)</text>
+    <g transform="translate(10, 42)" font-size="10.5" fill="#000000">
+      <text x="0" y="0" font-weight="bold">PK id: UUID</text>
+      <text x="0" y="16" font-weight="bold">FK invoiceId: UUID</text>
+      <text x="0" y="32" font-weight="bold">FK productId: UUID</text>
+      <text x="0" y="48">     productName: VARCHAR</text>
+      <text x="0" y="64">     quantity: FLOAT</text>
+      <text x="0" y="80">     subtotal: FLOAT</text>
+    </g>
+  </g>
+
+
+  <!-- ==================== CROW'S FOOT CONNECTIONS (ORTHOGONAL) ==================== -->
+  
+  <!-- 1. User -> RefreshToken -->
+  <path d="M 150 225 L 150 270" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 2. User -> Farm -->
+  <path d="M 260 120 L 310 120" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 3. Farm -> FarmMember -->
+  <path d="M 417 195 L 417 255" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 4. User -> FarmMember -->
+  <path d="M 260 190 H 290 V 320 H 310" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 5. Farm -> Plot -->
+  <path d="M 330 195 V 435" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 6. Crop -> GrowthCycle -->
+  <path d="M 790 105 L 845 105" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 7. GrowthCycle -> GrowthStage -->
+  <path d="M 1065 105 L 1120 105" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 8. Plot -> CropCycle -->
+  <path d="M 525 490 L 580 490" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 9. Crop -> CropCycle -->
+  <path d="M 685 165 L 685 415" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 10. GrowthCycle -> CropCycle -->
+  <path d="M 870 195 V 390 H 770 V 415" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 11. CropCycle -> ActivityLog -->
+  <path d="M 800 500 L 850 500" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 12. Farm -> ActivityType -->
+  <path d="M 500 195 V 240 H 555 V 690 H 580" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 13. ActivityLog -> ActivityMaterial -->
+  <path d="M 1080 560 H 1110 V 650 H 1135" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 14. Material -> ActivityMaterial -->
+  <path d="M 1242 550 L 1242 595" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 15. Farm -> Inventory -->
+  <path d="M 525 150 H 750 V 300 H 850" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 16. Material -> Inventory -->
+  <path d="M 1150 430 V 310 H 1070" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 17. Farm -> Product -->
+  <path d="M 310 140 H 295 V 655 H 310" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 18. Farm -> Invoice -->
+  <path d="M 310 160 H 280 V 580 H 150 V 620" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 19. Invoice -> InvoiceItem -->
+  <path d="M 150 775 V 890 H 175" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+
+  <!-- 20. Product -> InvoiceItem -->
+  <path d="M 417 765 V 890 H 395" fill="none" stroke="#000000" stroke-width="1.4" marker-start="url(#one-bar)" marker-end="url(#crows-foot)"/>
+</svg>

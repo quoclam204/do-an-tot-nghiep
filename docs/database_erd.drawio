@@ -1,0 +1,288 @@
+<mxfile host="app.diagrams.net" modified="2026-09-22T09:05:00.000Z" agent="Antigravity" version="24.0.0">
+  <diagram id="DalatAgriDatabaseERD" name="DalatAgri Physical ERD (Crow's Foot)">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="1020" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== CỤM 1: TÀI KHOẢN & NÔNG HỘ ==================== -->
+        <!-- User -->
+        <mxCell id="tbl_user" value="User (Người dùng / Chủ hộ)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="50" width="210" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_user" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;U&lt;/b&gt;&amp;nbsp; email: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; phone: VARCHAR?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; passwordHash: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; fullName: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; role: UserRole (OWNER/ADMIN/WORKER)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; approvalStatus: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; failedLoginAttempts: INT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; lockedUntil: TIMESTAMP?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_user">
+          <mxGeometry y="26" width="210" height="149" as="geometry" />
+        </mxCell>
+
+        <!-- RefreshToken -->
+        <mxCell id="tbl_refreshtoken" value="RefreshToken (Phiên Token)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="275" width="210" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_refreshtoken" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK userId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;U&lt;/b&gt;&amp;nbsp; token: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; deviceInfo: VARCHAR?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; expiresAt: TIMESTAMP&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; revoked: BOOLEAN&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_refreshtoken">
+          <mxGeometry y="26" width="210" height="99" as="geometry" />
+        </mxCell>
+
+        <!-- Farm -->
+        <mxCell id="tbl_farm" value="Farm (Nông trại / Vườn)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="50" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_farm" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK userId&lt;/b&gt;: UUID (Chủ sở hữu)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; location: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; totalArea: FLOAT (m2 / ha)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; deletedAt: TIMESTAMP?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_farm">
+          <mxGeometry y="26" width="210" height="119" as="geometry" />
+        </mxCell>
+
+        <!-- FarmMember -->
+        <mxCell id="tbl_member" value="FarmMember (Nhân công / Quản lý)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="260" width="210" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_member" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK userId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; role: VARCHAR (WORKER/MANAGER)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; canEditLog: BOOLEAN&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; canManageInventory: BOOLEAN&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_member">
+          <mxGeometry y="26" width="210" height="114" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỤM 2: CÂY TRỒNG & CHU KỲ SINH TRƯỞNG ==================== -->
+        <!-- Crop -->
+        <mxCell id="tbl_crop" value="Crop (Giống cây lâu năm)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="600" y="50" width="200" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_crop" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (Cà phê, Sầu riêng...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; type: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; deletedAt: TIMESTAMP?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_crop">
+          <mxGeometry y="26" width="200" height="89" as="geometry" />
+        </mxCell>
+
+        <!-- GrowthCycle -->
+        <mxCell id="tbl_growthcycle" value="GrowthCycle (Chu kỳ sinh trưởng)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="860" y="50" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_growthcycle" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK cropId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (KTCB / Kinh doanh)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; totalDurationDays: INT?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; yearsToFlower: FLOAT?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; yearsToHarvest: FLOAT?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_growthcycle">
+          <mxGeometry y="26" width="210" height="119" as="geometry" />
+        </mxCell>
+
+        <!-- GrowthStage -->
+        <mxCell id="tbl_stage" value="GrowthStage (Giai đoạn phát triển)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="50" width="220" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_stage" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK growthCycleId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (Ra hoa / Đậu trái...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; sequence: INT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; durationDays: INT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; suggestedActivities: VARCHAR?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_stage">
+          <mxGeometry y="26" width="220" height="109" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỤM 3: LÔ ĐẤT, MÙA VỤ & NHẬT KÝ CANH TÁC ==================== -->
+        <!-- Plot -->
+        <mxCell id="tbl_plot" value="Plot (Thửa / Lô đất)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="440" width="210" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_plot" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (Lô 1, Lô A...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; area: FLOAT (Diện tích)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; deletedAt: TIMESTAMP?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_plot">
+          <mxGeometry y="26" width="210" height="94" as="geometry" />
+        </mxCell>
+
+        <!-- CropCycle -->
+        <mxCell id="tbl_cropcycle" value="CropCycle (Vụ mùa canh tác)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="595" y="420" width="220" height="175" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_cropcycle" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK plotId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK cropId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK growthCycleId&lt;/b&gt;: UUID?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; startDate: TIMESTAMP&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; expectedEndDate: TIMESTAMP&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; status: VARCHAR (PLANNING/ACTIVE...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; totalYield: FLOAT? (Sản lượng thu)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_cropcycle">
+          <mxGeometry y="26" width="220" height="149" as="geometry" />
+        </mxCell>
+
+        <!-- ActivityType -->
+        <mxCell id="tbl_acttype" value="ActivityType (Loại hoạt động)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="595" y="640" width="220" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_acttype" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID? (null=global)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; code: VARCHAR (BON_PHAN, XIT...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; icon: VARCHAR?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; isSystem: BOOLEAN&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_acttype">
+          <mxGeometry y="26" width="220" height="109" as="geometry" />
+        </mxCell>
+
+        <!-- ActivityLog -->
+        <mxCell id="tbl_activitylog" value="ActivityLog (Nhật ký canh tác)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="870" y="420" width="225" height="205" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_activitylog" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK cropCycleId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; activityType: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; activityDate: TIMESTAMP&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; syncStatus: VARCHAR (SYNCED...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; isHiredLabor: BOOLEAN&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; laborWorkers: INT?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; laborCost: FLOAT? (Tiền công)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; cost: FLOAT? (Tổng chi phí)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; harvestQuantity: FLOAT?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; revenue: FLOAT? (Doanh thu)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_activitylog">
+          <mxGeometry y="26" width="225" height="179" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỤM 4: VẬT TƯ & KHO HÀNG ==================== -->
+        <!-- Material -->
+        <mxCell id="tbl_material" value="Material (Danh mục vật tư)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="420" width="210" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_material" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (NPK, Trichoderma)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; type: VARCHAR (PHAN_BON/THUOC)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; unit: VARCHAR (kg, bao, lít)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; defaultPrice: FLOAT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; deletedAt: TIMESTAMP?&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_material">
+          <mxGeometry y="26" width="210" height="109" as="geometry" />
+        </mxCell>
+
+        <!-- ActivityMaterial -->
+        <mxCell id="tbl_actmat" value="ActivityMaterial (Vật tư ca làm)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="1150" y="605" width="210" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_actmat" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK activityLogId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK materialId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; quantityUsed: FLOAT (Lượng dùng)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; cost: FLOAT (Thành tiền)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_actmat">
+          <mxGeometry y="26" width="210" height="104" as="geometry" />
+        </mxCell>
+
+        <!-- Inventory -->
+        <mxCell id="tbl_inventory" value="Inventory (Tồn kho vật tư)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="870" y="250" width="210" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_inventory" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK materialId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; quantity: FLOAT (Số lượng tồn)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; totalCost: FLOAT&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_inventory">
+          <mxGeometry y="26" width="210" height="104" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CỤM 5: NÔNG SẢN & HÓA ĐƠN BÁN HÀNG ==================== -->
+        <!-- Product -->
+        <mxCell id="tbl_product" value="Product (Nông sản thu hoạch)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="320" y="630" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_product" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; name: VARCHAR (Cà phê nhân...)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; unit: VARCHAR (kg, tấn, bao)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; price: FLOAT (Đơn giá bán)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; stockQuantity: FLOAT&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_product">
+          <mxGeometry y="26" width="210" height="119" as="geometry" />
+        </mxCell>
+
+        <!-- Invoice -->
+        <mxCell id="tbl_invoice" value="Invoice (Hóa đơn bán hàng)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="50" y="630" width="210" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_invoice" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK farmId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;U&lt;/b&gt;&amp;nbsp; invoiceNumber: VARCHAR&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; customerName: VARCHAR?&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; totalAmount: FLOAT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; finalAmount: FLOAT (Sau giảm)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; status: VARCHAR (COMPLETED...)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_invoice">
+          <mxGeometry y="26" width="210" height="129" as="geometry" />
+        </mxCell>
+
+        <!-- InvoiceItem -->
+        <mxCell id="tbl_invitem" value="InvoiceItem (Chi tiết hóa đơn)" style="swimlane;fontStyle=1;align=center;verticalAlign=top;startSize=26;collapsible=0;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="185" y="835" width="210" height="135" as="geometry" />
+        </mxCell>
+        <mxCell id="fld_invitem" value="&lt;div style=&quot;text-align: left; padding: 4px 6px; font-size: 10.5px; line-height: 1.6;&quot;&gt;&lt;b&gt;PK id&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK invoiceId&lt;/b&gt;: UUID&lt;br&gt;&lt;b&gt;FK productId&lt;/b&gt;: UUID&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; productName: VARCHAR (Snapshot)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; quantity: FLOAT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; unitPrice: FLOAT&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp; subtotal: FLOAT&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;spacingTop=0;spacingLeft=0;" vertex="1" parent="tbl_invitem">
+          <mxGeometry y="26" width="210" height="109" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== CÁC ĐƯỜNG QUAN HỆ (CROW'S FOOT RELATIONSHIPS) ==================== -->
+        
+        <!-- 1. User (1) -> RefreshToken (N) -->
+        <mxCell id="rel_u_token" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_user" target="tbl_refreshtoken">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. User (1) -> Farm (N) -->
+        <mxCell id="rel_u_farm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_user" target="tbl_farm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Farm (1) -> FarmMember (N) -->
+        <mxCell id="rel_f_mem" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. User (1) -> FarmMember (N) -->
+        <mxCell id="rel_u_mem" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_user" target="tbl_member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Farm (1) -> Plot (N) -->
+        <mxCell id="rel_f_plot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_plot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="362" y="230" />
+              <mxPoint x="300" y="230" />
+              <mxPoint x="300" y="420" />
+              <mxPoint x="362" y="420" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 6. Crop (1) -> GrowthCycle (N) -->
+        <mxCell id="rel_c_cycle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_crop" target="tbl_growthcycle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 7. GrowthCycle (1) -> GrowthStage (N) -->
+        <mxCell id="rel_gc_stage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_growthcycle" target="tbl_stage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 8. Plot (1) -> CropCycle (N) -->
+        <mxCell id="rel_p_cc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_plot" target="tbl_cropcycle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 9. Crop (1) -> CropCycle (N) -->
+        <mxCell id="rel_c_cc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_crop" target="tbl_cropcycle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 10. GrowthCycle (1) -> CropCycle (N) -->
+        <mxCell id="rel_gc_cc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_growthcycle" target="tbl_cropcycle">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 11. CropCycle (1) -> ActivityLog (N) -->
+        <mxCell id="rel_cc_act" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_cropcycle" target="tbl_activitylog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 12. Farm (1) -> ActivityType (N) -->
+        <mxCell id="rel_f_acttype" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_acttype">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="488" y="230" />
+              <mxPoint x="550" y="230" />
+              <mxPoint x="550" y="708" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 13. ActivityLog (1) -> ActivityMaterial (N) -->
+        <mxCell id="rel_act_mat" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_activitylog" target="tbl_actmat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 14. Material (1) -> ActivityMaterial (N) -->
+        <mxCell id="rel_mat_actmat" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_material" target="tbl_actmat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 15. Farm (1) -> Inventory (N) -->
+        <mxCell id="rel_f_inv" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_inventory">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="750" y="166" />
+              <mxPoint x="750" y="315" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 16. Material (1) -> Inventory (N) -->
+        <mxCell id="rel_mat_inv" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.2;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_material" target="tbl_inventory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 17. Farm (1) -> Product (N) -->
+        <mxCell id="rel_f_prod" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.6;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_product">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="295" y="137" />
+              <mxPoint x="295" y="666" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 18. Farm (1) -> Invoice (N) -->
+        <mxCell id="rel_f_invoice" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_farm" target="tbl_invoice">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="280" y="166" />
+              <mxPoint x="280" y="580" />
+              <mxPoint x="155" y="580" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 19. Invoice (1) -> InvoiceItem (N) -->
+        <mxCell id="rel_inv_item" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_invoice" target="tbl_invitem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 20. Product (1) -> InvoiceItem (N) -->
+        <mxCell id="rel_prod_item" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;startArrow=ERone;endArrow=ERmany;strokeColor=#000000;strokeWidth=1.3;" edge="1" parent="1" source="tbl_product" target="tbl_invitem">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

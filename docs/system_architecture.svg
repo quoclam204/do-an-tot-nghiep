@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1220 540" width="100%" height="100%" style="background:#ffffff; font-family:Helvetica, Arial, sans-serif;">
+  <defs>
+    <marker id="arrow-black" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+    </marker>
+  </defs>
+
+  <!-- ==================== CỘT 1: CLIENT ==================== -->
+  <g id="col_client">
+    <!-- Outer Container -->
+    <rect x="25" y="25" width="245" height="485" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <rect x="25" y="25" width="245" height="34" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <text x="147" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">CLIENT (React 19 + PWA Offline-First)</text>
+
+    <!-- Web App -->
+    <rect x="42" y="78" width="211" height="75" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="147" y="108" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">Giao diện Web App</text>
+    <text x="147" y="128" text-anchor="middle" font-size="11" fill="#000000">(Quản lý nông hộ, lô đất, nhật ký canh tác)</text>
+
+    <!-- IndexedDB Cylinder -->
+    <path d="M 42 215 A 105 16 0 0 0 253 215 V 275 A 105 16 0 0 1 42 275 Z" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <ellipse cx="147" cy="215" rx="105" ry="16" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="147" y="246" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">IndexedDB (Dexie.js)</text>
+    <text x="147" y="266" text-anchor="middle" font-size="11" fill="#000000">Lưu dữ liệu khi mất mạng</text>
+
+    <!-- Sync Engine -->
+    <rect x="42" y="375" width="211" height="75" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="147" y="408" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">Sync Engine</text>
+    <text x="147" y="428" text-anchor="middle" font-size="11" fill="#000000">Đồng bộ 2 chiều khi có mạng</text>
+
+    <!-- Mũi tên 2 chiều WebApp <-> IndexedDB -->
+    <line x1="147" y1="153" x2="147" y2="198" stroke="#000000" stroke-width="1.6" marker-end="url(#arrow-black)"/>
+    <line x1="147" y1="198" x2="147" y2="155" stroke="#000000" stroke-width="1.6" marker-end="url(#arrow-black)"/>
+
+    <!-- Mũi tên IndexedDB -> Sync Engine -->
+    <line x1="147" y1="293" x2="147" y2="373" stroke="#000000" stroke-width="1.6" marker-end="url(#arrow-black)"/>
+  </g>
+
+  <!-- ==================== CỘT 2: SECURITY GATEWAY ==================== -->
+  <g id="col_gateway">
+    <rect x="300" y="25" width="225" height="485" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <rect x="300" y="25" width="225" height="34" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <text x="412" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">SECURITY GATEWAY</text>
+
+    <rect x="315" y="78" width="195" height="372" rx="14" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <g transform="translate(332, 130)" font-size="12.5" font-weight="bold" fill="#000000">
+      <text x="0" y="0">• HTTPS &amp; CORS</text>
+      <text x="0" y="45">• JWT Rotation</text>
+      <text x="0" y="90">• Chống Brute-Force</text>
+      <text x="0" y="135">• 2FA (TOTP)</text>
+      <text x="0" y="180">• Cloudflare Turnstile</text>
+    </g>
+  </g>
+
+  <!-- ==================== CỘT 3: BACKEND ==================== -->
+  <g id="col_backend">
+    <rect x="555" y="25" width="345" height="485" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <rect x="555" y="25" width="345" height="34" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <text x="727" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">BACKEND (NestJS 11)</text>
+
+    <!-- Controller -->
+    <rect x="572" y="78" width="311" height="52" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="727" y="110" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">Controller + Validation Pipe</text>
+
+    <!-- Mũi tên Controller -> Services -->
+    <line x1="727" y1="130" x2="727" y2="168" stroke="#000000" stroke-width="1.6" marker-end="url(#arrow-black)"/>
+
+    <!-- Service Modules -->
+    <rect x="572" y="170" width="311" height="155" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <g transform="translate(588, 195)" font-size="11.5" fill="#000000">
+      <text x="0" y="0" font-size="12.5" font-weight="bold">Service Modules:</text>
+      <text x="0" y="22">• Auth (RBAC) &amp; Users</text>
+      <text x="0" y="40">• Farm &amp; Plots (Vườn, lô đất)</text>
+      <text x="0" y="58">• Catalog &amp; Crop Cycles (Cây trồng)</text>
+      <text x="0" y="76">• Activity &amp; Labor Cost (Nhật ký canh tác)</text>
+      <text x="0" y="94">• Inventory &amp; Materials (Vật tư nông nghiệp)</text>
+      <text x="0" y="112">• Sales &amp; Invoicing (Bán hàng &amp; Nông sản)</text>
+      <text x="0" y="130" font-weight="bold">• Sync &amp; Conflict Resolution (Idempotency)</text>
+    </g>
+
+    <!-- Mũi tên Services -> Prisma -->
+    <line x1="727" y1="325" x2="727" y2="368" stroke="#000000" stroke-width="1.6" marker-end="url(#arrow-black)"/>
+
+    <!-- Prisma ORM -->
+    <rect x="572" y="370" width="311" height="80" rx="8" fill="#f5f5f5" stroke="#000000" stroke-width="1.4"/>
+    <text x="727" y="405" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#000000">Prisma ORM</text>
+    <text x="727" y="427" text-anchor="middle" font-size="11.5" fill="#000000">(chống SQL Injection)</text>
+  </g>
+
+  <!-- ==================== CỘT 4: CSDL & HẠ TẦNG ==================== -->
+  <g id="col_infra">
+    <rect x="930" y="25" width="265" height="485" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <rect x="930" y="25" width="265" height="34" rx="6" fill="#ffffff" stroke="#000000" stroke-width="1.6"/>
+    <text x="1062" y="47" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">CSDL &amp; HẠ TẦNG</text>
+
+    <!-- Docker Compose Khung nét đứt bao bọc -->
+    <rect x="945" y="75" width="235" height="415" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.6" stroke-dasharray="6 4"/>
+    <text x="1062" y="96" text-anchor="middle" font-size="11.5" font-weight="bold" fill="#000000">Docker Compose (Container Host)</text>
+
+    <!-- PostgreSQL Cylinder -->
+    <path d="M 965 155 A 95 16 0 0 0 1160 155 V 250 A 95 16 0 0 1 965 250 Z" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <ellipse cx="1062" cy="155" rx="95" ry="16" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="1062" y="190" text-anchor="middle" font-size="13" font-weight="bold" fill="#000000">PostgreSQL 15</text>
+    <text x="1062" y="210" text-anchor="middle" font-size="11" fill="#000000">ACID · Soft Delete · Index</text>
+    <text x="1062" y="230" text-anchor="middle" font-size="10.5" fill="#000000">Port 5432 (Cont) / 5433 (Host)</text>
+
+    <!-- Mũi tên đứt nét Postgres -> Docker Volume -->
+    <line x1="1062" y1="268" x2="1062" y2="353" stroke="#000000" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow-black)"/>
+    <text x="1062" y="315" text-anchor="middle" font-size="10" fill="#000000">Mount data</text>
+
+    <!-- Docker Volume (pgdata) -->
+    <rect x="965" y="355" width="195" height="85" rx="8" fill="#ffffff" stroke="#000000" stroke-width="1.4"/>
+    <text x="1062" y="388" text-anchor="middle" font-size="12" font-weight="bold" fill="#000000">Docker Volume (pgdata)</text>
+    <text x="1062" y="410" text-anchor="middle" font-size="10.5" fill="#000000">Lưu trữ an toàn, bền bỉ</text>
+  </g>
+
+  <!-- ==================== CÁC MŨI TÊN KẾT NỐI LIÊN CỘT ==================== -->
+
+  <!-- 1. WebApp -> Gateway -->
+  <path d="M 253 115 H 285 V 165 H 315" fill="none" stroke="#000000" stroke-width="2" marker-end="url(#arrow-black)"/>
+  <text x="282" y="138" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#000000">REST API (HTTPS)</text>
+
+  <!-- 2. Sync Engine -> Gateway -->
+  <path d="M 253 412 H 285 V 360 H 315" fill="none" stroke="#000000" stroke-width="2" marker-end="url(#arrow-black)"/>
+  <text x="282" y="390" text-anchor="middle" font-size="9.5" font-weight="bold" fill="#000000">REST API (HTTPS)</text>
+
+  <!-- 3. Gateway -> Controller (Xác thực) -->
+  <path d="M 510 104 H 570" fill="none" stroke="#000000" stroke-width="2.4" marker-end="url(#arrow-black)"/>
+  <text x="540" y="94" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000">Xác thực</text>
+
+  <!-- 4. Prisma -> PostgreSQL (TCP 5432) -->
+  <path d="M 883 410 H 915 V 205 H 963" fill="none" stroke="#000000" stroke-width="2.2" marker-end="url(#arrow-black)"/>
+  <text x="918" y="300" text-anchor="middle" font-size="11" font-weight="bold" fill="#000000" transform="rotate(-90 918 300)">TCP 5432</text>
+</svg>

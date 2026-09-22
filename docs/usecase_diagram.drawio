@@ -1,0 +1,290 @@
+<mxfile host="app.diagrams.net" modified="2026-09-22T08:50:00.000Z" agent="Antigravity" version="24.0.0">
+  <diagram id="DalatAgriUseCasePerfect" name="DalatAgri Use Case Diagram (Zero-Crossing &amp; System Actor)">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="920" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ==================== SYSTEM BOUNDARY ==================== -->
+        <mxCell id="sys_boundary" value="HỆ THỐNG QUẢN LÝ NÔNG NGHIỆP DALATAGRI" style="shape=rect;whiteSpace=wrap;html=1;verticalAlign=top;fontStyle=1;fontSize=14;fontFamily=Helvetica;fontColor=#000000;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.8;spacingTop=12;" vertex="1" parent="1">
+          <mxGeometry x="190" y="25" width="990" height="865" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== TÁC NHÂN BÊN TRÁI (LEFT ACTORS) ==================== -->
+        <!-- 1. Khách vãng lai -->
+        <mxCell id="actor_guest" value="Khách vãng lai&lt;br&gt;&lt;b&gt;(Guest)&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Helvetica;fontSize=11;fontColor=#000000;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="65" width="35" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Chủ nông hộ -->
+        <mxCell id="actor_owner" value="Chủ nông hộ&lt;br&gt;&lt;b&gt;(OWNER)&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Helvetica;fontSize=11;fontColor=#000000;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="320" width="35" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Nhân công làm vườn -->
+        <mxCell id="actor_worker" value="Nhân công&lt;br&gt;&lt;b&gt;(WORKER)&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Helvetica;fontSize=11;fontColor=#000000;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="45" y="620" width="35" height="70" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== TÁC NHÂN BÊN PHẢI (RIGHT ACTORS) ==================== -->
+        <!-- 4. Quản trị viên hệ thống -->
+        <mxCell id="actor_admin" value="Quản trị viên&lt;br&gt;&lt;b&gt;(ADMIN)&lt;/b&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Helvetica;fontSize=11;fontColor=#000000;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="320" width="35" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Tác nhân phụ: Hệ thống tự động -->
+        <mxCell id="actor_system" value="&amp;laquo;system&amp;raquo;&lt;br&gt;&lt;b&gt;Hệ thống nền&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size:9.5px;color:#444;&quot;&gt;(Network Monitor)&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontFamily=Helvetica;fontSize=11;fontColor=#000000;strokeColor=#000000;strokeWidth=1.5;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="660" width="35" height="70" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== NHÓM 1: XÁC THỰC & BẢO MẬT (y = 55 to 140) ==================== -->
+        <mxCell id="uc_register" value="Đăng ký tài khoản" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="55" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_turnstile" value="Xác thực Turnstile&lt;br&gt;(Anti-Bot Captcha)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="55" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_reg_turn" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_register" target="uc_turnstile">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_login" value="Đăng nhập hệ thống" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="120" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_2fa" value="Xác thực 2 bước (2FA)&lt;br&gt;(TOTP Authenticator)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="120" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_login_2fa" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_2fa" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_forgot" value="Quên / Đặt lại mật khẩu" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="160" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_forgot_login" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_forgot" target="uc_2fa">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== NHÓM 2: ĐẶC QUYỀN CHỦ NÔNG HỘ (OWNER-ONLY) ==================== -->
+        <!-- 1. Nông trại & Lô đất -->
+        <mxCell id="uc_farm" value="Quản lý Nông trại" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="190" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_plot" value="Phân chia Lô đất (Plots)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="190" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_farm_plot" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_farm" target="uc_plot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Vụ mùa cây lâu năm -->
+        <mxCell id="uc_crop" value="Quản lý Vụ mùa canh tác" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="255" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_select_catalog" value="Chọn giống &amp;amp; Chu kỳ mẫu&lt;br&gt;(Cà phê, Sầu riêng...)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="255" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_crop_catalog" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_crop" target="uc_select_catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Thành viên nông hộ -->
+        <mxCell id="uc_member" value="Quản lý Thành viên nông hộ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="320" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Kho vật tư -->
+        <mxCell id="uc_inventory" value="Quản lý Kho vật tư" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="385" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Hóa đơn bán hàng -->
+        <mxCell id="uc_invoice" value="Lập hóa đơn bán nông sản" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="450" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_stock_deduct" value="Trừ tồn kho nông sản" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="450" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_inv_stock" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_invoice" target="uc_stock_deduct">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 6. Báo cáo tài chính -->
+        <mxCell id="uc_reports" value="Xem Báo cáo Tài chính" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="515" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_calc_profit" value="Tính Chi phí &amp;amp; Lợi nhuận" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="515" width="170" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_rep_calc" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_reports" target="uc_calc_profit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== NHÓM 3: NHẬT KÝ CANH TÁC & NGOẠI TUYẾN (SHARED: OWNER & WORKER) ==================== -->
+        <!-- Ghi nhật ký -->
+        <mxCell id="uc_activity" value="Ghi nhật ký canh tác" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.6;fontSize=12;fontFamily=Helvetica;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="605" width="180" height="48" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_mat_used" value="Ghi nhận vật tư tiêu hao" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="580" width="180" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_act_mat" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_activity" target="uc_mat_used">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_hired_labor" value="Ghi nhận tiền công thuê ngoài&lt;br&gt;(Thuê nhật / khoán)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="470" y="635" width="180" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_labor_act" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.7;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_hired_labor" target="uc_activity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Lưu ngoại tuyến -->
+        <mxCell id="uc_offline" value="Lưu trữ ngoại tuyến&lt;br&gt;&lt;b&gt;(IndexedDB / Dexie.js)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="230" y="695" width="180" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_off_act" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_offline" target="uc_activity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Đồng bộ chạy nền khi có mạng -->
+        <mxCell id="uc_sync" value="Đồng bộ &amp;amp; Xử lý xung đột&lt;br&gt;&lt;b&gt;(Sync Engine khi có mạng)&lt;/b&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Helvetica;fontColor=#000000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="470" y="695" width="190" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_sync_off" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_sync" target="uc_offline">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== NHÓM 4: QUẢN TRỊ HỆ THỐNG (BÊN PHẢI - ADMIN) ==================== -->
+        <mxCell id="uc_adm_approve" value="Phê duyệt tài khoản nông hộ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="200" width="200" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_users" value="Quản lý Người dùng &amp;amp; Phân quyền" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="270" width="200" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_lock" value="Khóa / Mở khóa tài khoản" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="340" width="200" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_lock_user" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_adm_lock" target="uc_adm_users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_catalog" value="Quản lý Danh mục cây trồng" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="420" width="200" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_stages" value="Cấu hình Giai đoạn sinh trưởng" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.2;fontSize=10.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="490" width="200" height="42" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rel_cat_stage" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;dashed=1;endArrow=open;strokeColor=#000000;strokeWidth=1.2;fontSize=9.5;fontColor=#000000;" edge="1" parent="1" source="uc_adm_catalog" target="uc_adm_stages">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="uc_adm_audit" value="Giám sát &amp;amp; Nhật ký bảo mật" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;strokeWidth=1.3;fontSize=11.5;fontFamily=Helvetica;fontColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="840" y="560" width="200" height="42" as="geometry" />
+        </mxCell>
+
+
+        <!-- ==================== ĐƯỜNG NỐI TÁC NHÂN (ZERO CROSSINGS CHUẨN XÁC) ==================== -->
+        
+        <!-- 1. Guest Links (y: 65 -> 76, 141) -->
+        <mxCell id="link_g_reg" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_guest" target="uc_register">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_g_login" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_guest" target="uc_login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 2. Owner Links (y: 320 -> Tỏa đi từ trên xuống dưới, KHÔNG CẮT đường nào) -->
+        <mxCell id="link_o_farm" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_farm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_crop" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_crop">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_mem" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_inv" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_inventory">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_invoice" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_invoice">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_rep" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_reports">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_o_act" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_owner" target="uc_activity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Worker Links (y: 620 -> Đi thẳng sang 2 Use Case dưới cùng) -->
+        <mxCell id="link_w_act" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_worker" target="uc_activity">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_w_off" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_worker" target="uc_offline">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 4. Admin Links (y: 320 -> Toàn bộ bên phải) -->
+        <mxCell id="link_adm_app" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_admin" target="uc_adm_approve">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_adm_usr" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_admin" target="uc_adm_users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_adm_cat" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_admin" target="uc_adm_catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="link_adm_aud" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_admin" target="uc_adm_audit">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Secondary Actor System Link (y: 660 -> Kích hoạt Sync chạy nền) -->
+        <mxCell id="link_sys_sync" style="endArrow=none;strokeColor=#000000;strokeWidth=1.4;" edge="1" parent="1" source="actor_system" target="uc_sync">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
