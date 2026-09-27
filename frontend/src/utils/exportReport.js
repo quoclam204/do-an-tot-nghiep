@@ -18,17 +18,31 @@ const ACTIVITY_LABELS = {
   THU_HOACH: 'Thu hoạch',
 };
 
+// Helper loại bỏ dấu tiếng Việt an toàn cho font mặc định (Helvetica) của jsPDF
+const stripVN = (str) => {
+  if (!str) return '';
+  return String(str)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+};
+
+const fmtMoneyPDF = (v) => `${Number(v || 0).toLocaleString('vi-VN')} VND`;
+
 // ===================== PDF EXPORT =====================
 export async function exportToPDF({ financials, logs, materialUsage, seasonSummary, filterInfo }) {
   const { default: jsPDF } = await import('jspdf');
-  await import('jspdf-autotable');
+  const autotableModule = await import('jspdf-autotable');
+  const autoTable = autotableModule.default || autotableModule.autoTable || autotableModule;
+  if (typeof autotableModule.applyPlugin === 'function') {
+    autotableModule.applyPlugin(jsPDF);
+  }
 
   const doc = new jsPDF('p', 'mm', 'a4');
   const pageW = doc.internal.pageSize.getWidth();
   let y = 15;
 
-  // --- Load font hỗ trợ tiếng Việt (sử dụng font mặc định + encode) ---
-  // jsPDF mặc định không hỗ trợ Unicode tốt, dùng cách vẽ text đơn giản
   doc.setFont('helvetica');
 
   // === HEADER ===
@@ -40,7 +54,7 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
   doc.text('DalatAgri - Bao cao kinh te nong ho', pageW / 2, 12, { align: 'center' });
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text(`Ngay xuat: ${today()} | ${filterInfo || 'Tat ca trang trai & mua vu'}`, pageW / 2, 20, { align: 'center' });
+  doc.text(`Ngay xuat: ${today()} | ${stripVN(filterInfo) || 'Tat ca trang trai & mua vu'}`, pageW / 2, 20, { align: 'center' });
 
   y = 36;
 
@@ -56,14 +70,14 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
   const netProfit = Number(financials?.netProfit || 0);
   const roi = financials?.roiPercentage || 0;
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: y,
-    head: [['Chi tieu', 'Gia tri (VND)', 'Ghi chu']],
+    head: [['Chi tieu', 'Gia tri', 'Ghi chu']],
     body: [
-      ['Tong chi phi dau tu', fmtMoney(totalExpense), `Vat tu: ${fmtMoney(financials?.totalMaterialCost)} | Nhan cong: ${fmtMoney(financials?.totalLaborCost)}`],
-      ['Tong doanh thu', fmtMoney(totalRevenue), `San luong: ${(financials?.totalHarvestQty || 0).toLocaleString()} kg`],
-      ['Loi nhuan rong', fmtMoney(netProfit), `ROI: ${roi}%`],
-      ['Tong luot ghi nhat ky', String(financials?.logsCount || logs.length), `Cham soc: ${financials?.careLogsCount || 0} | Thu hoach: ${financials?.harvestLogsCount || 0}`],
+      ['Tong chi phi dau tu', fmtMoneyPDF(totalExpense), `Vat tu: ${fmtMoneyPDF(financials?.totalMaterialCost)} | Nhan cong: ${fmtMoneyPDF(financials?.totalLaborCost)}`],
+      ['Tong doanh thu', fmtMoneyPDF(totalRevenue), `San luong: ${(financials?.totalHarvestQty || 0).toLocaleString()} kg`],
+      ['Loi nhuan rong', fmtMoneyPDF(netProfit), `ROI: ${roi}%`],
+      ['Tong luot ghi nhat ky', String(financials?.logsCount || (logs?.length || 0)), `Cham soc: ${financials?.careLogsCount || 0} | Thu hoach: ${financials?.harvestLogsCount || 0}`],
     ],
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [16, 124, 16], textColor: 255, fontStyle: 'bold' },
@@ -71,7 +85,7 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
     margin: { left: 14, right: 14 },
   });
 
-  y = doc.lastAutoTable.finalY + 10;
+  y = (doc.lastAutoTable?.finalY ?? y) + 10;
 
   // === CƠ CẤU CHI PHÍ ===
   doc.setFontSize(13);
@@ -85,14 +99,14 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
   const total = matCost + labCost + othCost;
   const pct = (v) => total > 0 ? `${Math.round((v / total) * 100)}%` : '0%';
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: y,
-    head: [['Loai chi phi', 'So tien (VND)', 'Ty le (%)']],
+    head: [['Loai chi phi', 'So tien', 'Ty le (%)']],
     body: [
-      ['Vat tu (Phan, thuoc BVTV)', fmtMoney(matCost), pct(matCost)],
-      ['Nhan cong lao dong', fmtMoney(labCost), pct(labCost)],
-      ['Chi phi khac', fmtMoney(othCost), pct(othCost)],
-      ['TONG CONG', fmtMoney(total), '100%'],
+      ['Vat tu (Phan, thuoc BVTV)', fmtMoneyPDF(matCost), pct(matCost)],
+      ['Nhan cong lao dong', fmtMoneyPDF(labCost), pct(labCost)],
+      ['Chi phi khac', fmtMoneyPDF(othCost), pct(othCost)],
+      ['TONG CONG', fmtMoneyPDF(total), '100%'],
     ],
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [2, 132, 199], textColor: 255, fontStyle: 'bold' },
@@ -106,7 +120,7 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
     },
   });
 
-  y = doc.lastAutoTable.finalY + 10;
+  y = (doc.lastAutoTable?.finalY ?? y) + 10;
 
   // === VẬT TƯ TIÊU THỤ ===
   if (materialUsage && materialUsage.length > 0) {
@@ -116,15 +130,15 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
     doc.text('III. TONG HOP VAT TU TIEU THU', 14, y);
     y += 2;
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['STT', 'Ten vat tu', 'Loai', 'Tong luong dung', 'Tong chi phi', 'So lan SD']],
       body: materialUsage.map((item, idx) => [
         idx + 1,
-        item.name,
-        item.type === 'PHAN_BON' ? 'Phan bon' : item.type === 'THUOC_BVTV' ? 'Thuoc BVTV' : item.type,
-        `${item.totalQty.toLocaleString()} ${item.unit}`,
-        fmtMoney(item.totalCost),
+        stripVN(item.name),
+        item.type === 'PHAN_BON' ? 'Phan bon' : item.type === 'THUOC_BVTV' ? 'Thuoc BVTV' : stripVN(item.type),
+        `${Number(item.totalQty || 0).toLocaleString()} ${stripVN(item.unit)}`,
+        fmtMoneyPDF(item.totalCost),
         `${item.count} lan`,
       ]),
       styles: { fontSize: 8.5, cellPadding: 2.5 },
@@ -134,7 +148,7 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
       columnStyles: { 0: { cellWidth: 12 } },
     });
 
-    y = doc.lastAutoTable.finalY + 10;
+    y = (doc.lastAutoTable?.finalY ?? y) + 10;
   }
 
   // === LỊCH SỬ HOẠT ĐỘNG ===
@@ -145,16 +159,16 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
     doc.text(`IV. LICH SU HOAT DONG CANH TAC (${logs.length} luot)`, 14, y);
     y += 2;
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Ngay', 'Mua vu', 'Hoat dong', 'Chi phi', 'Doanh thu', 'Ghi chu']],
       body: logs.map((log) => [
         fmtDate(log.activityDate),
-        log.cropCycle?.name || '—',
-        ACTIVITY_LABELS[log.activityType] || log.activityType,
-        (log.cost || 0) > 0 ? fmtMoney(log.cost) : '—',
-        (log.revenue || 0) > 0 ? fmtMoney(log.revenue) : '—',
-        log.notes ? (log.notes.length > 50 ? log.notes.slice(0, 50) + '...' : log.notes) : '—',
+        stripVN(log.cropCycle?.name || '—'),
+        stripVN(ACTIVITY_LABELS[log.activityType] || log.activityType),
+        (log.cost || 0) > 0 ? fmtMoneyPDF(log.cost) : '—',
+        (log.revenue || 0) > 0 ? fmtMoneyPDF(log.revenue) : '—',
+        log.notes ? (stripVN(log.notes).length > 50 ? stripVN(log.notes).slice(0, 50) + '...' : stripVN(log.notes)) : '—',
       ]),
       styles: { fontSize: 8, cellPadding: 2 },
       headStyles: { fillColor: [124, 58, 237], textColor: 255, fontStyle: 'bold' },
@@ -192,7 +206,7 @@ export async function exportToExcel({ financials, logs, materialUsage, seasonSum
     ['Tổng chi phí đầu tư', Number(financials?.totalExpense || 0), `Vật tư: ${fmtMoney(financials?.totalMaterialCost)} | Nhân công: ${fmtMoney(financials?.totalLaborCost)}`],
     ['Tổng doanh thu', Number(financials?.totalRevenue || 0), `Sản lượng: ${(financials?.totalHarvestQty || 0).toLocaleString()} kg`],
     ['Lợi nhuận ròng', Number(financials?.netProfit || 0), `ROI: ${financials?.roiPercentage || 0}%`],
-    ['Tổng lượt ghi nhật ký', Number(financials?.logsCount || logs.length), `Chăm sóc: ${financials?.careLogsCount || 0} | Thu hoạch: ${financials?.harvestLogsCount || 0}`],
+    ['Tổng lượt ghi nhật ký', Number(financials?.logsCount || logs?.length || 0), `Chăm sóc: ${financials?.careLogsCount || 0} | Thu hoạch: ${financials?.harvestLogsCount || 0}`],
     [],
     ['CƠ CẤU CHI PHÍ', 'SỐ TIỀN (VNĐ)', 'TỶ LỆ (%)'],
     ['Vật tư (Phân, thuốc BVTV)', Number(financials?.totalMaterialCost || 0), ''],
@@ -426,7 +440,7 @@ export async function exportToWord({ financials, logs, materialUsage, seasonSumm
         ]),
         makeDataRow([
           'Tổng lượt ghi nhật ký',
-          String(financials?.logsCount || logs.length),
+          String(financials?.logsCount || logs?.length || 0),
           `Chăm sóc: ${financials?.careLogsCount || 0} lần | Thu hoạch: ${financials?.harvestLogsCount || 0} đợt`,
         ], true),
       ],
