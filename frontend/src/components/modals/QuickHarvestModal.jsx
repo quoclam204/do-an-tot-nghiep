@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './QuickHarvestModal.css';
 import {
   IconX,
@@ -7,6 +7,7 @@ import {
   IconBanknote,
   IconCheckCircle,
   IconAlertCircle,
+  IconChevronDown,
 } from '../icons';
 import { apiCreateActivityLog, apiUpdateActivityLog } from '../../services/api';
 
@@ -33,6 +34,30 @@ export default function QuickHarvestModal({
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Quản lý custom dropdown mùa vụ
+  const [seasonDropdownOpen, setSeasonDropdownOpen] = useState(false);
+  const seasonDropdownRef = useRef(null);
+
+  // Đóng dropdown khi bấm ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (seasonDropdownRef.current && !seasonDropdownRef.current.contains(e.target)) {
+        setSeasonDropdownOpen(false);
+      }
+    };
+    if (seasonDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [seasonDropdownOpen]);
+
+  // Tìm mùa vụ được chọn
+  const selectedSeason = useMemo(() => {
+    return seasons.find((s) => s.id === cropCycleId) || null;
+  }, [seasons, cropCycleId]);
 
   // Đồng bộ dữ liệu khi modal mở (tạo mới hoặc chỉnh sửa)
   useEffect(() => {
@@ -187,19 +212,67 @@ export default function QuickHarvestModal({
             <label className="harvest-form-label">
               Mùa Vụ & Lô Đất Thu Hoạch <span className="text-required">*</span>
             </label>
-            <select
+            <div className="harvest-custom-select-wrap" ref={seasonDropdownRef}>
+              <div
+                className={`harvest-select-trigger ${seasonDropdownOpen ? 'active' : ''}`}
+                onClick={() => setSeasonDropdownOpen(!seasonDropdownOpen)}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSeasonDropdownOpen(!seasonDropdownOpen);
+                  } else if (e.key === 'Escape') {
+                    setSeasonDropdownOpen(false);
+                  }
+                }}
+              >
+                <span className={`harvest-select-single-text ${!selectedSeason ? 'is-placeholder' : ''}`}>
+                  {selectedSeason
+                    ? `${selectedSeason.name}${selectedSeason.plot?.name ? ` (${selectedSeason.plot.name})` : ''}${selectedSeason.isIntercropped ? ' - Xen canh' : ''}`
+                    : '-- Chọn Mùa Vụ / Lô Trồng --'}
+                </span>
+                <div className={`harvest-select-arrow ${seasonDropdownOpen ? 'open' : ''}`}>
+                  <IconChevronDown size={17} strokeWidth={2.4} />
+                </div>
+              </div>
+
+              {seasonDropdownOpen && (
+                <div className="harvest-dropdown-menu">
+                  {seasons.length === 0 ? (
+                    <div className="harvest-dropdown-empty">Chưa có mùa vụ nào sẵn sàng</div>
+                  ) : (
+                    seasons.map((s) => {
+                      const isSelected = s.id === cropCycleId;
+                      const labelText = `${s.name}${s.plot?.name ? ` (${s.plot.name})` : ''}${s.isIntercropped ? ' - Xen canh' : ''}`;
+                      return (
+                        <div
+                          key={s.id}
+                          className={`harvest-dropdown-option ${isSelected ? 'selected' : ''}`}
+                          onClick={() => {
+                            setCropCycleId(s.id);
+                            setSeasonDropdownOpen(false);
+                          }}
+                          title={labelText}
+                        >
+                          <span className="harvest-option-single-label">{labelText}</span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </div>
+            {/* Input ẩn để đảm bảo validation HTML5 form */}
+            <input
+              type="text"
               value={cropCycleId}
-              onChange={(e) => setCropCycleId(e.target.value)}
-              className="harvest-form-input"
               required
-            >
-              <option value="">-- Chọn Mùa Vụ / Lô Trồng --</option>
-              {seasons.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} ({s.crop?.name} - {s.plot?.name})
-                </option>
-              ))}
-            </select>
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{ opacity: 0, height: 0, width: 0, position: 'absolute', pointerEvents: 'none' }}
+              onChange={() => {}}
+            />
           </div>
 
           {/* MỤC 2: NGÀY THU HOẠCH */}
