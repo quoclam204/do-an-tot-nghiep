@@ -783,6 +783,17 @@ export class CatalogService {
             ? Math.round(inv.totalCost / inv.quantity)
             : (material.defaultPrice || 0);
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
+
+          // Ràng buộc nghiêm ngặt: Nông trại bắt buộc phải có sẵn vật tư trong kho và đủ số lượng
+          if (farmId && qty > 0) {
+            if (!inv || Number(inv.quantity || 0) < qty) {
+              const currentStock = inv ? Number(inv.quantity || 0) : 0;
+              throw new BadRequestException(
+                `Kho của nông trại không đủ số lượng vật tư "${material.name}". Tồn kho hiện có: ${currentStock} ${material.unit || ''}, yêu cầu xuất dùng: ${qty} ${material.unit || ''}. Vui lòng nhập kho cho nông trại này trước!`
+              );
+            }
+          }
+
           totalMaterialCost += itemCost;
           materialsData.push({
             materialId: material.id,
@@ -790,7 +801,7 @@ export class CatalogService {
             cost: itemCost,
           });
 
-          // Trừ trực tiếp số lượng và giá trị trong kho của nông trại nếu có
+          // Trừ trực tiếp số lượng và giá trị trong kho của nông trại
           if (inv && qty > 0) {
             const newQty = Math.max(0, inv.quantity - qty);
             const newTotalCost = Math.round(newQty * unitPrice);
@@ -974,6 +985,17 @@ export class CatalogService {
             ? Math.round(inv.totalCost / inv.quantity)
             : (material.defaultPrice || 0);
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
+
+          // Ràng buộc nghiêm ngặt khi cập nhật: Nông trại bắt buộc phải có sẵn vật tư trong kho và đủ số lượng
+          if (farmId && qty > 0) {
+            if (!inv || Number(inv.quantity || 0) < qty) {
+              const currentStock = inv ? Number(inv.quantity || 0) : 0;
+              throw new BadRequestException(
+                `Kho của nông trại không đủ số lượng vật tư "${material.name}". Tồn kho hiện có: ${currentStock} ${material.unit || ''}, yêu cầu xuất dùng: ${qty} ${material.unit || ''}. Vui lòng nhập kho cho nông trại này trước!`
+              );
+            }
+          }
+
           totalMaterialCost += itemCost;
           await (this.prisma as any).activityMaterial.create({
             data: {

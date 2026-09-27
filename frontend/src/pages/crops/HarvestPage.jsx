@@ -24,6 +24,14 @@ import {
 } from '../../services/api';
 import './HarvestPage.css';
 
+const getTodayDateStr = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function HarvestPage() {
   const [harvestLogs, setHarvestLogs] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -39,7 +47,7 @@ export default function HarvestPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
     cropCycleId: '',
-    activityDate: new Date().toISOString().split('T')[0],
+    activityDate: getTodayDateStr(),
     harvestQuantity: '',
     unit: 'kg',
     unitPrice: '',
@@ -94,17 +102,26 @@ export default function HarvestPage() {
     setFormData((prev) => ({
       ...prev,
       harvestQuantity: val,
-      revenue: qty > 0 && price > 0 ? qty * price : prev.revenue,
+      revenue: qty > 0 && price > 0 ? Math.round(qty * price) : (price === 0 || !val ? '' : prev.revenue),
     }));
   };
 
-  const handlePriceChange = (val) => {
-    const price = Number(val) || 0;
+  const handlePriceChange = (valStr) => {
+    const cleanNum = String(valStr).replace(/[^\d]/g, '');
+    const price = cleanNum ? Number(cleanNum) : '';
     const qty = Number(formData.harvestQuantity) || 0;
     setFormData((prev) => ({
       ...prev,
-      unitPrice: val,
-      revenue: qty > 0 && price > 0 ? qty * price : prev.revenue,
+      unitPrice: price,
+      revenue: qty > 0 && price > 0 ? Math.round(qty * price) : (qty === 0 || !cleanNum ? '' : prev.revenue),
+    }));
+  };
+
+  const handleRevenueChange = (valStr) => {
+    const cleanNum = String(valStr).replace(/[^\d]/g, '');
+    setFormData((prev) => ({
+      ...prev,
+      revenue: cleanNum ? Number(cleanNum) : '',
     }));
   };
 
@@ -201,7 +218,7 @@ export default function HarvestPage() {
     const defaultSeasonId = availableSeasons[0]?.id || seasons[0]?.id || '';
     setFormData({
       cropCycleId: defaultSeasonId,
-      activityDate: new Date().toISOString().split('T')[0],
+      activityDate: getTodayDateStr(),
       harvestQuantity: '',
       unit: 'kg',
       unitPrice: '',
@@ -366,36 +383,36 @@ export default function HarvestPage() {
               <table className="harvest-table">
                 <thead>
                   <tr>
-                    <th>Ngày thu hoạch</th>
+                    <th style={{ width: '110px', whiteSpace: 'nowrap' }}>Ngày thu hoạch</th>
                     <th>Mùa vụ / Lô trồng</th>
                     <th>Cây trồng</th>
-                    <th>Sản lượng (kg)</th>
-                    <th>Đơn giá bán</th>
-                    <th>Tổng doanh thu</th>
+                    <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Sản lượng (kg)</th>
+                    <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Đơn giá bán</th>
+                    <th style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>Tổng doanh thu</th>
                     <th>Chi tiết / Thương lái</th>
-                    <th className="text-center">Thao tác</th>
+                    <th className="text-center" style={{ width: '85px', minWidth: '85px', whiteSpace: 'nowrap' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredHarvests.map((item) => (
                     <tr key={item.id}>
-                      <td>
+                      <td style={{ whiteSpace: 'nowrap' }}>
                         <strong>{new Date(item.activityDate).toLocaleDateString('vi-VN')}</strong>
                       </td>
                       <td>
                         <div className="plot-badge-cell">
-                          <span className="plot-name">{item.cropCycle?.plot?.name || 'Lô trồng'}</span>
+                          <span className="plot-name">{item.cropCycle?.plot?.name || item.cropCycle?.name || 'Lô trồng'}</span>
                         </div>
                       </td>
                       <td>
                         <span className="crop-tag">{item.cropCycle?.crop?.name || 'Cây trồng'}</span>
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <span className="qty-tag">
                           {(Number(item.harvestQuantity) || 0).toLocaleString('vi-VN')}&nbsp;kg
                         </span>
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         {item.unitPrice ? (
                           <span className="unit-price-tag">
                             {Number(item.unitPrice).toLocaleString('vi-VN')}&nbsp;đ/kg
@@ -404,7 +421,7 @@ export default function HarvestPage() {
                           '—'
                         )}
                       </td>
-                      <td>
+                      <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                         <strong className="revenue-val">
                           {(Number(item.revenue) || 0).toLocaleString('vi-VN')}&nbsp;đ
                         </strong>
@@ -414,7 +431,7 @@ export default function HarvestPage() {
                           {item.notes || '—'}
                         </span>
                       </td>
-                      <td className="text-center">
+                      <td className="text-center" style={{ width: '85px', minWidth: '85px' }}>
                         <button
                           className="delete-action-btn"
                           title="Xóa đợt thu này"
@@ -541,7 +558,18 @@ export default function HarvestPage() {
                 {/* 2. Ngày thu hoạch & Tên đợt hái */}
                 <div className="form-row compact-row">
                   <div className="form-group compact-group">
-                    <label>Ngày thu hoạch *</label>
+                    <label className="label-with-hint">
+                      <span>Ngày thu hoạch *</span>
+                      <button
+                        type="button"
+                        className={`badge-quick-today ${formData.activityDate === getTodayDateStr() ? 'is-today' : ''}`}
+                        onClick={() => setFormData((prev) => ({ ...prev, activityDate: getTodayDateStr() }))}
+                        title="Điền nhanh ngày hôm nay"
+                      >
+                        <IconCalendar size={12} strokeWidth={2.2} />
+                        <span>Hôm nay</span>
+                      </button>
+                    </label>
                     <input
                       type="date"
                       value={formData.activityDate}
@@ -551,7 +579,9 @@ export default function HarvestPage() {
                   </div>
 
                   <div className="form-group compact-group">
-                    <label>Tên đợt hái</label>
+                    <label className="label-with-hint">
+                      <span>Tên đợt hái</span>
+                    </label>
                     <input
                       type="text"
                       placeholder="VD: Đợt 1"
@@ -564,7 +594,9 @@ export default function HarvestPage() {
                 {/* 3. Sản lượng & Đơn giá bán */}
                 <div className="form-row compact-row">
                   <div className="form-group compact-group">
-                    <label>Sản lượng (kg) *</label>
+                    <label className="label-with-hint">
+                      <span>Sản lượng (kg) *</span>
+                    </label>
                     <input
                       type="number"
                       step="any"
@@ -578,12 +610,18 @@ export default function HarvestPage() {
                   </div>
 
                   <div className="form-group compact-group">
-                    <label>Giá bán (đ/kg)</label>
+                    <label className="label-with-hint">
+                      <span>Giá bán (đ/kg)</span>
+                    </label>
                     <input
-                      type="number"
-                      step="any"
-                      placeholder="VD: 85000"
-                      value={formData.unitPrice}
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="VD: 85.000"
+                      value={
+                        formData.unitPrice
+                          ? Number(formData.unitPrice).toLocaleString('vi-VN')
+                          : ''
+                      }
                       onChange={(e) => handlePriceChange(e.target.value)}
                       className="input-number-highlight"
                     />
@@ -600,17 +638,23 @@ export default function HarvestPage() {
                       )}
                     </label>
                     <input
-                      type="number"
-                      step="any"
-                      placeholder="Tự tính = kg × giá"
-                      value={formData.revenue}
-                      onChange={(e) => setFormData({ ...formData, revenue: e.target.value })}
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Tự động tính"
+                      value={
+                        formData.revenue
+                          ? `${Number(formData.revenue).toLocaleString('vi-VN')} VNĐ`
+                          : ''
+                      }
+                      onChange={(e) => handleRevenueChange(e.target.value)}
                       className="input-revenue-highlight"
                     />
                   </div>
 
                   <div className="form-group compact-group">
-                    <label>Thương lái / Vựa thu mua</label>
+                    <label className="label-with-hint">
+                      <span>Thương lái / Vựa thu mua</span>
+                    </label>
                     <input
                       type="text"
                       placeholder="VD: Vựa thu mua Bảo Lộc..."

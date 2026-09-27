@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import {
@@ -34,7 +34,9 @@ import {
   LineChart,
   Line,
   CartesianGrid,
+  LabelList,
 } from 'recharts';
+import { exportToPDF, exportToExcel, exportToWord } from '../../utils/exportReport';
 import './ReportsPage.css';
 
 const COLORS = ['#16a34a', '#d97706', '#dc2626', '#8b5cf6', '#0284c7', '#f43f5e'];
@@ -67,6 +69,23 @@ export default function ReportsPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Export dropdown
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const exportMenuRef = useRef(null);
+
+  // Close export menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
 
   const loadData = async (filters = {}) => {
     try {
@@ -130,29 +149,56 @@ export default function ReportsPage() {
   const netProfit = financials?.netProfit || 0;
   const logsCount = financials?.logsCount || logs.length;
 
-  // Pie chart - cost breakdown
-  const pieData = useMemo(() => {
-    if (!financials) return [];
-    return [
-      { name: 'Phân bón & Thuốc', value: financials.totalMaterialCost || 0 },
-      { name: 'Nhân công thuê', value: financials.totalLaborCost || 0 },
-      { name: 'Chi phí khác', value: financials.totalOtherCosts || 0 },
-    ].filter((d) => d.value > 0);
-  }, [financials]);
-
-  // Bar chart - revenue vs cost
-  const barData = useMemo(() => {
+  // Dữ liệu so sánh Thu - Chi trực quan cho nông dân
+  const comparisonData = useMemo(() => {
     if (!financials) return [];
     return [
       {
-        name: 'Tổng quan tài chính',
-        'Chi phí Vật tư': financials.totalMaterialCost || 0,
-        'Chi phí Nhân công': financials.totalLaborCost || 0,
-        'Chi phí Khác': financials.totalOtherCosts || 0,
-        'Doanh thu': financials.totalRevenue || 0,
+        name: 'Doanh Thu',
+        value: Number(financials.totalRevenue || 0),
+        fill: '#107C10', // Xanh chuẩn DalatAgri
+      },
+      {
+        name: 'Tổng Chi Phí',
+        value: Number(financials.totalExpense || 0),
+        fill: '#d97706', // Cam đất nhã nhặn
       },
     ];
   }, [financials]);
+
+  // Dữ liệu phân bổ cơ cấu chi phí thực tế
+  const expenseBreakdown = useMemo(() => {
+    if (!financials) return [];
+    const mat = Number(financials.totalMaterialCost || 0);
+    const lab = Number(financials.totalLaborCost || 0);
+    const oth = Number(financials.totalOtherCosts || 0);
+    const total = mat + lab + oth;
+
+    return [
+      {
+        name: 'Vật tư (Phân, thuốc BVTV)',
+        value: mat,
+        percent: total > 0 ? Math.round((mat / total) * 100) : 0,
+        fill: '#107C10',
+      },
+      {
+        name: 'Nhân công lao động',
+        value: lab,
+        percent: total > 0 ? Math.round((lab / total) * 100) : 0,
+        fill: '#0284c7',
+      },
+      {
+        name: 'Chi phí khác',
+        value: oth,
+        percent: total > 0 ? Math.round((oth / total) * 100) : 0,
+        fill: '#d97706',
+      },
+    ];
+  }, [financials]);
+
+  const activeExpensePie = useMemo(() => {
+    return expenseBreakdown.filter((d) => d.value > 0);
+  }, [expenseBreakdown]);
 
   // Material usage aggregation (với snapshot lịch sử)
   const materialUsage = useMemo(() => {
@@ -212,6 +258,47 @@ export default function ReportsPage() {
   );
 
   const formatMoney = (v) => `${Number(v || 0).toLocaleString('vi-VN')} đ`;
+
+  // Export handler
+  const handleExport = async (format) => {
+    setShowExportMenu(false);
+    setExporting(true);
+    try {
+      // Build filter info string
+      const farmName = selectedFarmId
+        ? farms.find((f) => f.id === selectedFarmId)?.name || ''
+        : 'Tất cả trang trại';
+      const seasonName = selectedSeason
+        ? seasons.find((s) => s.id === selectedSeason)?.name || ''
+        : 'Tất cả mùa vụ';
+      const dateRange = startDate || endDate
+        ? `${startDate || '...'} → ${endDate || '...'}`
+        : '';
+      const filterInfo = [farmName, seasonName, dateRange].filter(Boolean).join(' | ');
+
+      const exportData = {
+        financials,
+        logs: filteredLogs,
+        materialUsage,
+        seasonSummary,
+        filterInfo,
+      };
+
+      if (format === 'pdf') {
+        await exportToPDF(exportData);
+      } else if (format === 'excel') {
+        await exportToExcel(exportData);
+      } else if (format === 'word') {
+        await exportToWord(exportData);
+      }
+    } catch (err) {
+      console.error('Lỗi xuất báo cáo:', err);
+      alert('Có lỗi khi xuất báo cáo. Vui lòng thử lại.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString('vi-VN') : '—');
 
   return (
@@ -289,15 +376,51 @@ export default function ReportsPage() {
               <IconCheckCircle size={16} strokeWidth={2.5} />
               Áp dụng bộ lọc
             </button>
-            <button
-              className="btn-apply-filter"
-              style={{ background: '#0284c7', border: '1px solid #0284c7' }}
-              onClick={() => window.print()}
-              title="In hoặc xuất PDF báo cáo"
-            >
-              <IconPrinter size={16} strokeWidth={2} />
-              <span>Xuất / In báo cáo</span>
-            </button>
+            <div className="export-dropdown-wrapper" ref={exportMenuRef}>
+              <button
+                className="btn-apply-filter btn-export-main"
+                style={{ background: '#0284c7', border: '1px solid #0284c7' }}
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                disabled={exporting}
+                title="Xuất báo cáo ra file Word, PDF hoặc Excel"
+              >
+                {exporting ? (
+                  <span className="export-spinner" />
+                ) : (
+                  <IconPrinter size={16} strokeWidth={2} />
+                )}
+                <span>{exporting ? 'Đang xuất...' : 'Xuất báo cáo'}</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2 }}>
+                  <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              {showExportMenu && (
+                <div className="export-dropdown-menu">
+                  <div className="export-dropdown-header">Chọn định dạng xuất</div>
+                  <button className="export-dropdown-item" onClick={() => handleExport('pdf')}>
+                    <span className="export-icon export-icon-pdf">PDF</span>
+                    <div className="export-item-text">
+                      <strong>Xuất file PDF</strong>
+                      <span>Báo cáo dạng bảng số liệu, dễ in ấn</span>
+                    </div>
+                  </button>
+                  <button className="export-dropdown-item" onClick={() => handleExport('word')}>
+                    <span className="export-icon export-icon-word">DOC</span>
+                    <div className="export-item-text">
+                      <strong>Xuất file Word</strong>
+                      <span>File .docx có thể chỉnh sửa</span>
+                    </div>
+                  </button>
+                  <button className="export-dropdown-item" onClick={() => handleExport('excel')}>
+                    <span className="export-icon export-icon-excel">XLS</span>
+                    <div className="export-item-text">
+                      <strong>Xuất file Excel</strong>
+                      <span>Dữ liệu dạng bảng tính .xlsx</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* BÁO CÁO CHI TIẾT TỔNG KẾT VỤ MÙA */}
@@ -346,8 +469,8 @@ export default function ReportsPage() {
                     {formatMoney(seasonSummary.summary?.totalInvestment)}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#7f1d1d', lineHeight: '1.5' }}>
-                    • Vật tư: {formatMoney(seasonSummary.summary?.totalMaterialCost)}<br/>
-                    • Nhân công: {formatMoney(seasonSummary.summary?.totalLaborCost)} ({seasonSummary.summary?.totalWorkers || 0} công)<br/>
+                    • Vật tư: {formatMoney(seasonSummary.summary?.totalMaterialCost)}<br />
+                    • Nhân công: {formatMoney(seasonSummary.summary?.totalLaborCost)} ({seasonSummary.summary?.totalWorkers || 0} công)<br />
                     • Chi phí khác: {formatMoney(seasonSummary.summary?.totalOtherCosts)}
                   </div>
                 </div>
@@ -358,7 +481,7 @@ export default function ReportsPage() {
                     {formatMoney(seasonSummary.summary?.totalRevenue)}
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#1e3a8a', lineHeight: '1.5' }}>
-                    • Sản lượng: <strong>{(seasonSummary.summary?.totalHarvestQty || 0).toLocaleString()} kg</strong><br/>
+                    • Sản lượng: <strong>{(seasonSummary.summary?.totalHarvestQty || 0).toLocaleString()} kg</strong><br />
                     • Đơn giá trung bình: {seasonSummary.summary?.totalHarvestQty > 0 ? formatMoney(seasonSummary.summary?.totalRevenue / seasonSummary.summary?.totalHarvestQty) : '—'}/kg
                   </div>
                 </div>
@@ -454,58 +577,122 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* CHARTS */}
-          {(pieData.length > 0 || barData.length > 0) && (
+          {/* CHARTS: ĐƠN GIẢN, TRỰC QUAN CHO NÔNG DÂN */}
+          {financials && (financials.totalExpense + financials.totalRevenue > 0) && (
             <div className="reports-charts-grid">
-              <div className="report-chart-card">
-                <div className="report-chart-title">
-                  <IconCircleDollar size={18} strokeWidth={2} />
-                  <span>Cơ cấu chi phí đầu tư</span>
-                </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={90}
-                      paddingAngle={3}
-                      dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v) => formatMoney(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
+              {/* Biểu đồ 1: So sánh Thu - Chi */}
               <div className="report-chart-card">
                 <div className="report-chart-title">
                   <IconLineChart size={18} strokeWidth={2} />
-                  <span>So sánh Doanh thu & Chi phí</span>
+                  <span>So sánh Thu - Chi thực tế</span>
                 </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart
-                    data={barData}
-                    margin={{ top: 15, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5ece7" />
-                    <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
-                    <Tooltip formatter={(v) => formatMoney(v)} />
-                    <Legend />
-                    <Bar dataKey="Chi phí Vật tư" fill="#d97706" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Chi phí Nhân công" fill="#dc2626" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Chi phí Khác" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Doanh thu" fill="#16a34a" radius={[4, 4, 0, 0]} />
+                <ResponsiveContainer width="100%" height={210}>
+                  <BarChart data={comparisonData} margin={{ top: 30, right: 20, left: 10, bottom: 5 }}>
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 13, fill: '#334155', fontWeight: 600 }}
+                      axisLine={{ stroke: '#cbd5e1' }}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tickFormatter={(val) => {
+                        if (val === 0) return '0 đ';
+                        if (val >= 1000000) return `${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)} tr`;
+                        if (val >= 1000) return `${(val / 1000).toFixed(0)} k`;
+                        return `${val} đ`;
+                      }}
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      formatter={(v) => [formatMoney(v), 'Số tiền']}
+                      contentStyle={{ borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                    />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={80}>
+                      {comparisonData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                      <LabelList
+                        dataKey="value"
+                        content={(props) => {
+                          const { x, y, width, value } = props;
+                          const num = Number(value || 0);
+                          const formatted = num > 0 ? formatMoney(num) : '0 đ';
+                          return (
+                            <text
+                              x={x + width / 2}
+                              y={y - 8}
+                              fill="#1e293b"
+                              textAnchor="middle"
+                              fontSize="13"
+                              fontWeight="700"
+                            >
+                              {formatted}
+                            </text>
+                          );
+                        }}
+                      />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                <div className="report-chart-summary">
+                  <span>Lợi nhuận ròng: </span>
+                  <strong className={netProfit >= 0 ? 'text-green' : 'text-red'}>
+                    {netProfit >= 0 ? '+' : ''}{formatMoney(netProfit)}
+                  </strong>
+                  {netProfit < 0 && (
+                    <span className="text-muted-sub"> (Đang trong giai đoạn đầu tư mùa vụ)</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Biểu đồ 2: Cơ cấu chi phí */}
+              <div className="report-chart-card">
+                <div className="report-chart-title">
+                  <IconCircleDollar size={18} strokeWidth={2} />
+                  <span>Cơ cấu chi phí đã chi</span>
+                </div>
+                {activeExpensePie.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={140}>
+                      <PieChart>
+                        <Pie
+                          data={activeExpensePie}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={42}
+                          outerRadius={65}
+                          paddingAngle={activeExpensePie.length > 1 ? 3 : 0}
+                          dataKey="value"
+                        >
+                          {activeExpensePie.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(v) => [formatMoney(v), 'Chi phí']} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="report-expense-legend">
+                      {expenseBreakdown.map((item) => (
+                        <div key={item.name} className="report-legend-row">
+                          <div className="report-legend-left">
+                            <span className="report-legend-dot" style={{ backgroundColor: item.fill }} />
+                            <span>{item.name}</span>
+                          </div>
+                          <div className="report-legend-right">
+                            <strong>{formatMoney(item.value)}</strong>
+                            <span className="report-legend-pct">({item.percent}%)</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', fontSize: '0.9rem' }}>
+                    Chưa phát sinh chi phí nào.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -521,11 +708,18 @@ export default function ReportsPage() {
                 <LineChart data={timelineData} margin={{ top: 15, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5ece7" />
                   <XAxis dataKey="month" />
-                  <YAxis tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
+                  <YAxis
+                    tickFormatter={(v) => {
+                      if (v === 0) return '0 đ';
+                      if (v >= 1000000) return `${(v / 1000000).toFixed(v % 1000000 === 0 ? 0 : 1)} tr`;
+                      if (v >= 1000) return `${(v / 1000).toFixed(0)} k`;
+                      return `${v} đ`;
+                    }}
+                  />
                   <Tooltip formatter={(v) => formatMoney(v)} />
                   <Legend />
-                  <Line type="monotone" dataKey="Chi phí" stroke="#dc2626" strokeWidth={2} dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="Doanh thu" stroke="#16a34a" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="Chi phí" stroke="#d97706" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="Doanh thu" stroke="#107C10" strokeWidth={2} dot={{ r: 4 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -565,13 +759,12 @@ export default function ReportsPage() {
                         <td style={{ fontWeight: 700 }}>{item.name}</td>
                         <td>
                           <span
-                            className={`material-type-badge ${
-                              item.type === 'PHAN_BON'
+                            className={`material-type-badge ${item.type === 'PHAN_BON'
                                 ? 'badge-phan-bon'
                                 : item.type === 'THUOC_BVTV'
-                                ? 'badge-thuoc-bvtv'
-                                : 'badge-khac'
-                            }`}
+                                  ? 'badge-thuoc-bvtv'
+                                  : 'badge-khac'
+                              }`}
                           >
                             {item.type === 'PHAN_BON' ? 'Phân bón' : item.type === 'THUOC_BVTV' ? 'Thuốc BVTV' : item.type}
                           </span>

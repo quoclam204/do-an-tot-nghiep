@@ -217,8 +217,9 @@
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
 }
 
 .harvest-table {
@@ -229,21 +230,31 @@
 
 .harvest-table th {
   background-color: #f8fafc;
-  padding: 0.95rem 1rem;
-  font-size: 0.82rem;
+  padding: 0.8rem 0.65rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #475569;
   border-bottom: 1px solid #e2e8f0;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .harvest-table td {
-  padding: 1.05rem 1rem;
+  padding: 0.85rem 0.65rem;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   vertical-align: middle;
+}
+
+.harvest-table th:first-child,
+.harvest-table td:first-child {
+  padding-left: 1rem;
+}
+
+.harvest-table th:last-child,
+.harvest-table td:last-child {
+  padding-right: 1rem;
 }
 
 .harvest-table tbody tr:hover {
@@ -380,11 +391,22 @@
 }
 
 .compact-group label {
-  display: block;
+  display: flex;
+  align-items: center;
   font-size: 0.82rem;
   font-weight: 600;
   color: #334155;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  min-height: 22px;
+  line-height: 22px;
+}
+
+.compact-group label.label-with-hint,
+.label-with-hint {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100%;
 }
 
 .compact-group input,
@@ -403,8 +425,8 @@
 
 .compact-group input:focus,
 .compact-group select:focus {
-  border-color: #059669;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.15);
+  border-color: #107C10;
+  box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.15);
 }
 
 .modal-select-lg {
@@ -423,28 +445,52 @@
   gap: 0.75rem;
 }
 
-.label-with-hint {
-  display: flex;
-  justify-content: space-between;
+.badge-quick-today {
+  display: inline-flex;
   align-items: center;
+  gap: 3px;
+  padding: 1.5px 7px;
+  background-color: #f4fbf4;
+  color: #107C10;
+  border: 1px solid #b7e4b9;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.badge-quick-today:hover {
+  background-color: #e2f3e2;
+  border-color: #107C10;
+  color: #0a5e0a;
+}
+
+.badge-quick-today.is-today {
+  background-color: #107C10;
+  color: #ffffff;
+  border-color: #107C10;
 }
 
 .auto-calc-badge {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #059669;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  padding: 1px 5px;
+  color: #107C10;
+  background-color: #e8f5e8;
+  border: 1px solid #b7e4b9;
+  padding: 1.5px 6px;
   border-radius: 4px;
+  line-height: 1.4;
 }
 
 .input-revenue-highlight {
   font-weight: 700;
-  font-size: 1rem;
-  color: #047857 !important;
-  background-color: #f0fdf4 !important;
-  border-color: #86efac !important;
+  font-size: 0.95rem;
+  color: #107C10 !important;
+  background-color: #f6fbf6 !important;
+  border-color: #a3d9a5 !important;
 }
 
 .compact-actions {
@@ -460,6 +506,14 @@
   padding: 0.55rem 1.1rem;
   border-radius: 7px;
   font-size: 0.9rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.modal-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
 .modal-btn-save {
@@ -467,6 +521,14 @@
   border-radius: 7px;
   font-weight: 600;
   font-size: 0.92rem;
+  background-color: #107C10 !important;
+  border-color: #107C10 !important;
+  color: #ffffff !important;
+}
+
+.modal-btn-save:hover {
+  background-color: #0a5e0a !important;
+  border-color: #0a5e0a !important;
 }
 
 /* ── Empty & Loading ── */

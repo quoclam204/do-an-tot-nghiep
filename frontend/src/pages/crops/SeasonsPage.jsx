@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import {
@@ -48,95 +49,17 @@ const emptyForm = {
   isIntercropped: false,
 };
 
-// Component Dropdown tùy chỉnh: Hoàn toàn không tràn viền màn hình trên di động, không icon
-function CustomSelect({ label, required, value, onChange, placeholder, groups = [], hint }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const selectedLabel = useMemo(() => {
-    if (!Array.isArray(groups)) return '';
-    for (const group of groups) {
-      const found = (group.options || []).find((opt) => String(opt.value) === String(value));
-      if (found) return found.label;
-    }
-    return '';
-  }, [groups, value]);
-
-  return (
-    <div className="custom-select-wrapper modal-field" ref={containerRef}>
-      {label && (
-        <label>
-          {label} {required && <span className="required">*</span>}
-          {hint && <span style={{ fontWeight: 'normal', color: '#64748b', fontSize: '0.8rem', marginLeft: '4px' }}>({hint})</span>}
-        </label>
-      )}
-      <div
-        className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
-        onClick={() => setIsOpen((prev) => !prev)}
-        tabIndex={0}
-      >
-        <span className={`trigger-text ${!selectedLabel ? 'placeholder' : ''}`}>
-          {selectedLabel || placeholder || '-- Chọn --'}
-        </span>
-        <span className="trigger-arrow" />
-      </div>
-
-      {isOpen && (
-        <div className="custom-select-dropdown">
-          {(groups || []).map((group, gIdx) => (
-            <div key={gIdx} className="custom-select-group">
-              {group.groupName && (
-                <div className="custom-select-group-header">
-                  {group.groupName}
-                </div>
-              )}
-              {(group.options || []).map((opt) => (
-                <div
-                  key={opt.value}
-                  className={`custom-select-option ${String(opt.value) === String(value) ? 'selected' : ''}`}
-                  onClick={() => {
-                    onChange(opt.value);
-                    setIsOpen(false);
-                  }}
-                >
-                  <span className="option-title">{opt.label}</span>
-                  {opt.sub && <span className="option-sub">({opt.sub})</span>}
-                </div>
-              ))}
-            </div>
-          ))}
-          {!groups || groups.length === 0 || groups.every((g) => (g.options || []).length === 0) ? (
-            <div className="custom-select-empty">Không có lựa chọn nào</div>
-          ) : null}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function SeasonsPage() {
+  const [searchParams] = useSearchParams();
+  const farmIdFromUrl = searchParams.get('farmId') || '';
   const [seasons, setSeasons] = useState([]);
   const [crops, setCrops] = useState([]);
   const [plots, setPlots] = useState([]);
   const [growthCycles, setGrowthCycles] = useState([]);
   const [farms, setFarms] = useState([]);
-  const [selectedFarmId, setSelectedFarmId] = useState('');
+  const [selectedFarmId, setSelectedFarmId] = useState(farmIdFromUrl);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -153,7 +76,7 @@ export default function SeasonsPage() {
   const loadData = async (targetFarmId) => {
     try {
       setLoading(true);
-      const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
+      const farmToUse = targetFarmId !== undefined ? targetFarmId : (selectedFarmId || farmIdFromUrl);
       const [seasonsRes, cropsRes, cyclesRes, plotsRes, farmsRes] = await Promise.all([
         apiGetSeasons(farmToUse).catch(() => []),
         apiGetCrops().catch(() => []),
@@ -174,8 +97,8 @@ export default function SeasonsPage() {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    loadData(farmIdFromUrl || undefined);
+  }, [farmIdFromUrl]);
 
   // Calculate progress percentage
   const getProgress = (start, end) => {
@@ -723,46 +646,111 @@ export default function SeasonsPage() {
 
                 {/* Bộ lọc Nông trại nếu có nhiều trang trại */}
                 {farms.length > 1 && (
-                  <CustomSelect
-                    label="Nông trại"
-                    hint="Chọn để lọc danh sách lô bên dưới"
-                    value={modalFarmFilter}
-                    onChange={(fId) => {
-                      setModalFarmFilter(fId);
-                      const fPlots = fId ? plots.filter((p) => p.farmId === fId) : plots;
-                      if (fPlots.length > 0 && !fPlots.some((p) => p.id === form.plotId)) {
-                        setForm((prev) => ({ ...prev, plotId: fPlots[0].id }));
-                      }
-                    }}
-                    groups={farmGroups}
-                  />
+                  <div className="modal-field">
+                    <label>
+                      Nông trại <span style={{ fontWeight: 'normal', color: '#64748b', fontSize: '0.8rem' }}>(Chọn để lọc danh sách lô bên dưới)</span>
+                    </label>
+                    <select
+                      value={modalFarmFilter}
+                      onChange={(e) => {
+                        const fId = e.target.value;
+                        setModalFarmFilter(fId);
+                        const fPlots = fId ? plots.filter((p) => p.farmId === fId) : plots;
+                        if (fPlots.length > 0 && !fPlots.some((p) => p.id === form.plotId)) {
+                          setForm((prev) => ({ ...prev, plotId: fPlots[0].id }));
+                        }
+                      }}
+                      className="form-control"
+                    >
+                      <option value="">-- Tất cả nông trại ({farms.length} trang trại) --</option>
+                      {farms.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 )}
 
                 <div className="modal-row">
-                  <CustomSelect
-                    label="Lô trồng"
-                    required
-                    value={form.plotId}
-                    placeholder="-- Chọn lô trồng --"
-                    onChange={(pId) => setForm({ ...form, plotId: pId })}
-                    groups={plotGroups}
-                  />
-                  <CustomSelect
-                    label="Cây trồng"
-                    required
-                    value={form.cropId}
-                    placeholder="-- Chọn cây trồng --"
-                    onChange={(cId) => setForm({ ...form, cropId: cId, growthCycleId: '' })}
-                    groups={cropGroups}
-                  />
+                  <div className="modal-field">
+                    <label>
+                      Lô trồng <span className="required">*</span>
+                    </label>
+                    <select
+                      value={form.plotId}
+                      onChange={(e) => setForm({ ...form, plotId: e.target.value })}
+                      className="form-control"
+                      required
+                    >
+                      <option value="">-- Chọn lô trồng --</option>
+                      {plotGroups.map((group, idx) =>
+                        group.groupName ? (
+                          <optgroup key={idx} label={group.groupName}>
+                            {group.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label} {opt.sub ? `(${opt.sub})` : ''}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          group.options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label} {opt.sub ? `(${opt.sub})` : ''}
+                            </option>
+                          ))
+                        )
+                      )}
+                    </select>
+                  </div>
+
+                  <div className="modal-field">
+                    <label>
+                      Cây trồng <span className="required">*</span>
+                    </label>
+                    <select
+                      value={form.cropId}
+                      onChange={(e) => setForm({ ...form, cropId: e.target.value, growthCycleId: '' })}
+                      className="form-control"
+                      required
+                    >
+                      <option value="">-- Chọn cây trồng --</option>
+                      {cropGroups.map((group, idx) =>
+                        group.groupName ? (
+                          <optgroup key={idx} label={group.groupName}>
+                            {group.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ) : (
+                          group.options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))
+                        )
+                      )}
+                    </select>
+                  </div>
                 </div>
 
-                <CustomSelect
-                  label="Chu kỳ sinh trưởng áp dụng"
-                  value={form.growthCycleId}
-                  onChange={(gcId) => setForm({ ...form, growthCycleId: gcId })}
-                  groups={cycleGroups}
-                />
+                <div className="modal-field">
+                  <label>Chu kỳ sinh trưởng áp dụng</label>
+                  <select
+                    value={form.growthCycleId}
+                    onChange={(e) => setForm({ ...form, growthCycleId: e.target.value })}
+                    className="form-control"
+                  >
+                    <option value="">-- Không áp dụng quy trình chuẩn --</option>
+                    {filteredCycles.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} ({c.stages?.length || 0} giai đoạn)
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="modal-row">
                   <div className="modal-field">

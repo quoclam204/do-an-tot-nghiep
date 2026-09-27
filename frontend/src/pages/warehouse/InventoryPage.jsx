@@ -63,73 +63,7 @@ const formatVNDWords = (num) => {
   return `${Number(num).toLocaleString('vi-VN')} đồng`;
 };
 
-// Dropdown tùy chỉnh: Tuyệt đối không tràn viền ra ngoài modal trên Desktop và Mobile
-function CustomSelect({ label, required, value, onChange, placeholder, options = [], hint }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setIsOpen(false);
-      }
-    }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  const selectedOption = useMemo(() => {
-    return (options || []).find((opt) => String(opt.value) === String(value));
-  }, [options, value]);
-
-  return (
-    <div className="custom-select-wrapper form-group" ref={containerRef}>
-      {label && (
-        <label>
-          {label} {required && <span className="text-red">*</span>}
-          {hint && <span style={{ fontWeight: 'normal', color: '#64748b', fontSize: '0.8rem', marginLeft: '4px' }}>({hint})</span>}
-        </label>
-      )}
-      <div
-        className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
-        onClick={() => setIsOpen((prev) => !prev)}
-        tabIndex={0}
-      >
-        <span className={`trigger-text ${!selectedOption ? 'placeholder' : ''}`}>
-          {selectedOption ? selectedOption.label : placeholder || '-- Chọn --'}
-        </span>
-        <span className="trigger-arrow" />
-      </div>
-
-      {isOpen && (
-        <div className="custom-select-dropdown">
-          {(options || []).map((opt) => (
-            <div
-              key={opt.value}
-              className={`custom-select-option ${String(opt.value) === String(value) ? 'selected' : ''}`}
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-            >
-              <div className="option-title">{opt.label}</div>
-              {opt.sub && <div className="option-sub">{opt.sub}</div>}
-            </div>
-          ))}
-          {(!options || options.length === 0) && (
-            <div className="custom-select-empty">Không có lựa chọn nào</div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function InventoryPage() {
   const [inventories, setInventories] = useState([]);
@@ -824,23 +758,39 @@ export default function InventoryPage() {
                 </button>
               </div>
               <form onSubmit={handleSaveAdd} className="modal-body">
-                <CustomSelect
-                  label="Chọn nông hộ / Trang trại"
-                  required
-                  value={formData.farmId}
-                  onChange={(val) => setFormData({ ...formData, farmId: val })}
-                  placeholder="-- Chọn nông hộ --"
-                  options={farmOptions}
-                />
+                <div className="form-group">
+                  <label>Chọn nông hộ / Trang trại <span className="text-red">*</span></label>
+                  <select
+                    value={formData.farmId}
+                    onChange={(e) => setFormData({ ...formData, farmId: e.target.value })}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">-- Chọn nông hộ --</option>
+                    {farms.map((f) => (
+                      <option key={f.id} value={f.id}>
+                        {f.name} {f.address ? `(${f.address})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                <CustomSelect
-                  label="Chọn vật tư từ danh mục"
-                  required
-                  value={formData.materialId}
-                  onChange={(val) => handleMaterialChange(val)}
-                  placeholder="-- Chọn vật tư --"
-                  options={materialOptions}
-                />
+                <div className="form-group">
+                  <label>Chọn vật tư từ danh mục <span className="text-red">*</span></label>
+                  <select
+                    value={formData.materialId}
+                    onChange={(e) => handleMaterialChange(e.target.value)}
+                    className="form-control"
+                    required
+                  >
+                    <option value="">-- Chọn vật tư --</option>
+                    {materials.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({Number(m.defaultPrice).toLocaleString('vi-VN')} đ / {m.unit || 'đơn vị'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 <div className="form-row">
                   <div className="form-group">

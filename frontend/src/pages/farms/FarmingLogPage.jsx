@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './FarmingLogPage.css';
 import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
 import QuickHarvestModal from '../../components/modals/QuickHarvestModal';
@@ -20,6 +21,7 @@ import {
   IconRotateCw,
   IconCalendar,
   IconMapPin,
+  IconWarehouse,
   IconClock,
   IconSun,
   IconMoon,
@@ -56,6 +58,7 @@ import {
   PieChart,
   Pie,
   Cell,
+  LabelList,
 } from 'recharts';
 
 const getTodayDateStr = () => {
@@ -91,12 +94,14 @@ const buildNotes = (cleanNotes, otherCostName) => {
   return trimmedNotes;
 };
 
+
+
 export default function FarmingLogPage() {
+  const navigate = useNavigate();
   const [farms, setFarms] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [crops, setCrops] = useState([]);
   const [seasons, setSeasons] = useState([]);
-  const [allSeasons, setAllSeasons] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -152,7 +157,6 @@ export default function FarmingLogPage() {
     otherCosts: '',
   });
 
-  const COLORS = ['#16a34a', '#0284c7', '#d97706', '#dc2626', '#8b5cf6'];
 
   // Load tất cả dữ liệu
   const loadData = async (targetFarmId) => {
@@ -166,10 +170,9 @@ export default function FarmingLogPage() {
         setFarms(farmsRes || []);
       }
 
-      const [cropsRes, seasonsRes, allSeasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
+      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
         apiGetCrops().catch(() => []),
         apiGetSeasons(farmToUse || undefined).catch(() => []),
-        apiGetSeasons().catch(() => []),
         apiGetMaterials().catch(() => []),
         apiGetActivityLogs(undefined, farmToUse || undefined).catch(() => []),
         farmsRes && farmsRes.length > 0 ? Promise.resolve(farmsRes) : apiGetMyFarms().catch(() => []),
@@ -180,7 +183,6 @@ export default function FarmingLogPage() {
 
       setCrops(cropsRes || []);
       setSeasons(seasonsRes || []);
-      setAllSeasons(allSeasonsRes || []);
       setMaterials(materialsRes || []);
       setLogs(logsRes || []);
       if (!farms || farms.length === 0) setFarms(currentFarmsRes || []);
@@ -188,9 +190,17 @@ export default function FarmingLogPage() {
       setActivityTypes(typesRes || []);
       setInventory(invRes || []);
 
-      const availableSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (allSeasonsRes || []);
-      if (availableSeasons.length > 0 && !form.cropCycleId) {
-        setForm((prev) => ({ ...prev, cropCycleId: availableSeasons[0].id }));
+      if (seasonsRes && seasonsRes.length > 0) {
+        setForm((prev) => {
+          const exists = seasonsRes.some((s) => s.id === prev.cropCycleId);
+          const firstSeason = exists ? seasonsRes.find((s) => s.id === prev.cropCycleId) : seasonsRes[0];
+          return {
+            ...prev,
+            cropCycleId: firstSeason?.id || '',
+          };
+        });
+      } else {
+        setForm((prev) => ({ ...prev, cropCycleId: '' }));
       }
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu nhật ký:', err);
@@ -203,20 +213,76 @@ export default function FarmingLogPage() {
     loadData();
   }, [selectedFarmId]);
 
+  const seasonOptions = useMemo(() => {
+    if (!seasons || seasons.length === 0) return [];
+    return seasons.map((s) => {
+      const farmName =
+        s.plot?.farm?.name ||
+        farms.find((f) => f.id === s.plot?.farmId)?.name ||
+        farms.find((f) => f.id === selectedFarmId)?.name ||
+        '';
+      const plotName = s.plot?.name || 'Chưa gán lô';
+      const cropName = s.crop?.name || '';
+      return {
+        value: s.id,
+        label: s.name,
+        seasonName: s.name,
+        farmName,
+        plotName,
+        cropName,
+        sub: farmName ? `Trại: ${farmName} · Lô: ${plotName}` : `Lô: ${plotName}`,
+        fullLabel: s.name,
+      };
+    });
+  }, [seasons, farms, selectedFarmId]);
+
+  const currentSeason = useMemo(() => {
+    return (seasons || []).find((s) => s.id === form.cropCycleId);
+  }, [seasons, form.cropCycleId]);
+
+  const activeFarmId = selectedFarmId || currentSeason?.plot?.farmId || currentSeason?.plot?.farm?.id || '';
+
+  const currentFarm = useMemo(() => {
+    if (selectedFarmId) {
+      return (farms || []).find((f) => f.id === selectedFarmId) || null;
+    }
+    if (currentSeason?.plot?.farm) return currentSeason.plot.farm;
+    if (currentSeason?.plot?.farmId) {
+      return (farms || []).find((f) => f.id === currentSeason.plot.farmId) || null;
+    }
+    return null;
+  }, [selectedFarmId, currentSeason, farms]);
+
+  const farmInventory = useMemo(() => {
+    if (!activeFarmId) return inventory || [];
+    return (inventory || []).filter((inv) => inv.farmId === activeFarmId);
+  }, [inventory, activeFarmId]);
+
   const selectedInventoryItem = useMemo(
-    () => inventory.find((inv) => inv.materialId === form.materialId),
-    [inventory, form.materialId]
+    () => (farmInventory || []).find((inv) => inv.materialId === form.materialId),
+    [farmInventory, form.materialId]
   );
 
   const selectedMaterial = useMemo(() => {
     if (selectedInventoryItem?.material) return selectedInventoryItem.material;
-    return materials.find((m) => m.id === form.materialId);
+    return (materials || []).find((m) => m.id === form.materialId);
   }, [selectedInventoryItem, materials, form.materialId]);
 
-  // Tự động tính tiền vật tư khi chọn vật tư và nhập số lượng (ưu tiên đơn giá thực tế trong kho)
+  // Xử lý khi chọn Mùa Vụ trong Form: Tự động reset vật tư
+  const handleCropCycleChange = (cycleId) => {
+    setForm((prev) => ({
+      ...prev,
+      cropCycleId: cycleId,
+      materialId: '',
+      quantityUsed: '',
+      materialCost: '',
+    }));
+  };
+
+  // Tự động tính tiền vật tư khi chọn vật tư và nhập số lượng (ưu tiên đơn giá thực tế trong kho của nông hộ)
   const handleMaterialChange = (materialId) => {
-    const invItem = inventory.find((inv) => inv.materialId === materialId);
-    const selected = invItem?.material || materials.find((m) => m.id === materialId);
+    const invItem = (farmInventory || []).find((inv) => inv.materialId === materialId);
+    const selected = invItem?.material || (materials || []).find((m) => m.id === materialId);
     const unitPrice = invItem?.unitPrice ?? selected?.defaultPrice ?? 0;
     const qty = Number(form.quantityUsed || 0);
     const cost = selected && qty > 0 ? Math.round(qty * unitPrice) : 0;
@@ -229,8 +295,8 @@ export default function FarmingLogPage() {
 
   const handleQtyChange = (qtyStr) => {
     const qty = Number(qtyStr || 0);
-    const invItem = inventory.find((inv) => inv.materialId === form.materialId);
-    const selected = invItem?.material || materials.find((m) => m.id === form.materialId);
+    const invItem = (farmInventory || []).find((inv) => inv.materialId === form.materialId);
+    const selected = invItem?.material || (materials || []).find((m) => m.id === form.materialId);
     const unitPrice = invItem?.unitPrice ?? selected?.defaultPrice ?? 0;
     const cost = selected && qty > 0 ? Math.round(qty * unitPrice) : 0;
     setForm((prev) => ({
@@ -413,10 +479,18 @@ export default function FarmingLogPage() {
       };
 
       if (form.materialId && Number(form.quantityUsed) > 0) {
-        const invItem = inventory.find((inv) => inv.materialId === form.materialId);
+        const invItem = (farmInventory || []).find((inv) => inv.materialId === form.materialId);
+        if (!invItem || Number(invItem.quantity || 0) <= 0) {
+          showToast(
+            'Vật tư này chưa được nhập vào kho của nông trại này hoặc đã hết hàng. Vui lòng nhập kho tại trang Quản lý tồn kho trước!',
+            'error'
+          );
+          setSubmitting(false);
+          return;
+        }
         if (!editingLogId && invItem && Number(form.quantityUsed) > Number(invItem.quantity)) {
           showToast(
-            `Số lượng sử dụng (${form.quantityUsed}) vượt quá tồn kho hiện có (${invItem.quantity})!`,
+            `Số lượng sử dụng (${form.quantityUsed}) vượt quá tồn kho hiện có của nông trại (${invItem.quantity})!`,
             'error'
           );
           setSubmitting(false);
@@ -462,9 +536,9 @@ export default function FarmingLogPage() {
 
       // Cập nhật ngầm số liệu tài chính, nhật ký & tồn kho mà không làm chớp/đơ màn hình
       Promise.all([
-        apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
-        apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
-        selectedFarmId ? apiGetInventory(selectedFarmId).catch(() => null) : Promise.resolve(null),
+        apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
+        apiGetFinancialReport(undefined, selectedFarmId || undefined).catch(() => null),
+        apiGetInventory(selectedFarmId || undefined).catch(() => null),
       ]).then(([freshLogs, finRes, freshInv]) => {
         if (freshLogs) setLogs(freshLogs);
         if (finRes) setFinancials(finRes);
@@ -488,9 +562,9 @@ export default function FarmingLogPage() {
         showToast('Đã xóa nhật ký thành công!');
         await apiDeleteActivityLog(id);
         const [freshLogs, finRes, freshInv] = await Promise.all([
-          apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
-          apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
-          selectedFarmId ? apiGetInventory(selectedFarmId).catch(() => null) : Promise.resolve(null),
+          apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
+          apiGetFinancialReport(undefined, selectedFarmId || undefined).catch(() => null),
+          apiGetInventory(selectedFarmId || undefined).catch(() => null),
         ]);
         if (freshLogs) setLogs(freshLogs);
         if (finRes) setFinancials(finRes);
@@ -528,28 +602,56 @@ export default function FarmingLogPage() {
     }
   };
 
-  // Chuẩn bị dữ liệu biểu đồ
-  const chartData = useMemo(() => {
+  // Dữ liệu so sánh Thu - Chi trực quan cho nông dân
+  const comparisonData = useMemo(() => {
     if (!financials) return [];
     return [
       {
-        name: 'Tài chính vụ mùa',
-        'Chi phí Vật tư': financials.totalMaterialCost || 0,
-        'Chi phí Nhân công': financials.totalLaborCost || 0,
-        'Chi phí Khác': financials.totalOtherCosts || 0,
-        'Doanh thu Thu hoạch': financials.totalRevenue || 0,
+        name: 'Doanh Thu',
+        value: Number(financials.totalRevenue || 0),
+        fill: '#107C10', // Xanh chuẩn DalatAgri
+      },
+      {
+        name: 'Tổng Chi Phí',
+        value: Number(financials.totalExpense || 0),
+        fill: '#d97706', // Cam đất nhã nhặn
       },
     ];
   }, [financials]);
 
-  const pieData = useMemo(() => {
+  // Dữ liệu phân bổ cơ cấu chi phí thực tế
+  const expenseBreakdown = useMemo(() => {
     if (!financials) return [];
+    const mat = Number(financials.totalMaterialCost || 0);
+    const lab = Number(financials.totalLaborCost || 0);
+    const oth = Number(financials.totalOtherCosts || 0);
+    const total = mat + lab + oth;
+
     return [
-      { name: 'Phân bón & Thuốc BVTV', value: financials.totalMaterialCost || 0 },
-      { name: 'Nhân công thuê', value: financials.totalLaborCost || 0 },
-      { name: 'Chi phí khác', value: financials.totalOtherCosts || 0 },
-    ].filter((item) => item.value > 0);
+      {
+        name: 'Vật tư (Phân, thuốc BVTV)',
+        value: mat,
+        percent: total > 0 ? Math.round((mat / total) * 100) : 0,
+        fill: '#107C10',
+      },
+      {
+        name: 'Nhân công lao động',
+        value: lab,
+        percent: total > 0 ? Math.round((lab / total) * 100) : 0,
+        fill: '#0284c7',
+      },
+      {
+        name: 'Chi phí khác',
+        value: oth,
+        percent: total > 0 ? Math.round((oth / total) * 100) : 0,
+        fill: '#d97706',
+      },
+    ];
   }, [financials]);
+
+  const activeExpensePie = useMemo(() => {
+    return expenseBreakdown.filter((item) => item.value > 0);
+  }, [expenseBreakdown]);
 
   const displayedLogs = useMemo(() => {
     return logs.filter((log) => {
@@ -789,51 +891,122 @@ export default function FarmingLogPage() {
         </div>
       </div>
 
-      {/* BIỂU ĐỒ KINH TẾ NÔNG HỘ */}
+      {/* BIỂU ĐỒ KINH TẾ NÔNG HỘ: ĐƠN GIẢN, TRỰC QUAN */}
       {financials && financials.totalExpense + financials.totalRevenue > 0 && (
         <div className="charts-section">
+          {/* Biểu đồ 1: So sánh Thu - Chi */}
           <div className="chart-card">
             <div className="chart-card-title">
               <IconLineChart size={18} strokeWidth={2} />
-              <h4>So Sánh Doanh Thu & Chi Phí (VNĐ)</h4>
+              <h4>So Sánh Thu - Chi Thực Tế</h4>
             </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={chartData} margin={{ top: 15, right: 30, left: 20, bottom: 5 }}>
-                <XAxis dataKey="name" />
-                <YAxis tickFormatter={(val) => `${(val / 1000000).toFixed(1)}M`} />
-                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} đ`} />
-                <Legend />
-                <Bar dataKey="Chi phí Vật tư" fill="#d97706" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Chi phí Nhân công" fill="#dc2626" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Chi phí Khác" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Doanh thu Thu hoạch" fill="#16a34a" radius={[4, 4, 0, 0]} />
+            <ResponsiveContainer width="100%" height={210}>
+              <BarChart data={comparisonData} margin={{ top: 30, right: 20, left: 10, bottom: 5 }}>
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 13, fill: '#334155', fontWeight: 600 }}
+                  axisLine={{ stroke: '#cbd5e1' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={(val) => {
+                    if (val === 0) return '0 đ';
+                    if (val >= 1000000) return `${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)} tr`;
+                    if (val >= 1000) return `${(val / 1000).toFixed(0)} k`;
+                    return `${val} đ`;
+                  }}
+                  tick={{ fontSize: 11, fill: '#64748b' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  formatter={(value) => [`${Number(value).toLocaleString()} đ`, 'Số tiền']}
+                  contentStyle={{ borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={80}>
+                  {comparisonData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                  <LabelList
+                    dataKey="value"
+                    content={(props) => {
+                      const { x, y, width, value } = props;
+                      const num = Number(value || 0);
+                      const formatted = num > 0 ? `${num.toLocaleString('vi-VN')} đ` : '0 đ';
+                      return (
+                        <text
+                          x={x + width / 2}
+                          y={y - 8}
+                          fill="#1e293b"
+                          textAnchor="middle"
+                          fontSize="13"
+                          fontWeight="700"
+                        >
+                          {formatted}
+                        </text>
+                      );
+                    }}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
+            <div className="chart-summary-line">
+              <span>Lợi nhuận vụ mùa: </span>
+              <strong className={(financials.netProfit || 0) >= 0 ? 'text-green' : 'text-red'}>
+                {(financials.netProfit || 0) >= 0 ? '+' : ''}{(financials.netProfit || 0).toLocaleString()} đ
+              </strong>
+              {(financials.netProfit || 0) < 0 && (
+                <span className="text-muted-sub"> (Đang trong giai đoạn đầu tư vụ mùa)</span>
+              )}
+            </div>
           </div>
 
+          {/* Biểu đồ 2: Cơ cấu chi phí */}
           <div className="chart-card">
             <div className="chart-card-title">
               <IconCircleDollar size={18} strokeWidth={2} />
-              <h4>Cơ Cấu Chi Phí Đầu Tư</h4>
+              <h4>Cơ Cấu Chi Phí Đã Chi</h4>
             </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            {activeExpensePie.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={140}>
+                  <PieChart>
+                    <Pie
+                      data={activeExpensePie}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={65}
+                      paddingAngle={activeExpensePie.length > 1 ? 3 : 0}
+                      dataKey="value"
+                    >
+                      {activeExpensePie.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} đ`, 'Chi phí']} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="expense-legend-list">
+                  {expenseBreakdown.map((item) => (
+                    <div key={item.name} className="expense-legend-item">
+                      <div className="legend-left">
+                        <span className="legend-bullet" style={{ backgroundColor: item.fill }} />
+                        <span className="legend-name">{item.name}</span>
+                      </div>
+                      <div className="legend-right">
+                        <strong>{Number(item.value).toLocaleString()} đ</strong>
+                        <span className="legend-pct">({item.percent}%)</span>
+                      </div>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip formatter={(value) => `${Number(value).toLocaleString()} đ`} />
-              </PieChart>
-            </ResponsiveContainer>
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', fontSize: '0.9rem' }}>
+                Chưa phát sinh chi phí nào.
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -876,34 +1049,70 @@ export default function FarmingLogPage() {
             </div>
           </div>
 
+          {/* Dòng thông tin nông trại đang ghi chép: Đơn giản, rõ ràng, chuẩn màu xanh DalatAgri */}
+          <div className="current-farm-bar">
+            <IconWarehouse size={16} strokeWidth={2} />
+            <span>Nông trại ghi chép: <strong>{currentFarm?.name || 'Tất cả nông trại'}</strong></span>
+            {currentFarm?.address && (
+              <span className="farm-bar-address">({currentFarm.address})</span>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit} className="farming-form">
-            {/* Lựa chọn Lô & Vụ mùa và Loại Hoạt Động */}
+            {/* Hàng 1: Lô Đất & Mùa Vụ Canh Tác + Loại Hoạt Động Chăm Sóc */}
             <div className="form-row">
               <div className="form-group">
-                <label>Lô Đất & Mùa Vụ Canh Tác <span className="text-red">*</span></label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                  <label style={{ margin: 0 }}>Lô Đất & Mùa Vụ Canh Tác <span className="text-red">*</span></label>
+                  {(!seasonOptions || seasonOptions.length === 0) && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}` : '/seasons')}
+                      style={{
+                        background: '#ffffff',
+                        color: '#15803d',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '6px',
+                        padding: '3px 9px',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}
+                      title="Chuyển đến trang Mùa vụ để tạo mùa vụ mới"
+                    >
+                      + Tạo mùa vụ mới &rarr;
+                    </button>
+                  )}
+                </div>
                 <select
                   value={form.cropCycleId}
-                  onChange={(e) => setForm({ ...form, cropCycleId: e.target.value })}
-                  required
+                  onChange={(e) => handleCropCycleChange(e.target.value)}
                   className="form-control"
+                  disabled={!seasonOptions || seasonOptions.length === 0}
                 >
-                  <option value="">-- Chọn Mùa Vụ / Lô Trồng --</option>
-                  {((seasons && seasons.length > 0) ? seasons : allSeasons).map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.crop?.name} - {s.plot?.name}{s.plot?.farm?.name ? ` · ${s.plot.farm.name}` : ''})
-                    </option>
-                  ))}
+                  {seasonOptions && seasonOptions.length > 0 ? (
+                    seasonOptions.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label} {s.farmName ? `— [${s.farmName}]` : ''}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">-- Chưa có mùa vụ nào --</option>
+                  )}
                 </select>
-                {((seasons && seasons.length > 0) ? seasons : allSeasons).length === 0 ? (
-                  <small className="form-help text-red">
-                    Chưa có mùa vụ nào! Vui lòng vào mục "Mùa vụ" trong thanh menu để tạo mùa vụ canh tác thực tế của bạn.
+                {currentSeason && currentFarm && (
+                  <small style={{ color: 'var(--ms-gray-600, #5a5a5a)', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px', fontSize: '0.82rem' }}>
+                    <IconWarehouse size={13} style={{ color: 'var(--ms-green, #107C10)' }} />
+                    <span>Nông trại: <strong style={{ color: 'var(--ms-green-dark, #0a5e0a)' }}>{currentFarm.name}</strong></span>
+                    {currentSeason.plot?.name && (
+                      <span> · Lô đất: <strong style={{ color: 'var(--ms-gray-800, #2a2a2a)' }}>{currentSeason.plot.name}</strong></span>
+                    )}
                   </small>
-                ) : (
-                  selectedFarmId && seasons.length === 0 && (
-                    <small className="form-help" style={{ color: '#047857', display: 'block', marginTop: '4px' }}>
-                      Nông trại đang chọn chưa có vụ riêng. Đang hiển thị mùa vụ từ nông trại khác để bạn tiện ghi chép.
-                    </small>
-                  )
+                )}
+                {(!seasonOptions || seasonOptions.length === 0) && (
+                  <small style={{ color: '#dc2626', display: 'block', marginTop: '5px', fontSize: '0.84rem' }}>
+                    Chưa có mùa vụ nào cho nông trại này.
+                  </small>
                 )}
               </div>
 
@@ -953,6 +1162,7 @@ export default function FarmingLogPage() {
               </div>
             </div>
 
+            {/* Hàng 2: Ngày Thực Hiện & Ca Làm Việc */}
             <div className="form-row">
               <div className="form-group">
                 <label>Ngày Thực Hiện <span className="text-red">*</span></label>
@@ -990,6 +1200,7 @@ export default function FarmingLogPage() {
               </div>
             </div>
 
+            {/* Hàng 3: Giờ Thực Hiện & Mốc Giờ Phổ Biến */}
             <div className="form-row">
               <div className="form-group">
                 <label>Giờ Thực Hiện</label>
@@ -1001,7 +1212,7 @@ export default function FarmingLogPage() {
               </div>
 
               <div className="form-group">
-                <label>Mốc Giờ Phổ Biến</label>
+                <label style={{ fontSize: '0.78rem', color: '#64748b' }}>Mốc Giờ Phổ Biến</label>
                 <div className="preset-time-grid">
                   <button
                     type="button"
@@ -1073,25 +1284,27 @@ export default function FarmingLogPage() {
                   className="form-control"
                 >
                   <option value="">-- Không sử dụng vật tư / Chỉ dùng nhân công --</option>
-                  {inventory.length === 0 ? (
-                    <option value="" disabled>-- Kho chưa có vật tư nào (Vui lòng nhập kho tại trang Tồn kho) --</option>
-                  ) : (
-                    inventory.map((inv) => {
-                      const m = inv.material || {};
-                      const isOutOfStock = Number(inv.quantity || 0) <= 0;
-                      return (
-                        <option key={inv.id} value={inv.materialId} disabled={isOutOfStock}>
-                          {m.name || 'Vật tư'} (Còn: {inv.quantity} {m.unit || 'đơn vị'}) {isOutOfStock ? '[HẾT HÀNG]' : ''}
-                        </option>
-                      );
-                    })
-                  )}
-                  {!inventory.some((inv) => inv.materialId === form.materialId) && form.materialId && selectedMaterial && (
+                  {farmInventory.map((inv) => {
+                    const m = inv.material || {};
+                    const isOutOfStock = Number(inv.quantity || 0) <= 0;
+                    return (
+                      <option key={inv.materialId} value={inv.materialId} disabled={isOutOfStock}>
+                        {m.name || 'Vật tư'}{isOutOfStock ? ' [Hết hàng]' : ` (Còn: ${inv.quantity} ${m.unit || 'đv'} - ${Number(inv.unitPrice || m.defaultPrice || 0).toLocaleString('vi-VN')} đ)`}
+                      </option>
+                    );
+                  })}
+                  {form.materialId && selectedMaterial && !farmInventory.some((inv) => inv.materialId === form.materialId) && (
                     <option value={form.materialId}>
-                      {selectedMaterial.name} ({selectedMaterial.unit}) - [Đã dùng trong nhật ký này]
+                      {selectedMaterial.name} (Đã dùng trong nhật ký này)
                     </option>
                   )}
                 </select>
+                {activeFarmId && farmInventory.length === 0 && (
+                  <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '0.8rem', color: '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>⚠️ Kho của nông trại này hiện chưa có vật tư nào.</span>
+                    <a href="/inventory" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}>+ Nhập kho ngay</a>
+                  </div>
+                )}
               </div>
 
               {form.materialId && (
@@ -1099,9 +1312,13 @@ export default function FarmingLogPage() {
                   <div className="form-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <label style={{ margin: 0 }}>Số lượng dùng ({selectedMaterial?.unit || 'đơn vị'})</label>
-                      {selectedInventoryItem && (
+                      {selectedInventoryItem ? (
                         <span style={{ fontSize: '0.8rem', color: selectedInventoryItem.quantity > 0 ? '#15803d' : '#b91c1c', fontWeight: 600 }}>
-                          Tồn kho: {selectedInventoryItem.quantity} {selectedMaterial?.unit || ''}
+                          Tồn kho nông trại: {selectedInventoryItem.quantity} {selectedMaterial?.unit || ''}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: 600 }}>
+                          Chưa nhập kho nông trại này (Tồn: 0)
                         </span>
                       )}
                     </div>
@@ -1537,7 +1754,7 @@ export default function FarmingLogPage() {
                     )}
                   </div>
 
-                  {( (log.materials && log.materials.length > 0) || log.isHiredLabor || Number(log.otherCosts) > 0 ) && (
+                  {((log.materials && log.materials.length > 0) || log.isHiredLabor || Number(log.otherCosts) > 0) && (
                     <div className="mobile-card-details">
                       {log.materials?.map((m) => (
                         <div key={m.id} className="mobile-pill mat-pill">

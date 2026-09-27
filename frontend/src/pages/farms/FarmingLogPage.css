@@ -47,6 +47,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -74,6 +75,7 @@
       opacity: 0;
       transform: translate(-50%, -10px);
     }
+
     to {
       opacity: 1;
       transform: translate(-50%, 0);
@@ -86,8 +88,13 @@
 }
 
 @keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Header ── */
@@ -392,32 +399,113 @@
   box-shadow: 0 4px 8px rgba(37, 99, 235, 0.25);
 }
 
-/* ── Charts Section ── */
+/* ── Charts Section: Tối giản, cân đối, dễ hiểu cho nông dân ── */
 .charts-section {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
+}
+
+@media (max-width: 860px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
 }
 
 .chart-card {
   background: #ffffff;
-  border: 1px solid var(--ms-gray-200);
+  border: 1px solid var(--ms-gray-200, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
   padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .chart-card-title {
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: var(--ms-green);
-  margin-bottom: 1rem;
+  gap: 8px;
+  color: var(--ms-green, #107C10);
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ms-gray-100, #f1f5f9);
 }
 
 .chart-card-title h4 {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--ms-gray-900);
+  color: var(--ms-gray-900, #1e293b);
+}
+
+.chart-summary-line {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--ms-gray-100, #f1f5f9);
+  font-size: 0.88rem;
+  color: var(--ms-gray-700, #334155);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.chart-summary-line strong {
+  font-size: 0.95rem;
+}
+
+.chart-summary-line .text-muted-sub {
+  color: var(--ms-gray-500, #64748b);
+  font-size: 0.8rem;
+}
+
+.expense-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--ms-gray-100, #f1f5f9);
+}
+
+.expense-legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+  padding: 3px 0;
+  white-space: nowrap;
+}
+
+.legend-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ms-gray-700, #334155);
+  white-space: nowrap;
+}
+
+.legend-bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ms-gray-800, #1e293b);
+  white-space: nowrap;
+}
+
+.legend-pct {
+  color: var(--ms-gray-500, #64748b);
+  font-size: 0.78rem;
+  min-width: 38px;
+  text-align: right;
 }
 
 /* ── Main Layout: Form ở trên, Lịch Sử Nhật Ký ở dưới kéo dài ── */
@@ -450,8 +538,9 @@
 .form-title-wrap {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 10px;
   color: var(--ms-green);
+  flex-wrap: wrap;
 }
 
 .form-title-wrap h3 {
@@ -459,6 +548,36 @@
   font-weight: 700;
   color: var(--ms-gray-900);
   margin: 0;
+}
+
+/* ── Thông tin Nông trại đang ghi chép: Tối giản, chuẩn màu DalatAgri (#107C10) ── */
+.current-farm-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ms-green-light, #e8f5e8);
+  border: 1px solid var(--ms-green-mid, #d4edda);
+  border-radius: var(--radius-sm, 4px);
+  padding: 8px 12px;
+  margin-bottom: 1.1rem;
+  font-size: 0.88rem;
+  color: var(--ms-gray-800, #2a2a2a);
+  flex-wrap: wrap;
+}
+
+.current-farm-bar svg {
+  color: var(--ms-green, #107C10);
+  flex-shrink: 0;
+}
+
+.current-farm-bar strong {
+  color: var(--ms-green-dark, #0a5e0a);
+  font-weight: 700;
+}
+
+.current-farm-bar .farm-bar-address {
+  color: var(--ms-gray-600, #5a5a5a);
+  font-size: 0.82rem;
 }
 
 .btn-quick-ocr {
@@ -493,6 +612,10 @@
   gap: 0.85rem;
 }
 
+.form-group {
+  min-width: 0;
+}
+
 .form-group label {
   display: block;
   font-size: 0.825rem;
@@ -503,6 +626,8 @@
 
 .form-control {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--ms-gray-300);
   border-radius: var(--radius-sm);
@@ -517,6 +642,239 @@
 .form-control:focus {
   border-color: var(--ms-green);
   box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.1);
+}
+
+/* ── Custom Select Dropdown (Chống tràn viền trên Desktop và Mobile) ── */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0.55rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: border-color 0.15s ease;
+  user-select: none;
+  font-size: 0.875rem;
+  color: #0f172a;
+  font-family: var(--sans);
+  min-height: 40px;
+}
+
+.custom-select-trigger.has-meta {
+  padding: 0.45rem 0.85rem;
+  min-height: 46px;
+}
+
+.custom-select-trigger:hover {
+  border-color: #94a3b8;
+}
+
+.custom-select-trigger.active {
+  border-color: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.12);
+}
+
+.custom-select-trigger.disabled {
+  background: #f8fafc;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.trigger-main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.trigger-selected-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trigger-primary-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trigger-sub-text {
+  font-size: 0.8rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.custom-select-trigger .trigger-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  text-align: left;
+}
+
+.custom-select-trigger .trigger-text.placeholder {
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+.custom-select-trigger .trigger-arrow {
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #64748b;
+  border-bottom: 2px solid #64748b;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  margin-top: -3px;
+}
+
+.custom-select-trigger.active .trigger-arrow {
+  transform: rotate(-135deg);
+  margin-top: 3px;
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1050;
+  padding: 0;
+  text-align: left;
+}
+
+.custom-select-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  display: block;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.custom-select-option:last-child {
+  border-bottom: none;
+}
+
+.custom-select-option:hover {
+  background: #f8fafc;
+}
+
+.custom-select-option.selected {
+  background: #f1f5f9;
+}
+
+/* ── Đơn giản: hiển thị vụ mùa và dòng phụ trang trại, lô đất ── */
+.season-select-item {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.season-select-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.season-name-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.season-selected-tag {
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.season-select-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Standard Select Item (dùng cho Vật tư trong kho) ── */
+.standard-select-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.standard-select-item .option-content {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.standard-select-item .option-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.35;
+}
+
+.standard-select-item .option-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+.standard-check {
+  font-size: 0.78rem;
+  color: #475569;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.custom-select-empty {
+  padding: 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
 }
 
 /* ── Quick Today Date Input ── */
@@ -1312,6 +1670,31 @@
   .form-control {
     min-height: 42px !important;
     font-size: 16px !important;
+  }
+
+  .custom-select-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .custom-select-trigger {
+    min-height: 42px !important;
+    font-size: 15px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .custom-select-trigger.has-meta {
+    min-height: 48px !important;
+    padding: 6px 12px !important;
+  }
+
+  .custom-select-dropdown {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .btn-quick-today {
