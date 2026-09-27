@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import {
@@ -47,6 +47,88 @@ const emptyForm = {
   expectedEndDate: '',
   isIntercropped: false,
 };
+
+// Component Dropdown tùy chỉnh: Hoàn toàn không tràn viền màn hình trên di động, không icon
+function CustomSelect({ label, required, value, onChange, placeholder, groups = [], hint }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const selectedLabel = useMemo(() => {
+    if (!Array.isArray(groups)) return '';
+    for (const group of groups) {
+      const found = (group.options || []).find((opt) => String(opt.value) === String(value));
+      if (found) return found.label;
+    }
+    return '';
+  }, [groups, value]);
+
+  return (
+    <div className="custom-select-wrapper modal-field" ref={containerRef}>
+      {label && (
+        <label>
+          {label} {required && <span className="required">*</span>}
+          {hint && <span style={{ fontWeight: 'normal', color: '#64748b', fontSize: '0.8rem', marginLeft: '4px' }}>({hint})</span>}
+        </label>
+      )}
+      <div
+        className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen((prev) => !prev)}
+        tabIndex={0}
+      >
+        <span className={`trigger-text ${!selectedLabel ? 'placeholder' : ''}`}>
+          {selectedLabel || placeholder || '-- Chọn --'}
+        </span>
+        <span className="trigger-arrow" />
+      </div>
+
+      {isOpen && (
+        <div className="custom-select-dropdown">
+          {(groups || []).map((group, gIdx) => (
+            <div key={gIdx} className="custom-select-group">
+              {group.groupName && (
+                <div className="custom-select-group-header">
+                  {group.groupName}
+                </div>
+              )}
+              {(group.options || []).map((opt) => (
+                <div
+                  key={opt.value}
+                  className={`custom-select-option ${String(opt.value) === String(value) ? 'selected' : ''}`}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  <span className="option-title">{opt.label}</span>
+                  {opt.sub && <span className="option-sub">({opt.sub})</span>}
+                </div>
+              ))}
+            </div>
+          ))}
+          {!groups || groups.length === 0 || groups.every((g) => (g.options || []).length === 0) ? (
+            <div className="custom-select-empty">Không có lựa chọn nào</div>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function SeasonsPage() {
   const [seasons, setSeasons] = useState([]);
@@ -114,6 +196,38 @@ export default function SeasonsPage() {
     return 'ACTIVE';
   };
 
+  // Farmer-friendly duration calculation
+  const getDurationInfo = (startDate, expectedEndDate, status) => {
+    if (!startDate || !expectedEndDate) return null;
+    try {
+      const start = new Date(startDate);
+      const end = new Date(expectedEndDate);
+      const now = new Date();
+
+      const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+      const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
+      const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+
+      const oneDay = 1000 * 60 * 60 * 24;
+      const totalDays = Math.max(1, Math.round((endDay - startDay) / oneDay));
+
+      if (nowDay < startDay) {
+        const daysUntilStart = Math.max(1, Math.round((startDay - nowDay) / oneDay));
+        return `Chuẩn bị xuống giống (còn ${daysUntilStart} ngày)`;
+      }
+
+      if (status === 'COMPLETED' || nowDay >= endDay) {
+        return `Đã hoàn tất chu kỳ canh tác (${totalDays} ngày)`;
+      }
+
+      const passedDays = Math.max(0, Math.min(totalDays, Math.round((nowDay - startDay) / oneDay)));
+      const remainDays = Math.max(0, totalDays - passedDays);
+      return `Đã canh tác ${passedDays}/${totalDays} ngày (dự kiến còn ${remainDays} ngày)`;
+    } catch {
+      return null;
+    }
+  };
+
   const filteredSeasons = useMemo(() => {
     let result = seasons;
     if (filterStatus) {
@@ -139,11 +253,107 @@ export default function SeasonsPage() {
     return { total: seasons.length, active, completed, upcoming, uniqueCrops };
   }, [seasons]);
 
+  const [modalFarmFilter, setModalFarmFilter] = useState('');
+
+  // Lọc danh sách lô đất hiển thị trong modal theo nông trại
+  const modalPlots = useMemo(() => {
+    if (!modalFarmFilter) return plots;
+    return plots.filter((p) => p.farmId === modalFarmFilter);
+  }, [plots, modalFarmFilter]);
+
+  // Gom nhóm lô đất theo Nông trại (tạo optgroup sạch sẽ)
+  const plotsByFarm = useMemo(() => {
+    const map = {};
+    modalPlots.forEach((p) => {
+      const farmName = p.farm?.name || 'Nông trại khác';
+      if (!map[farmName]) map[farmName] = [];
+      map[farmName].push(p);
+    });
+    return map;
+  }, [modalPlots]);
+
+  // Gom nhóm cây trồng theo phân loại
+  const cropsByType = useMemo(() => {
+    const map = {};
+    crops.forEach((c) => {
+      const typeName = c.type || 'Cây trồng';
+      if (!map[typeName]) map[typeName] = [];
+      map[typeName].push(c);
+    });
+    return map;
+  }, [crops]);
+
+  // Cấu trúc dữ liệu cho CustomSelect: Lô trồng
+  const plotGroups = useMemo(() => {
+    return Object.entries(plotsByFarm).map(([farmName, farmPlots]) => ({
+      groupName: modalFarmFilter ? '' : `Nông trại: ${farmName}`,
+      options: farmPlots.map((p) => ({
+        value: p.id,
+        label: p.name,
+        sub: p.area ? `${p.area} ha` : '',
+      })),
+    }));
+  }, [plotsByFarm, modalFarmFilter]);
+
+  // Cấu trúc dữ liệu cho CustomSelect: Cây trồng
+  const cropGroups = useMemo(() => {
+    return Object.entries(cropsByType).map(([typeName, typeCrops]) => ({
+      groupName: typeName,
+      options: typeCrops.map((c) => ({
+        value: c.id,
+        label: c.name,
+      })),
+    }));
+  }, [cropsByType]);
+
+  // Lọc chu kỳ sinh trưởng theo cây trồng được chọn
+  const filteredCycles = useMemo(() => {
+    return growthCycles.filter(
+      (c) => !form.cropId || c.cropId === form.cropId
+    );
+  }, [growthCycles, form.cropId]);
+
+  // Cấu trúc dữ liệu cho CustomSelect: Chu kỳ sinh trưởng
+  const cycleGroups = useMemo(() => {
+    return [
+      {
+        groupName: '',
+        options: [
+          { value: '', label: 'Không áp dụng quy trình chuẩn' },
+          ...filteredCycles.map((c) => ({
+            value: c.id,
+            label: c.name,
+            sub: `${c.stages?.length || 0} giai đoạn`,
+          })),
+        ],
+      },
+    ];
+  }, [filteredCycles]);
+
+  // Cấu trúc dữ liệu cho CustomSelect: Nông trại
+  const farmGroups = useMemo(() => {
+    return [
+      {
+        groupName: '',
+        options: [
+          { value: '', label: `-- Tất cả nông trại (${farms.length} trang trại) --` },
+          ...farms.map((f) => ({
+            value: f.id,
+            label: f.name,
+          })),
+        ],
+      },
+    ];
+  }, [farms]);
+
   const openAddModal = () => {
     setEditingId(null);
+    const initialFarm = selectedFarmId || '';
+    setModalFarmFilter(initialFarm);
+    const availPlots = initialFarm ? plots.filter((p) => p.farmId === initialFarm) : plots;
     setForm({
       ...emptyForm,
-      plotId: plots[0]?.id || '',
+      plotId: availPlots[0]?.id || plots[0]?.id || '',
       cropId: crops[0]?.id || '',
     });
     setShowModal(true);
@@ -151,6 +361,8 @@ export default function SeasonsPage() {
 
   const openEditModal = (item) => {
     setEditingId(item.id);
+    const curPlot = plots.find((p) => p.id === item.plotId);
+    setModalFarmFilter(curPlot?.farmId || '');
     setForm({
       plotId: item.plotId,
       cropId: item.cropId,
@@ -181,6 +393,7 @@ export default function SeasonsPage() {
     setShowModal(false);
     setEditingId(null);
     setForm(emptyForm);
+    setModalFarmFilter('');
   };
 
   const handleSave = async (e) => {
@@ -217,11 +430,6 @@ export default function SeasonsPage() {
 
   const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('vi-VN') : '—';
-
-  // Filter cycles by selected crop
-  const filteredCycles = growthCycles.filter(
-    (c) => !form.cropId || c.cropId === form.cropId
-  );
 
   return (
     <div className="seasons-page-container">
@@ -378,91 +586,107 @@ export default function SeasonsPage() {
                 const status = getStatus(season);
                 const statusInfo = STATUS_MAP[status] || STATUS_MAP.ACTIVE;
                 const progress = getProgress(season.startDate, season.expectedEndDate);
+                const durationText = getDurationInfo(season.startDate, season.expectedEndDate, status);
 
                 return (
                   <div className="season-card" key={season.id}>
-                    <div className="season-card-top">
-                      <div className="season-card-info">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <h3>{season.name}</h3>
-                          {season.isIntercropped && (
-                            <span className="season-intercrop-tag">🌿 Xen canh</span>
-                          )}
-                        </div>
-                        <div className="season-card-meta">
-                          <IconSprout size={14} strokeWidth={2} />
-                          <span>{season.crop?.name || '—'}</span>
-                          <span>·</span>
-                          <IconMapPin size={14} strokeWidth={2} />
-                          <span>{season.plot?.name || '—'}</span>
-                        </div>
+                    {/* Phần đầu: Tên mùa vụ và trạng thái */}
+                    <div className="season-card-header">
+                      <div className="season-card-title-group">
+                        <h3 className="season-card-title">{season.name}</h3>
+                        {season.isIntercropped && (
+                          <span className="season-intercrop-tag">Xen canh</span>
+                        )}
                       </div>
                       <span className={`season-status-badge ${statusInfo.cls}`}>
                         {statusInfo.label}
                       </span>
                     </div>
 
-                    {/* Progress */}
-                    <div className="season-progress">
-                      <div className="season-progress-bar">
-                        <div
-                          className="season-progress-fill"
-                          style={{ width: `${progress}%` }}
-                        />
+                    {/* Danh sách thông tin mùa vụ - Đơn giản, rõ ràng, không hộp lồng hộp */}
+                    <div className="season-info-list">
+                      <div className="season-info-row">
+                        <span className="season-info-label">Cây trồng:</span>
+                        <strong className="season-info-value season-crop-name">{season.crop?.name || '—'}</strong>
                       </div>
-                      <div className="season-progress-labels">
-                        <span>{formatDate(season.startDate)}</span>
-                        <span>{progress}%</span>
-                        <span>{formatDate(season.expectedEndDate)}</span>
+                      <div className="season-info-row">
+                        <span className="season-info-label">Đất canh tác:</span>
+                        <span className="season-info-value">
+                          {season.plot?.name || '—'}
+                          {season.plot?.area ? ` (${season.plot.area} ha)` : ''}
+                          {season.plot?.farm?.name && ` · ${season.plot.farm.name}`}
+                        </span>
+                      </div>
+                      <div className="season-info-row">
+                        <span className="season-info-label">Thời gian:</span>
+                        <span className="season-info-value">
+                          {formatDate(season.startDate)} → {formatDate(season.expectedEndDate)}
+                        </span>
+                      </div>
+
+                      {/* Tiến độ mùa vụ mộc mạc */}
+                      <div className="season-progress-section">
+                        <div className="season-progress-bar">
+                          <div
+                            className="season-progress-fill"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                        <div className="season-progress-text">
+                          <span>Tiến độ: <strong>{progress}%</strong></span>
+                          {durationText && <span> · {durationText}</span>}
+                        </div>
+                      </div>
+
+                      <div className="season-info-row">
+                        <span className="season-info-label">Quy trình:</span>
+                        <span className="season-info-value">
+                          {season.growthCycle?.name || 'Tự canh tác theo kinh nghiệm'}
+                        </span>
+                      </div>
+                      <div className="season-info-row">
+                        <span className="season-info-label">Sản lượng:</span>
+                        <span className="season-info-value">
+                          {season.totalYield && Number(season.totalYield) > 0 ? (
+                            <strong className="yield-highlight">{Number(season.totalYield).toLocaleString('vi-VN')} kg</strong>
+                          ) : (
+                            'Chưa thu hoạch'
+                          )}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Details */}
-                    <div className="season-detail-row">
-                      <div className="season-detail-item">
-                        <span className="season-detail-label">Ngày bắt đầu</span>
-                        <span className="season-detail-value">
-                          {formatDate(season.startDate)}
-                        </span>
-                      </div>
-                      <div className="season-detail-item">
-                        <span className="season-detail-label">Dự kiến kết thúc</span>
-                        <span className="season-detail-value">
-                          {formatDate(season.expectedEndDate)}
-                        </span>
-                      </div>
-                      <div className="season-detail-item">
-                        <span className="season-detail-label">Chu kỳ áp dụng</span>
-                        <span className="season-detail-value">
-                          {season.growthCycle?.name || 'Không áp dụng'}
-                        </span>
-                      </div>
-                      <div className="season-detail-item">
-                        <span className="season-detail-label">Sản lượng</span>
-                        <span className="season-detail-value">
-                          {season.totalYield ? `${season.totalYield.toLocaleString()} kg` : 'Chưa thu hoạch'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
+                    {/* Nút hành động */}
                     <div className="season-card-actions">
                       <button
+                        type="button"
                         className="btn-season-finance"
                         onClick={() => handleOpenFinanceModal(season)}
-                        title="Xem thống kê vốn đầu tư, tiền nhân công thuê, doanh thu & lợi nhuận"
+                        title="Xem chi phí đầu tư, phân thuốc, công thợ & doanh thu bán vụ mùa"
                       >
-                        <IconCircleDollar size={15} strokeWidth={2.2} />
+                        <IconCircleDollar size={16} strokeWidth={2} />
                         <span>Báo cáo kinh tế</span>
                       </button>
-                      <button className="btn-season-edit" onClick={() => openEditModal(season)}>
-                        <IconPenLine size={14} strokeWidth={2} />
-                        Sửa
-                      </button>
-                      <button className="btn-season-delete" onClick={() => handleDelete(season.id, season.name)}>
-                        <IconTrash size={14} strokeWidth={2} />
-                        Xóa
-                      </button>
+                      <div className="season-actions-right">
+                        <button
+                          type="button"
+                          className="btn-season-edit"
+                          onClick={() => openEditModal(season)}
+                          title="Sửa thông tin vụ mùa"
+                        >
+                          <IconPenLine size={15} strokeWidth={2} />
+                          <span>Sửa</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-season-delete"
+                          onClick={() => handleDelete(season.id, season.name)}
+                          title="Xóa vụ mùa này"
+                        >
+                          <IconTrash size={15} strokeWidth={2} />
+                          <span>Xóa</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -478,11 +702,8 @@ export default function SeasonsPage() {
         <div className="seasons-modal-overlay" onClick={closeModal}>
           <div className="seasons-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>
-                <IconBookOpen size={20} strokeWidth={2} />
-                {editingId ? 'Chỉnh sửa mùa vụ' : 'Lập mùa vụ mới'}
-              </h3>
-              <button className="modal-close-btn" onClick={closeModal}>
+              <h3>{editingId ? 'Chỉnh sửa mùa vụ' : 'Lập mùa vụ mới'}</h3>
+              <button className="modal-close-btn" onClick={closeModal} aria-label="Đóng">
                 <IconX size={16} strokeWidth={2.5} />
               </button>
             </div>
@@ -499,56 +720,50 @@ export default function SeasonsPage() {
                     placeholder="VD: Mùa cà phê Robusta 2026"
                   />
                 </div>
+
+                {/* Bộ lọc Nông trại nếu có nhiều trang trại */}
+                {farms.length > 1 && (
+                  <CustomSelect
+                    label="Nông trại"
+                    hint="Chọn để lọc danh sách lô bên dưới"
+                    value={modalFarmFilter}
+                    onChange={(fId) => {
+                      setModalFarmFilter(fId);
+                      const fPlots = fId ? plots.filter((p) => p.farmId === fId) : plots;
+                      if (fPlots.length > 0 && !fPlots.some((p) => p.id === form.plotId)) {
+                        setForm((prev) => ({ ...prev, plotId: fPlots[0].id }));
+                      }
+                    }}
+                    groups={farmGroups}
+                  />
+                )}
+
                 <div className="modal-row">
-                  <div className="modal-field">
-                    <label>
-                      Lô trồng <span className="required">*</span>
-                    </label>
-                    <select
-                      required
-                      value={form.plotId}
-                      onChange={(e) => setForm({ ...form, plotId: e.target.value })}
-                    >
-                      <option value="">-- Chọn lô trồng --</option>
-                      {plots.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.farm?.name || ''})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="modal-field">
-                    <label>
-                      Cây trồng <span className="required">*</span>
-                    </label>
-                    <select
-                      required
-                      value={form.cropId}
-                      onChange={(e) => setForm({ ...form, cropId: e.target.value, growthCycleId: '' })}
-                    >
-                      <option value="">-- Chọn cây trồng --</option>
-                      {crops.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} ({c.type})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <CustomSelect
+                    label="Lô trồng"
+                    required
+                    value={form.plotId}
+                    placeholder="-- Chọn lô trồng --"
+                    onChange={(pId) => setForm({ ...form, plotId: pId })}
+                    groups={plotGroups}
+                  />
+                  <CustomSelect
+                    label="Cây trồng"
+                    required
+                    value={form.cropId}
+                    placeholder="-- Chọn cây trồng --"
+                    onChange={(cId) => setForm({ ...form, cropId: cId, growthCycleId: '' })}
+                    groups={cropGroups}
+                  />
                 </div>
-                <div className="modal-field">
-                  <label>Chu kỳ sinh trưởng áp dụng</label>
-                  <select
-                    value={form.growthCycleId}
-                    onChange={(e) => setForm({ ...form, growthCycleId: e.target.value })}
-                  >
-                    <option value="">Không áp dụng</option>
-                    {filteredCycles.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} ({c.stages?.length || 0} giai đoạn)
-                      </option>
-                    ))}
-                  </select>
-                </div>
+
+                <CustomSelect
+                  label="Chu kỳ sinh trưởng áp dụng"
+                  value={form.growthCycleId}
+                  onChange={(gcId) => setForm({ ...form, growthCycleId: gcId })}
+                  groups={cycleGroups}
+                />
+
                 <div className="modal-row">
                   <div className="modal-field">
                     <label>
@@ -584,7 +799,7 @@ export default function SeasonsPage() {
                       checked={form.isIntercropped}
                       onChange={(e) => setForm({ ...form, isIntercropped: e.target.checked })}
                     />
-                    <span>🌿 Trồng xen canh trên lô đất này (Ví dụ: Cà phê xen Sầu riêng)</span>
+                    <span>Trồng xen canh trên lô đất này (Ví dụ: Cà phê xen Sầu riêng)</span>
                   </label>
                   <small style={{ color: '#15803d', display: 'block', marginTop: '4px', fontSize: '0.82rem' }}>
                     Cho phép tạo nhiều vụ mùa cho các loại cây khác nhau cùng hoạt động song song trên một Lô đất mà không bị báo trùng lịch.
@@ -596,7 +811,6 @@ export default function SeasonsPage() {
                   Hủy bỏ
                 </button>
                 <button type="submit" className="btn-modal-save" disabled={saving}>
-                  <IconCheckCircle size={16} strokeWidth={2.5} />
                   {saving ? 'Đang lưu...' : editingId ? 'Cập nhật' : 'Lập mùa vụ'}
                 </button>
               </div>

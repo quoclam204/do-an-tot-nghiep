@@ -1265,8 +1265,7 @@
     box-sizing: border-box !important;
   }
 
-  .filter-group,
-  .seasons-filter-left {
+  .filter-group {
     width: 100% !important;
     flex-direction: column !important;
     gap: 0.5rem !important;

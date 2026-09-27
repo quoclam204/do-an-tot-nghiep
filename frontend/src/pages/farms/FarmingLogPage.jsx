@@ -96,6 +96,7 @@ export default function FarmingLogPage() {
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [crops, setCrops] = useState([]);
   const [seasons, setSeasons] = useState([]);
+  const [allSeasons, setAllSeasons] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -157,31 +158,29 @@ export default function FarmingLogPage() {
   const loadData = async (targetFarmId) => {
     try {
       setLoading(true);
-      let farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
+      const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
 
       let farmsRes = farms;
-      if (!farmToUse && (!farmsRes || farmsRes.length === 0)) {
+      if (!farmsRes || farmsRes.length === 0) {
         farmsRes = await apiGetMyFarms().catch(() => []);
         setFarms(farmsRes || []);
-        if (farmsRes && farmsRes.length > 0) {
-          farmToUse = farmsRes[0].id;
-          setSelectedFarmId(farmToUse);
-        }
       }
 
-      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
+      const [cropsRes, seasonsRes, allSeasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
         apiGetCrops().catch(() => []),
-        apiGetSeasons(farmToUse).catch(() => []),
+        apiGetSeasons(farmToUse || undefined).catch(() => []),
+        apiGetSeasons().catch(() => []),
         apiGetMaterials().catch(() => []),
-        apiGetActivityLogs(undefined, farmToUse).catch(() => []),
+        apiGetActivityLogs(undefined, farmToUse || undefined).catch(() => []),
         farmsRes && farmsRes.length > 0 ? Promise.resolve(farmsRes) : apiGetMyFarms().catch(() => []),
-        apiGetFinancialReport(undefined, farmToUse).catch(() => null),
-        apiGetActivityTypes(farmToUse).catch(() => []),
-        farmToUse ? apiGetInventory(farmToUse).catch(() => []) : Promise.resolve([]),
+        apiGetFinancialReport(undefined, farmToUse || undefined).catch(() => null),
+        apiGetActivityTypes(farmToUse || undefined).catch(() => []),
+        farmToUse ? apiGetInventory(farmToUse).catch(() => []) : apiGetInventory().catch(() => []),
       ]);
 
       setCrops(cropsRes || []);
       setSeasons(seasonsRes || []);
+      setAllSeasons(allSeasonsRes || []);
       setMaterials(materialsRes || []);
       setLogs(logsRes || []);
       if (!farms || farms.length === 0) setFarms(currentFarmsRes || []);
@@ -189,8 +188,9 @@ export default function FarmingLogPage() {
       setActivityTypes(typesRes || []);
       setInventory(invRes || []);
 
-      if (seasonsRes && seasonsRes.length > 0 && !form.cropCycleId) {
-        setForm((prev) => ({ ...prev, cropCycleId: seasonsRes[0].id }));
+      const availableSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (allSeasonsRes || []);
+      if (availableSeasons.length > 0 && !form.cropCycleId) {
+        setForm((prev) => ({ ...prev, cropCycleId: availableSeasons[0].id }));
       }
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu nhật ký:', err);
@@ -600,6 +600,7 @@ export default function FarmingLogPage() {
               }}
               title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
             >
+              <option value="">-- Tất cả nông trại ({farms.length}) --</option>
               {farms.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name}
@@ -887,16 +888,22 @@ export default function FarmingLogPage() {
                   className="form-control"
                 >
                   <option value="">-- Chọn Mùa Vụ / Lô Trồng --</option>
-                  {seasons.map((s) => (
+                  {((seasons && seasons.length > 0) ? seasons : allSeasons).map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name} ({s.crop?.name} - {s.plot?.name})
+                      {s.name} ({s.crop?.name} - {s.plot?.name}{s.plot?.farm?.name ? ` · ${s.plot.farm.name}` : ''})
                     </option>
                   ))}
                 </select>
-                {seasons.length === 0 && (
+                {((seasons && seasons.length > 0) ? seasons : allSeasons).length === 0 ? (
                   <small className="form-help text-red">
                     Chưa có mùa vụ nào! Vui lòng vào mục "Mùa vụ" trong thanh menu để tạo mùa vụ canh tác thực tế của bạn.
                   </small>
+                ) : (
+                  selectedFarmId && seasons.length === 0 && (
+                    <small className="form-help" style={{ color: '#047857', display: 'block', marginTop: '4px' }}>
+                      Nông trại đang chọn chưa có vụ riêng. Đang hiển thị mùa vụ từ nông trại khác để bạn tiện ghi chép.
+                    </small>
+                  )
                 )}
               </div>
 
@@ -1074,7 +1081,7 @@ export default function FarmingLogPage() {
                       const isOutOfStock = Number(inv.quantity || 0) <= 0;
                       return (
                         <option key={inv.id} value={inv.materialId} disabled={isOutOfStock}>
-                          {m.name || 'Vật tư'} ({m.type === 'PHAN_BON' ? 'Phân bón' : 'Thuốc BVTV'}) — Tồn kho: {inv.quantity} {m.unit || 'đơn vị'} {isOutOfStock ? '(HẾT HÀNG)' : `— ${Number(inv.unitPrice || m.defaultPrice || 0).toLocaleString('vi-VN')} đ/${m.unit || 'đơn vị'}`}
+                          {m.name || 'Vật tư'} (Còn: {inv.quantity} {m.unit || 'đơn vị'}) {isOutOfStock ? '[HẾT HÀNG]' : ''}
                         </option>
                       );
                     })

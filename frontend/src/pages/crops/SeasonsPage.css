@@ -129,97 +129,190 @@
 .seasons-filter-left {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 0.45rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.filter-chip:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.filter-chip.active {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #15803d;
+  box-shadow: 0 2px 5px rgba(21, 128, 61, 0.25);
+}
+
+.filter-chip.active:hover {
+  background: #166534;
+  border-color: #166534;
 }
 
 /* ================= SEASONS GRID ================= */
 .seasons-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
 .season-card {
   background: #ffffff;
-  border: 1px solid var(--ms-gray-200);
-  border-radius: var(--radius-sm);
-  padding: 1.25rem;
-  transition: border-color 0.15s;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem 1.35rem;
+  transition: all 0.2s ease-in-out;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.9rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
 }
 
 .season-card:hover {
-  border-color: var(--ms-green);
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
-.season-card-top {
+/* Card Header */
+.season-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.season-card-info h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ms-gray-900);
-  margin: 0 0 0.35rem;
-}
-
-.season-card-meta {
+.season-card-title-group {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--ms-gray-500);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
 }
 
-.season-card-meta svg {
-  color: var(--ms-green);
-}
-
-.season-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.78rem;
+.season-card-title {
+  font-size: 1.12rem;
   font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.season-intercrop-tag {
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
+/* Status Badge - Nhẹ nhàng, dễ phân biệt */
+.season-status-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 3px 9px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .status-active {
-  background: #dcfce7;
+  background: #ecfdf5;
   color: #15803d;
-  border: 1px solid #86efac;
+  border: 1px solid #bbf7d0;
 }
 
 .status-completed {
-  background: #dbeafe;
-  color: #1d4ed8;
-  border: 1px solid #93c5fd;
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
 }
 
 .status-upcoming {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fcd34d;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
-/* Progress Bar */
-.season-progress {
+/* Danh sách thông tin mùa vụ: Dạng dòng rõ ràng, không hộp lồng hộp, không màu mè */
+.season-info-list {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.season-info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.season-info-label {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.85rem;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.season-info-value {
+  color: #0f172a;
+  word-break: break-word;
+  font-size: 0.9rem;
+}
+
+.season-crop-name {
+  color: #15803d;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.yield-highlight {
+  color: #15803d;
+  font-weight: 700;
+}
+
+/* Tiến độ mùa vụ: Thanh trượt tinh tế, mộc mạc */
+.season-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.15rem 0;
+  padding: 0.25rem 0;
 }
 
 .season-progress-bar {
-  height: 8px;
-  background: #e5f3ea;
+  height: 6px;
+  background: #e2e8f0;
   border-radius: 99px;
   overflow: hidden;
 }
@@ -227,98 +320,133 @@
 .season-progress-fill {
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, #16a34a, #22d3ee);
-  transition: width 0.4s ease;
+  background: #16a34a;
+  transition: width 0.3s ease;
 }
 
-.season-progress-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.78rem;
-  color: #6b7280;
+.season-progress-text {
+  font-size: 0.82rem;
+  color: #64748b;
 }
 
-/* Details Row */
-.season-detail-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+.season-progress-text strong {
+  color: #15803d;
 }
 
-.season-detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.season-detail-label {
-  font-size: 0.73rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--ms-gray-400);
-}
-
-.season-detail-value {
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--ms-gray-900);
-}
-
-/* Actions */
+/* Nút hành động phía dưới thẻ */
 .season-card-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 0.5rem;
-  border-top: 1px solid var(--ms-gray-200);
-  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.85rem;
+  margin-top: auto;
 }
 
+.season-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.btn-season-finance,
 .btn-season-edit,
 .btn-season-delete {
-  padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  padding: 0.48rem 0.85rem;
+  border-radius: 7px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  transition: all 0.15s;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-season-finance {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+.btn-season-finance:hover {
+  background: #dcfce7;
+  border-color: #86efac;
 }
 
 .btn-season-edit {
-  background: var(--ms-green-light);
-  color: var(--ms-green);
-  border: 1px solid var(--ms-green-mid);
+  background: #ffffff;
+  color: #334155;
+  border: 1px solid #cbd5e1;
 }
 
 .btn-season-edit:hover {
-  background: var(--ms-green-mid);
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
 .btn-season-delete {
-  background: #fff;
-  color: #c42b1c;
-  border: 1px solid #fdd;
+  background: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
 }
 
 .btn-season-delete:hover {
-  background: #fdf3f2;
+  background: #fef2f2;
+  border-color: #f87171;
+}
+
+@media (max-width: 640px) {
+  .season-card {
+    padding: 1rem 1.1rem;
+    gap: 0.75rem;
+  }
+  .season-info-row {
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+  .season-info-label {
+    min-width: unset;
+    font-size: 0.8rem;
+  }
+  .season-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .btn-season-finance {
+    justify-content: center;
+    width: 100%;
+    padding: 0.55rem;
+  }
+  .season-actions-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .btn-season-edit,
+  .btn-season-delete {
+    justify-content: center;
+    width: 100%;
+    padding: 0.55rem;
+  }
 }
 
 /* ================= MODAL ================= */
 .seasons-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(3px);
-  z-index: 999;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   animation: season-fade-in 0.2s ease;
+  overflow-y: auto;
 }
 
 @keyframes season-fade-in {
@@ -333,14 +461,24 @@
 
 .seasons-modal {
   background: #ffffff;
-  border-radius: var(--radius-md);
+  border-radius: 14px;
   width: 100%;
   max-width: 620px;
-  box-shadow: var(--shadow-lg);
-  animation: season-slide-up 0.25s ease;
+  max-height: calc(100dvh - 2rem);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: season-slide-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  margin: auto;
+}
+
+.seasons-modal form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 @keyframes season-slide-up {
@@ -356,10 +494,11 @@
 }
 
 .seasons-modal .modal-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.25rem 1.5rem;
+  padding: 1.15rem 1.5rem;
   border-bottom: 1px solid var(--ms-gray-200);
   background: #fff;
 }
@@ -399,26 +538,31 @@
 }
 
 .seasons-modal .modal-body {
-  padding: 1.5rem 1.75rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.15rem;
-  max-height: calc(85vh - 140px);
+  gap: 1.1rem;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .seasons-modal .modal-field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
   min-width: 0;
   width: 100%;
 }
 
 .seasons-modal .modal-field label {
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .seasons-modal .modal-field label .required {
@@ -432,21 +576,189 @@
   max-width: 100%;
   box-sizing: border-box;
   padding: 0.72rem 1rem;
-  border: 1px solid var(--ms-gray-300);
-  border-radius: var(--radius-sm);
-  font-size: 0.9rem;
-  background: #fff;
+  border: 1.5px solid var(--ms-gray-300);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  background-color: #fff;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   font-family: inherit;
   color: #1f2937;
+}
+
+.seasons-modal .modal-field select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 15px;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seasons-modal .modal-field select optgroup {
+  font-weight: 700;
+  color: #166534;
+  background: #f0fdf4;
+  padding: 6px 0;
+}
+
+.seasons-modal .modal-field select option {
+  font-weight: normal;
+  color: #1f2937;
+  background: #ffffff;
+  padding: 8px 10px;
 }
 
 .seasons-modal .modal-field input:focus,
 .seasons-modal .modal-field select:focus {
   border-color: var(--ms-green);
-  box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.12);
+  box-shadow: 0 0 0 3px rgba(16, 124, 16, 0.15);
+  background-color: #fff;
+}
+
+/* ================= CUSTOM SELECT (CHỐNG TRÀN VIỀN MOBILE) ================= */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.72rem 1rem;
+  border: 1.5px solid var(--ms-gray-300);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 44px;
+  user-select: none;
+}
+
+.custom-select-trigger:focus,
+.custom-select-trigger.active {
+  border-color: var(--ms-green);
+  box-shadow: 0 0 0 3px rgba(16, 124, 16, 0.15);
+  outline: none;
+}
+
+.trigger-text {
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  text-align: left;
+  flex: 1;
+}
+
+.trigger-text.placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.trigger-arrow {
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.custom-select-trigger.active .trigger-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  max-height: 220px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.custom-select-group-header {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #166534;
+  background: #f0fdf4;
+  border-bottom: 1px solid #dcfce7;
+  border-top: 1px solid #f1f5f9;
+  letter-spacing: 0.02em;
+}
+
+.custom-select-group:first-child .custom-select-group-header {
+  border-top: none;
+}
+
+.custom-select-option {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.88rem;
+  color: #1f2937;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.custom-select-option:last-child {
+  border-bottom: none;
+}
+
+.custom-select-option:hover {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.custom-select-option.selected {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 600;
+}
+
+.option-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.custom-select-empty {
+  padding: 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
 }
 
 .seasons-modal .modal-row {
@@ -458,17 +770,18 @@
 }
 
 .seasons-modal .modal-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  padding: 1rem 1.5rem;
+  padding: 0.9rem 1.5rem;
   border-top: 1px solid var(--ms-gray-200);
   background: var(--ms-gray-50);
 }
 
 .seasons-modal .btn-modal-cancel {
   padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid var(--ms-gray-300);
@@ -485,7 +798,7 @@
 
 .seasons-modal .btn-modal-save {
   padding: 0.65rem 1.35rem;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid var(--ms-green);
@@ -590,22 +903,43 @@
   }
 
   .seasons-filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.6rem;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
   }
 
   .seasons-filter-left {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-    padding-bottom: 4px;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0.45rem !important;
+    padding: 2px 2px 6px 2px !important;
+    scrollbar-width: none !important;
+  }
+
+  .seasons-filter-left::-webkit-scrollbar {
+    display: none !important;
   }
 
   .filter-chip {
-    white-space: nowrap;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.85rem !important;
+    border-radius: 99px !important;
+  }
+
+  .materials-search-wrap {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .seasons-farm-select {
+    width: 100% !important;
   }
 
   .season-card {
@@ -629,21 +963,84 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .seasons-modal-overlay {
+    padding: 0.5rem;
+    align-items: center;
+  }
+
+  .seasons-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 1rem);
+    border-radius: 14px;
+  }
+
+  .seasons-modal .modal-header {
+    padding: 0.95rem 1.15rem;
+  }
+
+  .seasons-modal .modal-header h3 {
+    font-size: 1.05rem;
+  }
+
+  .seasons-modal .modal-body {
+    padding: 1rem 1.15rem;
+    gap: 0.85rem;
+  }
+
+  .seasons-modal .modal-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem;
+  }
+
+  /* Chống zoom tự động trên iOS Safari khi chạm vào ô input/select */
+  .seasons-modal .modal-field input,
+  .seasons-modal .modal-field select,
+  .custom-select-trigger {
+    font-size: 16px !important;
+    padding: 0.72rem 0.85rem;
+    min-height: 44px;
+  }
+
+  .seasons-modal .modal-footer {
+    padding: 0.85rem 1.15rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+
+  .seasons-modal .btn-modal-cancel,
+  .seasons-modal .btn-modal-save {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+    padding: 0.65rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
   .season-detail-row {
     grid-template-columns: 1fr;
   }
 
-  .seasons-modal .modal-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .seasons-modal.finance-modal {
+    width: 100% !important;
+    max-height: calc(100dvh - 1rem) !important;
+    border-radius: 14px;
   }
 
-  .seasons-modal .modal-header,
-  .seasons-modal .modal-body,
-  .seasons-modal .modal-footer {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+  .finance-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.6rem !important;
+  }
+
+  .finance-kpi-card {
+    padding: 0.75rem !important;
+  }
+
+  .finance-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 

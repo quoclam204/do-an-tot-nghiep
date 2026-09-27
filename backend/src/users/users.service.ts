@@ -11,6 +11,7 @@ import { randomBytes, scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto'
 import { promisify } from 'node:util';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { UpdateUserDto, UpdateUserRoleDto } from './dto/update-user.dto';
+import { MailService } from '../auth/mail.service';
 
 const scrypt = promisify(nodeScrypt);
 
@@ -19,6 +20,7 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   // ────────────────────────────────────────────────
@@ -303,14 +305,21 @@ export class UsersService {
     });
   }
 
-  /** Admin tạo tài khoản cho nông hộ */
-  async createByAdmin(dto: { email: string; fullName: string; password: string; role?: string; phone?: string }) {
+  /** Admin tạo tài khoản cho nông hộ (Admin không được đặt hoặc biết mật khẩu) */
+  async createByAdmin(dto: { email: string; fullName: string; password?: string; role?: string; phone?: string }) {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new BadRequestException('Email đã được sử dụng');
 
-    const passwordHash = await this.hashPassword(dto.password);
-    return (this.prisma.user as any).create({
+    // Mật khẩu ngẫu nhiên bảo mật dùng một lần băm bằng scrypt (admin không nắm giữ)
+    const rawPass = dto.password || randomBytes(24).toString('base64');
+    const passwordHash = await this.hashPassword(rawPass);
+
+    const resetToken = randomBytes(32).toString('hex');
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 3); // Token thiết lập mật khẩu có hạn 3 ngày
+
+    const user = await (this.prisma.user as any).create({
       data: {
         email,
         passwordHash,
@@ -320,11 +329,21 @@ export class UsersService {
         isActive: true,
         approvalStatus: 'APPROVED',
         emailVerified: true,
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: expires,
       },
       select: {
         id: true, email: true, phone: true, fullName: true, role: true, isActive: true, approvalStatus: true, createdAt: true,
       },
     });
+
+    try {
+      await this.mailService.sendPasswordResetEmail(email, resetToken);
+    } catch (e) {
+      console.warn(`[createByAdmin] Không thể gửi email kích hoạt đến ${email}:`, e);
+    }
+
+    return user;
   }
 
   /** Lấy danh sách tài khoản chờ xét duyệt (chỉ ADMIN) */
@@ -424,6 +443,32 @@ export class UsersService {
         usersByRole = [];
       }
 
+      // Thống kê hoạt động theo loại
+      let logsByType: any[] = [];
+      try {
+        const groupedLogs = await this.prisma.activityLog.groupBy({
+          by: ['activityType'],
+          where: { deletedAt: null },
+          _count: { id: true },
+        });
+        logsByType = groupedLogs.map((l: any) => ({ type: l.activityType, count: l._count?.id || 0 }));
+      } catch (e) {
+        logsByType = [];
+      }
+
+      // Thống kê vụ mùa theo trạng thái
+      let seasonsByStatus: any[] = [];
+      try {
+        const groupedSeasons = await this.prisma.cropCycle.groupBy({
+          by: ['status'],
+          where: { deletedAt: null },
+          _count: { id: true },
+        });
+        seasonsByStatus = groupedSeasons.map((s: any) => ({ status: s.status, count: s._count?.id || 0 }));
+      } catch (e) {
+        seasonsByStatus = [];
+      }
+
       // Users đăng ký gần đây (7 ngày)
       const recentUsers = await this.prisma.user.findMany({
         where: {
@@ -445,6 +490,8 @@ export class UsersService {
         totalLogs,
         usersByRole,
         recentUsers,
+        logsByType,
+        seasonsByStatus,
       };
     } catch (error) {
       return {
@@ -584,5 +631,29 @@ export class UsersService {
       data: { passwordHash },
     });
     return { message: `Đã đặt lại mật khẩu thành công cho ${user.fullName || user.email}` };
+  }
+
+  /** Admin gửi liên kết đặt lại mật khẩu bảo mật qua email (Admin không được biết/can thiệp mật khẩu) */
+  async adminSendResetPasswordLink(userId: string) {
+    const user = await this.prisma.user.findFirst({ where: { id: userId, deletedAt: null } });
+    if (!user) throw new BadRequestException('Không tìm thấy tài khoản người dùng');
+    if (!user.email) throw new BadRequestException('Tài khoản này không có địa chỉ email');
+
+    const resetToken = randomBytes(32).toString('hex');
+    const expires = new Date();
+    expires.setMinutes(expires.getMinutes() + 60); // Link đặt lại mật khẩu có hiệu lực 60 phút
+
+    await this.saveResetToken(user.id, resetToken, expires);
+
+    try {
+      await this.mailService.sendPasswordResetEmail(user.email, resetToken);
+    } catch (e) {
+      console.warn(`[adminSendResetPasswordLink] Gửi email thất bại đến ${user.email}:`, e);
+    }
+
+    return {
+      message: `Đã gửi liên kết bảo mật đặt lại mật khẩu đến email ${user.email}. Người dùng sẽ tự thiết lập mật khẩu cá nhân.`,
+      email: user.email,
+    };
   }
 }
