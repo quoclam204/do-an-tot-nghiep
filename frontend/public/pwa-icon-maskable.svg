@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="50%" stop-color="#15803d" />
+      <stop offset="100%" stop-color="#14532d" />
+    </linearGradient>
+    <linearGradient id="leafGrad1Mask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#bbf7d0" />
+    </linearGradient>
+    <linearGradient id="leafGrad2Mask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#86efac" />
+    </linearGradient>
+  </defs>
+
+  <!-- Full bleed background for maskable spec -->
+  <rect width="512" height="512" fill="url(#bgGradMask)" />
+
+  <!-- Centered content within safe zone (80% box = 410px) -->
+  <g transform="translate(51, 51) scale(0.8)">
+    <!-- Main stem -->
+    <path d="M256 390 C256 290 256 210 256 150" stroke="#ffffff" stroke-width="18" stroke-linecap="round" fill="none" />
+
+    <!-- Left Sprout Leaf -->
+    <path d="M256 280 C210 280 145 255 130 190 C175 185 235 220 256 280 Z" fill="url(#leafGrad1Mask)" />
+
+    <!-- Right Sprout Leaf -->
+    <path d="M256 240 C302 240 367 215 382 150 C337 145 277 180 256 240 Z" fill="url(#leafGrad2Mask)" opacity="0.95" />
+
+    <!-- Top Sprout Center -->
+    <path d="M256 165 C235 125 250 90 256 75 C262 90 277 125 256 165 Z" fill="#ffffff" />
+
+    <!-- Sun circle -->
+    <circle cx="340" cy="130" r="14" fill="#fef08a" opacity="0.85" />
+    
+    <!-- Base soil mound -->
+    <path d="M170 395 C215 380 297 380 342 395 C315 410 200 410 170 395 Z" fill="#bbf7d0" opacity="0.9" />
+
+    <text x="256" y="458" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="34" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="3">DALATAGRI</text>
+  </g>
+</svg>

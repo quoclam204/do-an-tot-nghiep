@@ -44,7 +44,11 @@ async function bootstrap() {
         !origin ||
         allowedOrigins.includes(origin) ||
         origin.endsWith('.vercel.app') ||
-        origin.includes('localhost')
+        origin.includes('localhost') ||
+        origin.includes('127.0.0.1') ||
+        origin.includes('192.168.') ||
+        origin.includes('172.') ||
+        origin.includes('26.')
       ) {
         callback(null, true);
       } else {
@@ -71,7 +75,7 @@ async function bootstrap() {
   }
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
-  console.log(`🚀 DalatAgri Backend đang chạy tại cổng ${port}`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 DalatAgri Backend đang chạy tại http://0.0.0.0:${port}`);
 }
 bootstrap();

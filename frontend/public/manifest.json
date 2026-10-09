@@ -1,0 +1,66 @@
+{
+  "name": "DalatAgri - Quản Lý Nông Trại Thông Minh",
+  "short_name": "DalatAgri",
+  "description": "Hệ thống quản lý trang trại, mùa vụ, thu hoạch và kho vật tư nông nghiệp Đà Lạt",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#15803d",
+  "lang": "vi",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon-maskable.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nhật ký canh tác",
+      "short_name": "Nhật ký",
+      "description": "Ghi nhận công việc & hoạt động nông trại hôm nay",
+      "url": "/dashboard",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Quản lý Mùa vụ",
+      "short_name": "Mùa vụ",
+      "description": "Theo dõi tiến độ và chu kỳ mùa vụ cây trồng",
+      "url": "/seasons",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ghi nhận Thu hoạch",
+      "short_name": "Thu hoạch",
+      "description": "Cân đo và ghi nhận sản lượng nông sản",
+      "url": "/harvest",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kho Vật tư",
+      "short_name": "Vật tư",
+      "description": "Theo dõi xuất nhập tồn phân bón và thuốc BVTV",
+      "url": "/inventory",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

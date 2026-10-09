@@ -1317,3 +1317,63 @@
   color: #15803d;
 }
 
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  .farm-detail-content {
+    padding-top: 1rem !important;
+    padding-bottom: 90px !important;
+  }
+
+  .farm-summary-header {
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+
+  .farm-summary-top-row {
+    flex-direction: column !important;
+    gap: 0.85rem !important;
+    align-items: stretch !important;
+  }
+
+  .farm-summary-top-row .hero-actions {
+    width: 100% !important;
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .farm-summary-top-row .hero-actions button {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+
+  .farm-meta-list {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .plots-grid,
+  .members-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .plots-controls-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.65rem !important;
+  }
+
+  .plots-controls-bar .add-plot-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+  }
+
+  .farm-modal-dialog {
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+  }
+}
+
+

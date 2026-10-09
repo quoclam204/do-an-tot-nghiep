@@ -1648,7 +1648,11 @@
   .app,
   main.main,
   .main-content {
-    padding-bottom: 80px !important;
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .container {
+    padding: 0 12px !important;
   }
 
   .mobile-bottom-nav {
@@ -1657,12 +1661,13 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 60px;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    min-height: 60px;
+    height: calc(60px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--ms-gray-200);
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.08);
     z-index: 990;
     align-items: center;
     justify-content: space-around;

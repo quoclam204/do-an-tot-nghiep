@@ -1,6 +1,15 @@
 import axios from 'axios';
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+const getBaseUrl = () => {
+    let url = (import.meta.env.VITE_API_URL || 'http://localhost:3000').replace(/\/$/, '');
+    // Tự động chuyển localhost sang IP mạng LAN khi truy cập từ điện thoại di động
+    if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        url = url.replace('localhost', window.location.hostname).replace('127.0.0.1', window.location.hostname);
+    }
+    return url;
+};
+
+const BASE_URL = getBaseUrl();
 
 // ── Axios instance với interceptor tự động gắn token ──────────
 export const api = axios.create({ baseURL: BASE_URL });

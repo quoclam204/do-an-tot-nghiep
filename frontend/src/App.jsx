@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
+import PwaInstallPrompt from "./components/PwaInstallPrompt";
 import { AuthProvider } from "./context/AuthContext";
 
 import {
@@ -97,6 +98,7 @@ function App() {
             }
           />
         </Routes>
+        <PwaInstallPrompt />
       </AuthProvider>
     </BrowserRouter>
   );

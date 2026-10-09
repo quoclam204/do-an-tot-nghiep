@@ -1237,4 +1237,168 @@
   background: #e2e8f0;
   color: #334155;
   border-radius: 4px;
-}
+}
+
+/* ================= MOBILE RESPONSIVE CHO SEASONS PAGE ================= */
+@media (max-width: 768px) {
+  .seasons-main-content {
+    padding-top: 1rem !important;
+    padding-bottom: 90px !important;
+  }
+
+  .seasons-hero-banner {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 1rem !important;
+    gap: 0.85rem !important;
+  }
+
+  .seasons-hero-actions {
+    width: 100% !important;
+  }
+
+  .btn-add-season {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* 4 KPI Cards chuyển thành lưới 2x2 */
+  .seasons-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .seasons-stat-card {
+    padding: 0.85rem 0.95rem !important;
+  }
+
+  .stat-card-value {
+    font-size: 1.35rem !important;
+  }
+
+  /* Bộ lọc chip và thanh tìm kiếm */
+  .seasons-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 0.85rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .seasons-filter-left {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 4px !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .filter-chip {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .materials-search-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .seasons-farm-select {
+    width: 100% !important;
+  }
+
+  /* Lưới thẻ mùa vụ */
+  .seasons-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.85rem !important;
+  }
+
+  .season-card {
+    padding: 1rem !important;
+  }
+
+  .season-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  .season-card-actions {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    align-items: stretch !important;
+  }
+
+  .btn-season-finance {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.65rem !important;
+  }
+
+  .season-actions-right {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .btn-season-edit,
+  .btn-season-delete {
+    width: 100% !important;
+    justify-content: center !important;
+    padding: 0.65rem !important;
+  }
+
+  /* Modal mùa vụ trên di động: Bottom Sheet */
+  .seasons-modal-overlay {
+    padding: 0 !important;
+    align-items: flex-end !important;
+  }
+
+  .seasons-modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 92vh !important;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse !important;
+    gap: 0.5rem !important;
+  }
+
+  .btn-modal-cancel,
+  .btn-modal-save {
+    width: 100% !important;
+    justify-content: center !important;
+    min-height: 44px !important;
+  }
+
+  /* Modal Báo cáo tài chính vụ mùa */
+  .finance-kpi-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+
+  .finance-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .finance-table {
+    min-width: 480px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .seasons-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
