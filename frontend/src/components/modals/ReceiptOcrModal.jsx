@@ -11,6 +11,9 @@ import {
   IconZap,
   IconAlertCircle,
   IconCircleDollar,
+  IconInfo,
+  IconCheck,
+  IconSettings,
 } from '../icons';
 import {
   scanWithGemini,
@@ -236,10 +239,18 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h3>Số Hóa Hóa Đơn Bằng AI & OCR</h3>
-                <span className="ocr-engine-pill">
-                  {engine === 'gemini' || (engine === 'auto' && geminiApiKey)
-                    ? '⚡ Gemini AI'
-                    : '🔍 Tesseract'}
+                <span className="ocr-engine-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  {engine === 'gemini' || (engine === 'auto' && geminiApiKey) ? (
+                    <>
+                      <IconZap size={13} strokeWidth={2.4} />
+                      <span>Gemini AI</span>
+                    </>
+                  ) : (
+                    <>
+                      <IconSearch size={13} strokeWidth={2.4} />
+                      <span>Tesseract</span>
+                    </>
+                  )}
                 </span>
               </div>
               <p className="ocr-modal-subtitle">
@@ -257,8 +268,10 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                 setShowKeyConfig(!showKeyConfig);
               }}
               title="Cài đặt khóa AI Gemini (Nhận dạng chuẩn xác 100%)"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
             >
-              🔑 Cấu hình AI
+              <IconSettings size={14} strokeWidth={2.2} />
+              <span>Cấu hình AI</span>
             </button>
             <button
               type="button"
@@ -311,8 +324,9 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                 )}
               </div>
             </div>
-            <p className="ocr-config-hint">
-              💡 <em>API Key được lưu an toàn trong trình duyệt của bạn. Nhận dạng được cả hóa đơn viết tay, hóa đơn bán lẻ nhiều mặt hàng. Nếu không có key, hệ thống sẽ tự động dùng bộ máy OCR Tesseract nội bộ.</em>
+            <p className="ocr-config-hint" style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+              <IconInfo size={15} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: '2px', color: '#047857' }} />
+              <em>API Key được lưu an toàn trong trình duyệt của bạn. Nhận dạng được cả hóa đơn viết tay, hóa đơn bán lẻ nhiều mặt hàng. Nếu không có key, hệ thống sẽ tự động dùng bộ máy OCR Tesseract nội bộ.</em>
             </p>
           </div>
         )}
@@ -359,15 +373,19 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                     type="button"
                     className={`ocr-mode-btn ${engine === 'gemini' || (engine === 'auto' && geminiApiKey) ? 'active' : ''}`}
                     onClick={() => setEngine('gemini')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                   >
-                    ⚡ Gemini Vision {geminiApiKey ? '✓' : '(Cần Key)'}
+                    <IconZap size={14} strokeWidth={2.2} />
+                    <span>Gemini Vision {geminiApiKey ? '(Sẵn sàng)' : '(Cần Key)'}</span>
                   </button>
                   <button
                     type="button"
                     className={`ocr-mode-btn ${engine === 'tesseract' || (engine === 'auto' && !geminiApiKey) ? 'active' : ''}`}
                     onClick={() => setEngine('tesseract')}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                   >
-                    🔍 OCR Cục Bộ (Tesseract)
+                    <IconSearch size={14} strokeWidth={2.2} />
+                    <span>OCR Cục Bộ (Tesseract)</span>
                   </button>
                 </div>
               )}
@@ -608,8 +626,10 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                       type="button"
                       className="ocr-btn-toggle-raw"
                       onClick={() => setShowRawText(!showRawText)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                     >
-                      {showRawText ? 'Ẩn văn bản gốc OCR' : '🔍 Xem văn bản gốc OCR đọc được'}
+                      <IconSearch size={14} strokeWidth={2} />
+                      <span>{showRawText ? 'Ẩn văn bản gốc OCR' : 'Xem văn bản gốc OCR đọc được'}</span>
                     </button>
                     {showRawText && (
                       <pre className="ocr-raw-pre">

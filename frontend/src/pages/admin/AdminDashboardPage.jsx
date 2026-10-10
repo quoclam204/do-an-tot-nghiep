@@ -164,7 +164,9 @@ export default function AdminDashboardPage() {
     return (
       <div className="farmer-notice-screen">
         <div className="farmer-notice-card">
-          <div className="farmer-notice-icon">🌿</div>
+          <div className="farmer-notice-icon">
+            <IconLeaf size={36} strokeWidth={2} />
+          </div>
           <h1 className="farmer-notice-title">Trang này dành riêng cho Quản trị viên</h1>
           <p className="farmer-notice-desc">
             Chào <strong>{user?.fullName || 'bạn'}</strong>, trang này dùng để quản trị kỹ thuật toàn hệ thống. Để ghi chép nhật ký và quản lý mùa vụ, bạn vui lòng quay về trang quản lý vườn của mình nhé!

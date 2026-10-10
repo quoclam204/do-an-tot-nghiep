@@ -12,6 +12,7 @@ import {
   IconCheckCircle,
   IconPrinter,
   IconShield,
+  IconExternalLink,
 } from '../../components/icons';
 import { PucCertificateModal } from '../../components/modals';
 import {
@@ -498,8 +499,9 @@ export default function ReportsPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1rem' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
-                      🌾 {seasonSummary.season?.name}
+                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <IconSprout size={20} strokeWidth={2.2} style={{ color: '#16a34a' }} />
+                      <span>{seasonSummary.season?.name}</span>
                     </span>
                     <span style={{
                       background: seasonSummary.season?.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9',
@@ -768,12 +770,16 @@ export default function ReportsPage() {
                               borderRadius: '4px',
                               fontSize: '0.75rem',
                               fontWeight: 700,
-                              cursor: 'pointer'
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
                             }}
                             onClick={() => setSelectedPucPlot(plot)}
                             title="Xem Giấy xác nhận & Kiểm định mã số vùng trồng xuất khẩu"
                           >
-                            Hồ sơ PUC ↗
+                            <span>Hồ sơ PUC</span>
+                            <IconExternalLink size={12} strokeWidth={2.2} />
                           </button>
                         </td>
                       </tr>

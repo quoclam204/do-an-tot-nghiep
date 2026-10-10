@@ -140,7 +140,7 @@ export default function PanelLogs() {
                     </td>
                     <td className={`text-sm ${isAnomaly ? 'text-danger' : ''}`}>
                       {fmtCurrency(log.cost)}
-                      {isAnomaly && <span className="anomaly-tag">⚠️</span>}
+                      {isAnomaly && <span className="anomaly-tag" style={{ display: 'inline-flex', alignItems: 'center', marginLeft: '4px' }}><IconAlertTriangle size={12} strokeWidth={2.4} /></span>}
                     </td>
                     <td className="text-sm">
                       {log.harvestQuantity ? `${log.harvestQuantity} kg — ${fmtCurrency(log.revenue)}` : '—'}

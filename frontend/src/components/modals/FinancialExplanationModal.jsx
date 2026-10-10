@@ -7,6 +7,7 @@ import {
   IconCalculator,
   IconClipboardList,
   IconShield,
+  IconCheckCircle,
 } from '../icons';
 
 export default function FinancialExplanationModal({
@@ -380,8 +381,9 @@ export default function FinancialExplanationModal({
                 </div>
                 <div className="calc-divider" />
                 <div className="calc-row calc-result-row">
-                  <span>
-                    👉 <strong>Tiền lời thực tế đút túi:</strong>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <IconCheckCircle size={15} strokeWidth={2.4} style={{ color: '#16a34a' }} />
+                    <strong>Tiền lời thực tế đút túi:</strong>
                   </span>
                   <span
                     className={`font-bold ${

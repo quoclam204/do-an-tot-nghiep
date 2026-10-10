@@ -36,6 +36,7 @@ import {
     IconMail,
     IconShield,
     IconRuler,
+    IconInfo,
 } from '../../components/icons';
 import './AccountPage.css';
 
@@ -607,10 +608,11 @@ function FarmsTab() {
                                     </select>
                                 </div>
                                 {Number(form.totalArea) > 0 && (
-                                    <div style={{ fontSize: '0.82rem', color: '#15803d', fontWeight: 600, background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: '8px', padding: '0.4rem 0.75rem', marginTop: '0.45rem' }}>
-                                        💡 Quy đổi: {form.unit === 'ha'
+                                    <div style={{ fontSize: '0.82rem', color: '#15803d', fontWeight: 600, background: '#f0fdf4', border: '1px dashed #86efac', borderRadius: '8px', padding: '0.4rem 0.75rem', marginTop: '0.45rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <IconInfo size={14} strokeWidth={2.2} />
+                                        <span>Quy đổi: {form.unit === 'ha'
                                             ? `${form.totalArea} ha = ${new Intl.NumberFormat('vi-VN').format(Math.round(Number(form.totalArea) * 10000))} m²`
-                                            : `${new Intl.NumberFormat('vi-VN').format(Number(form.totalArea))} m² = ${(Number(form.totalArea) / 10000).toFixed(4)} ha`}
+                                            : `${new Intl.NumberFormat('vi-VN').format(Number(form.totalArea))} m² = ${(Number(form.totalArea) / 10000).toFixed(4)} ha`}</span>
                                     </div>
                                 )}
                             </div>

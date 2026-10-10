@@ -196,7 +196,7 @@ export default function PanelUsers() {
                 {loading ? (
                   <tr><td colSpan={6} className="table-empty"><IconRotateCw size={20} className="spin-anim" /> Đang tải...</td></tr>
                 ) : pendingList.length === 0 ? (
-                  <tr><td colSpan={6} className="table-empty success">🎉 Không có hồ sơ nào đang chờ xét duyệt!</td></tr>
+                  <tr><td colSpan={6} className="table-empty success"><span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><IconCheckCircle size={16} /><span>Không có hồ sơ nào đang chờ xét duyệt!</span></span></td></tr>
                 ) : pendingList.map(u => (
                   <tr key={u.id}>
                     <td><div className="user-cell"><span className="user-avatar-sm">{u.fullName?.charAt(0) || 'U'}</span><strong>{u.fullName || '—'}</strong></div></td>

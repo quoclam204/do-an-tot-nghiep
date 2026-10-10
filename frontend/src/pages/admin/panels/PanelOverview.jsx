@@ -246,14 +246,18 @@ export default function PanelOverview() {
             <button
               className={`view-tab-btn ${activeTab === 'users' ? 'active' : ''}`}
               onClick={() => setActiveTab('users')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              👥 Người dùng & Vai trò
+              <IconUsers size={14} />
+              <span>Người dùng & Vai trò</span>
             </button>
             <button
               className={`view-tab-btn ${activeTab === 'farming' ? 'active' : ''}`}
               onClick={() => setActiveTab('farming')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
-              🌾 Canh tác & Hoạt động
+              <IconSprout size={14} />
+              <span>Canh tác & Hoạt động</span>
             </button>
           </div>
 

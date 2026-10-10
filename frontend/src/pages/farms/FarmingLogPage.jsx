@@ -31,7 +31,18 @@ import {
   IconInfo,
   IconX,
   IconShield,
+  IconWifiOff,
+  IconLightbulb,
+  IconExternalLink,
 } from '../../components/icons';
+import OfflineSyncBanner from '../../components/OfflineSyncBanner';
+import {
+  addToOfflineQueue,
+  addOptimisticLog,
+  cacheCatalogs,
+  getCachedCatalogs,
+  getOptimisticLogs,
+} from '../../utils/offlineSync';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
 import {
@@ -182,19 +193,40 @@ export default function FarmingLogPage() {
         farmToUse ? apiGetInventory(farmToUse).catch(() => []) : apiGetInventory().catch(() => []),
       ]);
 
-      setCrops(cropsRes || []);
-      setSeasons(seasonsRes || []);
-      setMaterials(materialsRes || []);
-      setLogs(logsRes || []);
-      if (!farms || farms.length === 0) setFarms(currentFarmsRes || []);
+      // Cache danh mục nếu tải thành công
+      if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0)) {
+        cacheCatalogs({
+          farms: currentFarmsRes || farmsRes || [],
+          crops: cropsRes || [],
+          seasons: seasonsRes || [],
+          materials: materialsRes || [],
+        });
+      }
+
+      // Đọc từ cache cục bộ nếu đang ngoại tuyến hoặc không lấy được từ server
+      const cached = getCachedCatalogs();
+      const finalFarms = (currentFarmsRes && currentFarmsRes.length > 0) ? currentFarmsRes : ((farmsRes && farmsRes.length > 0) ? farmsRes : (cached.farms || []));
+      const finalCrops = (cropsRes && cropsRes.length > 0) ? cropsRes : (cached.crops || []);
+      const finalSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (cached.seasons || []);
+      const finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
+
+      // Ghép các bản ghi offline chờ đồng bộ vào danh sách hiển thị
+      const optLogs = getOptimisticLogs();
+      const finalLogs = [...optLogs, ...(logsRes || [])];
+
+      setCrops(finalCrops);
+      setSeasons(finalSeasons);
+      setMaterials(finalMaterials);
+      setLogs(finalLogs);
+      if (!farms || farms.length === 0) setFarms(finalFarms);
       setFinancials(finRes);
       setActivityTypes(typesRes || []);
       setInventory(invRes || []);
 
-      if (seasonsRes && seasonsRes.length > 0) {
+      if (finalSeasons && finalSeasons.length > 0) {
         setForm((prev) => {
-          const exists = seasonsRes.some((s) => s.id === prev.cropCycleId);
-          const firstSeason = exists ? seasonsRes.find((s) => s.id === prev.cropCycleId) : seasonsRes[0];
+          const exists = finalSeasons.some((s) => s.id === prev.cropCycleId);
+          const firstSeason = exists ? finalSeasons.find((s) => s.id === prev.cropCycleId) : finalSeasons[0];
           return {
             ...prev,
             cropCycleId: firstSeason?.id || '',
@@ -205,6 +237,15 @@ export default function FarmingLogPage() {
       }
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu nhật ký:', err);
+      // Fallback cache khi hoàn toàn mất mạng
+      const cached = getCachedCatalogs();
+      if (cached.seasons && cached.seasons.length > 0) {
+        setSeasons(cached.seasons);
+        setCrops(cached.crops);
+        setMaterials(cached.materials);
+        setFarms(cached.farms);
+        setLogs(getOptimisticLogs());
+      }
     } finally {
       setLoading(false);
     }
@@ -212,6 +253,15 @@ export default function FarmingLogPage() {
 
   useEffect(() => {
     loadData();
+
+    // Lắng nghe sự kiện đồng bộ hoàn tất để tự động nạp lại dữ liệu mới nhất
+    const handleSyncDone = () => {
+      loadData();
+    };
+    window.addEventListener('dalatagri:sync_completed', handleSyncDone);
+    return () => {
+      window.removeEventListener('dalatagri:sync_completed', handleSyncDone);
+    };
   }, [selectedFarmId]);
 
   const seasonOptions = useMemo(() => {
@@ -511,17 +561,79 @@ export default function FarmingLogPage() {
 
       let savedLog;
       if (editingLogId) {
-        savedLog = await apiUpdateActivityLog(editingLogId, payload);
-        showToast('Cập nhật nhật ký canh tác thành công!');
-        setEditingLogId(null);
-        if (savedLog) {
-          setLogs((prev) => prev.map((l) => (l.id === editingLogId ? { ...l, ...savedLog } : l)));
+        if (!navigator.onLine) {
+          addToOfflineQueue({
+            type: 'UPDATE_LOG',
+            payload,
+            logId: editingLogId,
+            preview: { notes: form.notes },
+          });
+          showToast('Đã lưu cập nhật ngoại tuyến. Sẽ tự động đồng bộ khi có mạng!', 'warning');
+          setEditingLogId(null);
+        } else {
+          try {
+            savedLog = await apiUpdateActivityLog(editingLogId, payload);
+            showToast('Cập nhật nhật ký canh tác thành công!');
+            setEditingLogId(null);
+            if (savedLog) {
+              setLogs((prev) => prev.map((l) => (l.id === editingLogId ? { ...l, ...savedLog } : l)));
+            }
+          } catch (updateErr) {
+            if (!navigator.onLine || !updateErr.response) {
+              addToOfflineQueue({
+                type: 'UPDATE_LOG',
+                payload,
+                logId: editingLogId,
+                preview: { notes: form.notes },
+              });
+              showToast('Mạng yếu, đã lưu cập nhật ngoại tuyến. Sẽ tự động đồng bộ khi có mạng!', 'warning');
+              setEditingLogId(null);
+            } else {
+              throw updateErr;
+            }
+          }
         }
       } else {
-        savedLog = await apiCreateActivityLog(payload);
-        showToast('Đã ghi nhật ký canh tác & hạch toán thành công!');
-        if (savedLog) {
-          setLogs((prev) => [savedLog, ...prev]);
+        if (!navigator.onLine) {
+          // Lưu trực tiếp ngoại tuyến khi mất mạng ngoài vườn
+          const queueItem = addToOfflineQueue({
+            type: 'CREATE_LOG',
+            payload,
+            preview: {
+              cropCycle: currentSeason,
+              material: selectedMaterial,
+              cost: payload.materials?.[0]?.cost || 0,
+            },
+          });
+          const optLog = addOptimisticLog(queueItem);
+          setLogs((prev) => [optLog, ...prev]);
+          showToast('Đã lưu an toàn vào máy (Ngoại tuyến). Tự động đồng bộ khi có mạng!', 'warning');
+        } else {
+          try {
+            savedLog = await apiCreateActivityLog(payload);
+            showToast('Đã ghi nhật ký canh tác & hạch toán thành công!');
+            if (savedLog) {
+              setLogs((prev) => [savedLog, ...prev]);
+            }
+          } catch (createErr) {
+            if (!navigator.onLine || !createErr.response) {
+              // Mạng chập chờn / rớt kết nối giữa chừng
+              const queueItem = addToOfflineQueue({
+                type: 'CREATE_LOG',
+                payload,
+                preview: {
+                  cropCycle: currentSeason,
+                  material: selectedMaterial,
+                  cost: payload.materials?.[0]?.cost || 0,
+                },
+              });
+              const optLog = addOptimisticLog(queueItem);
+              setLogs((prev) => [optLog, ...prev]);
+              showToast('Mạng yếu, đã lưu an toàn vào máy (Ngoại tuyến). Tự động đồng bộ khi có mạng!', 'warning');
+            } else {
+              throw createErr;
+            }
+          }
         }
       }
 
@@ -730,6 +842,9 @@ export default function FarmingLogPage() {
         </div>
       </div>
 
+      {/* BANNER NGOẠI TUYẾN & ĐỒNG BỘ AN TOÀN */}
+      <OfflineSyncBanner onSyncSuccess={() => loadData()} />
+
       {/* THANH TIÊU ĐỀ KHU VỰC THẺ TÀI CHÍNH */}
       <div className="kpi-header-row">
         <div className="kpi-header-title">
@@ -925,11 +1040,15 @@ export default function FarmingLogPage() {
             fontSize: '0.82rem',
             fontWeight: 700,
             cursor: 'pointer',
-            transition: 'background 0.15s ease'
+            transition: 'background 0.15s ease',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
           }}
           title="Bấm để mở giải trình chi tiết về khấu hao vốn đầu tư 3-5 năm đầu"
         >
-          Giải trình Khấu hao CapEx ↗
+          <span>Giải trình Khấu hao CapEx</span>
+          <IconExternalLink size={13} strokeWidth={2.4} />
         </button>
       </div>
 
@@ -1343,7 +1462,10 @@ export default function FarmingLogPage() {
                 </select>
                 {activeFarmId && farmInventory.length === 0 && (
                   <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '0.8rem', color: '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>⚠️ Kho của nông trại này hiện chưa có vật tư nào.</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                      <IconAlertCircle size={14} strokeWidth={2.4} />
+                      <span>Kho của nông trại này hiện chưa có vật tư nào.</span>
+                    </span>
                     <a href="/inventory" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}>+ Nhập kho ngay</a>
                   </div>
                 )}
@@ -1405,7 +1527,7 @@ export default function FarmingLogPage() {
                     </div>
                     {selectedMaterial && Number(form.quantityUsed) > 0 && (
                       <div className="cost-calc-hint">
-                        <span>💡 {form.quantityUsed} {selectedMaterial.unit || 'đơn vị'} × {formatVnd(selectedInventoryItem?.unitPrice ?? selectedMaterial.defaultPrice ?? 0)} đ = </span>
+                        <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.quantityUsed} {selectedMaterial.unit || 'đơn vị'} × {formatVnd(selectedInventoryItem?.unitPrice ?? selectedMaterial.defaultPrice ?? 0)} đ = </span>
                         <strong>{formatVnd(form.materialCost || 0)} VNĐ</strong>
                       </div>
                     )}
@@ -1464,7 +1586,7 @@ export default function FarmingLogPage() {
                     </div>
                     {Number(form.laborWorkers) > 0 && Number(form.laborWagePerDay) > 0 && (
                       <div className="cost-calc-hint">
-                        <span>💡 {form.laborWorkers} nhân công × {formatVnd(form.laborWagePerDay)} đ = </span>
+                        <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.laborWorkers} nhân công × {formatVnd(form.laborWagePerDay)} đ = </span>
                         <strong>{formatVnd(Number(form.laborWorkers) * Number(form.laborWagePerDay))} VNĐ/ngày</strong>
                       </div>
                     )}
@@ -1515,7 +1637,7 @@ export default function FarmingLogPage() {
                   </div>
                   {Number(form.otherCosts) > 0 && (
                     <div className="cost-calc-hint">
-                      <span>💡 {form.otherCostName ? `${form.otherCostName}: ` : 'Chi phí khác: '}</span>
+                      <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.otherCostName ? `${form.otherCostName}: ` : 'Chi phí khác: '}</span>
                       <strong>{formatVnd(form.otherCosts)} VNĐ</strong>
                     </div>
                   )}
@@ -1628,6 +1750,12 @@ export default function FarmingLogPage() {
                             <span>{log.workShift === 'SANG' ? 'Ca Sáng' : log.workShift === 'CHIEU' ? 'Ca Chiều' : 'Ca Tối'}</span>
                             {log.activityTime && <span className="shift-time-val">({log.activityTime})</span>}
                           </span>
+                        )}
+                        {log.isOffline && (
+                          <div className="badge-offline-pending" title="Đang lưu cục bộ trong máy, chờ đồng bộ lên máy chủ">
+                            <IconWifiOff size={11} strokeWidth={2.4} />
+                            <span>Chờ đồng bộ</span>
+                          </div>
                         )}
                       </td>
                       <td>
@@ -1755,6 +1883,12 @@ export default function FarmingLogPage() {
                           {log.workShift === 'TOI' && <IconMoon size={12} strokeWidth={2.4} />}
                           <span>{log.workShift === 'SANG' ? 'Ca Sáng' : log.workShift === 'CHIEU' ? 'Ca Chiều' : 'Ca Tối'}</span>
                           {log.activityTime && <span className="shift-time-val">({log.activityTime})</span>}
+                        </span>
+                      )}
+                      {log.isOffline && (
+                        <span className="badge-offline-pending" title="Đang lưu cục bộ trong máy, chờ đồng bộ">
+                          <IconWifiOff size={11} strokeWidth={2.4} />
+                          <span>Chờ đồng bộ</span>
                         </span>
                       )}
                     </div>

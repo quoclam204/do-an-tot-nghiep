@@ -20,11 +20,15 @@ import {
   IconLayers,
   IconShoppingBag,
   IconShield,
+  IconWifiOff,
+  IconRotateCw,
 } from './icons';
 import UserAvatar from './UserAvatar';
+import { useOfflineSync } from '../utils/offlineSync';
 
 function Header() {
   const { user, logout } = useAuth();
+  const { isOnline, pendingCount, isSyncing, triggerSync } = useOfflineSync();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -187,6 +191,41 @@ function Header() {
 
           {/* User Auth Buttons */}
           <div className="header-auth">
+            {(!isOnline || pendingCount > 0) && (
+              <button
+                type="button"
+                className={`header-status-badge ${!isOnline ? 'offline' : 'pending'}`}
+                onClick={isOnline && pendingCount > 0 ? triggerSync : undefined}
+                title={!isOnline ? 'Đang ở chế độ ngoại tuyến ngoài vườn' : `Có ${pendingCount} bản ghi chờ đồng bộ - Bấm để đồng bộ ngay`}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '4px 10px',
+                  borderRadius: '16px',
+                  fontSize: '0.74rem',
+                  fontWeight: '700',
+                  border: !isOnline ? '1px solid #fcd34d' : '1px solid #93c5fd',
+                  background: !isOnline ? '#fffbeb' : '#eff6ff',
+                  color: !isOnline ? '#b45309' : '#1d4ed8',
+                  cursor: isOnline && pendingCount > 0 ? 'pointer' : 'default',
+                  marginRight: '6px',
+                }}
+              >
+                {!isOnline ? (
+                  <>
+                    <IconWifiOff size={13} strokeWidth={2.4} />
+                    <span>Ngoại tuyến</span>
+                  </>
+                ) : (
+                  <>
+                    <IconRotateCw size={13} strokeWidth={2.4} className={isSyncing ? 'spinning' : ''} />
+                    <span>{pendingCount} chờ sync</span>
+                  </>
+                )}
+              </button>
+            )}
+
             {user ? (
               <>
                 <Link to="/account" className="user-menu-btn" title="Tài khoản của tôi">

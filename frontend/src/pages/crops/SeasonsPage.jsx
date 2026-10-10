@@ -833,13 +833,22 @@ export default function SeasonsPage() {
                     <div>
                       <h2>{selectedSeasonData.season?.name}</h2>
                       <div className="finance-meta-tags">
-                        <span>🌱 Cây trồng: <strong>{selectedSeasonData.season?.cropName}</strong></span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <IconSprout size={13} strokeWidth={2.2} />
+                          <span>Cây trồng: <strong>{selectedSeasonData.season?.cropName}</strong></span>
+                        </span>
                         <span>•</span>
-                        <span>📍 Lô: <strong>{selectedSeasonData.season?.plotName}</strong> ({selectedSeasonData.season?.farmName})</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <IconMapPin size={13} strokeWidth={2.2} />
+                          <span>Lô: <strong>{selectedSeasonData.season?.plotName}</strong> ({selectedSeasonData.season?.farmName})</span>
+                        </span>
                         {selectedSeasonData.season?.isIntercropped && (
                           <>
                             <span>•</span>
-                            <span style={{ color: '#15803d', fontWeight: '600' }}>🌿 Trồng xen canh</span>
+                            <span style={{ color: '#15803d', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <IconLeaf size={13} strokeWidth={2.2} />
+                              <span>Trồng xen canh</span>
+                            </span>
                           </>
                         )}
                       </div>

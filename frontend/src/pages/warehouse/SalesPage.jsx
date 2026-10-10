@@ -319,7 +319,10 @@ export default function SalesPage() {
                         <span className="item-subtotal">{fmt((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0))} đ</span>
                         {invoiceForm.items.length > 1 && <button type="button" className="btn-remove" onClick={() => removeInvoiceItem(idx)}>×</button>}
                         {prod && Number(item.quantity) > prod.stockQuantity && (
-                          <span className="stock-warning">⚠️ Vượt kho ({fmt(prod.stockQuantity)} {prod.unit})</span>
+                          <span className="stock-warning" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconAlertTriangle size={13} strokeWidth={2.4} />
+                            <span>Vượt kho ({fmt(prod.stockQuantity)} {prod.unit})</span>
+                          </span>
                         )}
                       </div>
                     );

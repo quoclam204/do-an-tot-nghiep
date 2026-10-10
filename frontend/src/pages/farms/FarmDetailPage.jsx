@@ -32,8 +32,11 @@ import {
   IconClipboardList,
   IconCircleDollar,
   IconAlertCircle,
+  IconAlertTriangle,
   IconInfo,
   IconCalculator,
+  IconExternalLink,
+  IconLightbulb,
 } from "../../components/icons";
 import { PucCertificateModal } from "../../components/modals";
 import {
@@ -641,8 +644,10 @@ export default function FarmDetailPage() {
                             className="btn-view-puc-cert"
                             onClick={() => setSelectedPucPlot(plot)}
                             title="Xem chi tiết hồ sơ chứng nhận vùng trồng chuẩn Cục BVTV"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                           >
-                            Hồ sơ PUC ↗
+                            <span>Hồ sơ PUC</span>
+                            <IconExternalLink size={12} strokeWidth={2.2} />
                           </button>
                         </div>
 
@@ -1199,7 +1204,10 @@ export default function FarmDetailPage() {
 
                     {plotForm.initialInvestmentCost > 0 && (
                       <div className="capex-summary-card">
-                        <h4>💡 Kết quả tính toán phân bổ khấu hao tự động:</h4>
+                        <h4>
+                          <IconLightbulb size={18} strokeWidth={2.2} style={{ color: '#047857', display: 'inline', verticalAlign: '-3px', marginRight: '6px' }} />
+                          <span>Kết quả tính toán phân bổ khấu hao tự động:</span>
+                        </h4>
                         <div className="capex-summary-grid">
                           <div>Khấu hao hàng năm: <strong>{new Intl.NumberFormat('vi-VN').format(Math.round(plotForm.initialInvestmentCost / (plotForm.depreciationYears || 1)))} đ/năm</strong></div>
                           <div>Đã vận hành: <strong>{Math.max(0, new Date().getFullYear() - (plotForm.plantingYear || new Date().getFullYear()))} năm</strong></div>
@@ -1263,7 +1271,8 @@ export default function FarmDetailPage() {
                     className="farm-input"
                   />
                   <small style={{ color: '#64748b', marginTop: '6px', display: 'block', fontSize: '0.85rem' }}>
-                    💡 Tài khoản này cần đã đăng ký trên DalatAgri để được gán quyền làm việc tại vườn này.
+                    <IconInfo size={14} strokeWidth={2.2} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+                    Tài khoản này cần đã đăng ký trên DalatAgri để được gán quyền làm việc tại vườn này.
                   </small>
                 </div>
 
@@ -1353,7 +1362,9 @@ export default function FarmDetailPage() {
               style={{ maxWidth: '460px', textAlign: 'center', padding: '2rem' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>⚠️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', color: '#f59e0b' }}>
+                <IconAlertTriangle size={48} strokeWidth={2} />
+              </div>
               <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.25rem' }}>
                 Xác nhận xóa lô canh tác
               </h3>
@@ -1372,7 +1383,10 @@ export default function FarmDetailPage() {
                   textAlign: 'left'
                 }}
               >
-                ⚠️ <strong>Cảnh báo:</strong> Nếu lô này đang có lịch sử mùa vụ hoặc cây trồng, hệ thống sẽ ngăn chặn xóa để bảo vệ dữ liệu nông hộ của bạn.
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <IconAlertCircle size={14} strokeWidth={2.4} />
+                  <strong>Cảnh báo:</strong>
+                </span> Nếu lô này đang có lịch sử mùa vụ hoặc cây trồng, hệ thống sẽ ngăn chặn xóa để bảo vệ dữ liệu nông hộ của bạn.
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                 <button

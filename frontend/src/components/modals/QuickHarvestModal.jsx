@@ -8,8 +8,10 @@ import {
   IconCheckCircle,
   IconAlertCircle,
   IconChevronDown,
+  IconInfo,
 } from '../icons';
 import { apiCreateActivityLog, apiUpdateActivityLog } from '../../services/api';
+import { addToOfflineQueue } from '../../utils/offlineSync';
 
 const getTodayDateStr = () => {
   const now = new Date();
@@ -140,21 +142,68 @@ export default function QuickHarvestModal({
         otherCosts: 0,
       };
 
-      if (editingLog && editingLog.id) {
-        await apiUpdateActivityLog(editingLog.id, payload);
-      } else {
-        await apiCreateActivityLog(payload);
+      // 1. Nếu đang mất mạng ngoại tuyến ngoài vườn
+      if (!navigator.onLine) {
+        addToOfflineQueue({
+          type: 'CREATE_LOG',
+          payload,
+          preview: {
+            harvestQuantity: qty,
+            revenue: totalRevenue,
+            activityType: 'THU_HOACH',
+            notes: notes || 'Thu hoạch nông sản',
+          },
+        });
+        if (onSuccess) {
+          onSuccess({
+            message: `Đã lưu thu hoạch ngoại tuyến an toàn: +${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg). Tự động đồng bộ khi có mạng!`,
+            type: 'warning',
+          });
+        }
+        onClose();
+        return;
       }
 
-      if (onSuccess) {
-        onSuccess({
-          message: editingLog
-            ? `Đã cập nhật thu hoạch: ${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg)!`
-            : `Đã ghi nhận thu hoạch thành công: +${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg)!`,
-          type: 'success',
-        });
+      // 2. Có mạng -> Gửi lên máy chủ, nếu rớt mạng giữa chừng thì fallback vào hàng đợi ngoại tuyến
+      try {
+        if (editingLog && editingLog.id) {
+          await apiUpdateActivityLog(editingLog.id, payload);
+        } else {
+          await apiCreateActivityLog(payload);
+        }
+
+        if (onSuccess) {
+          onSuccess({
+            message: editingLog
+              ? `Đã cập nhật thu hoạch: ${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg)!`
+              : `Đã ghi nhận thu hoạch thành công: +${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg)!`,
+            type: 'success',
+          });
+        }
+        onClose();
+      } catch (reqErr) {
+        if (!navigator.onLine || !reqErr.response) {
+          addToOfflineQueue({
+            type: 'CREATE_LOG',
+            payload,
+            preview: {
+              harvestQuantity: qty,
+              revenue: totalRevenue,
+              activityType: 'THU_HOACH',
+              notes: notes || 'Thu hoạch nông sản',
+            },
+          });
+          if (onSuccess) {
+            onSuccess({
+              message: `Mạng yếu, đã lưu thu hoạch ngoại tuyến: +${totalRevenue.toLocaleString('vi-VN')} đ (${qty} kg). Sẽ tự động đồng bộ khi có mạng!`,
+              type: 'warning',
+            });
+          }
+          onClose();
+          return;
+        }
+        throw reqErr;
       }
-      onClose();
     } catch (err) {
       const msg =
         Array.isArray(err.response?.data?.message)
@@ -353,13 +402,15 @@ export default function QuickHarvestModal({
 
             {Number(harvestQuantity) > 0 && Number(unitPrice) > 0 ? (
               <div className="harvest-calc-formula">
-                💡 Công thức: <strong>{Number(harvestQuantity).toLocaleString('vi-VN')} kg</strong> ×{' '}
+                <IconInfo size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+                <span>Công thức: </span><strong>{Number(harvestQuantity).toLocaleString('vi-VN')} kg</strong> ×{' '}
                 <strong>{Number(unitPrice).toLocaleString('vi-VN')} đ/kg</strong> ={' '}
                 <span className="text-green">{totalRevenue.toLocaleString('vi-VN')} đ</span>
               </div>
             ) : (
               <div className="harvest-calc-hint">
-                👉 Nhập số kg và giá bán ở trên, hệ thống sẽ tự động tính thành tiền vào đây.
+                <IconInfo size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '4px' }} />
+                <span>Nhập số kg và giá bán ở trên, hệ thống sẽ tự động tính thành tiền vào đây.</span>
               </div>
             )}
           </div>

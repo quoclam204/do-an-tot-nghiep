@@ -873,7 +873,8 @@ export default function CropsPage() {
                       </div>
                       {meta.yearsToFlower && (
                         <div className="spec-compact-item" title="Thời gian ra hoa">
-                          <span>🌸 Ra hoa: {meta.yearsToFlower.split('sau')[0].trim()}</span>
+                          <IconFlower size={13} strokeWidth={2} />
+                          <span>Ra hoa: {meta.yearsToFlower.split('sau')[0].trim()}</span>
                         </div>
                       )}
                       <div className="spec-compact-item" title="Thời gian nuôi quả đến thu hoạch">
@@ -1214,7 +1215,10 @@ export default function CropsPage() {
 
                       <div className="form-grid-3" style={{ marginTop: '0.5rem' }}>
                         <div className="form-group">
-                          <label>🌸 Thời gian bắt đầu ra hoa</label>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconFlower size={14} />
+                            <span>Thời gian bắt đầu ra hoa</span>
+                          </label>
                           <input
                             type="text"
                             placeholder="VD: 2 - 3 năm sau khi trồng"
@@ -1225,7 +1229,10 @@ export default function CropsPage() {
                         </div>
 
                         <div className="form-group">
-                          <label>🌾 Bắt đầu cho thu hoạch</label>
+                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconScale size={14} />
+                            <span>Bắt đầu cho thu hoạch</span>
+                          </label>
                           <input
                             type="text"
                             placeholder="VD: 3 - 4 năm bắt đầu bói"

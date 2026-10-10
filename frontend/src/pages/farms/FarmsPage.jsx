@@ -18,6 +18,8 @@ import {
   IconCheckCircle,
   IconUpload,
   IconImage,
+  IconInfo,
+  IconCheck,
 } from "../../components/icons";
 import "./FarmsPage.css";
 
@@ -609,7 +611,7 @@ export default function FarmsPage() {
                     if (!isNaN(num) && num > 0) {
                       return (
                         <div className="area-helper-hint">
-                          <span className="helper-icon">💡</span>
+                          <IconInfo size={14} strokeWidth={2.2} className="helper-icon" />
                           <span>
                             Tương đương quy đổi:{" "}
                             <strong>
@@ -646,7 +648,14 @@ export default function FarmsPage() {
                         onError={(e) => { e.target.src = DEFAULT_FARM_IMAGE; }}
                       />
                       <span className={`preview-badge ${form.image ? "custom" : "default"}`}>
-                        {form.image ? "✓ Ảnh đã chọn" : "Ảnh mặc định hệ thống"}
+                        {form.image ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <IconCheck size={12} strokeWidth={2.5} />
+                            <span>Ảnh đã chọn</span>
+                          </span>
+                        ) : (
+                          "Ảnh mặc định hệ thống"
+                        )}
                       </span>
                     </div>
 

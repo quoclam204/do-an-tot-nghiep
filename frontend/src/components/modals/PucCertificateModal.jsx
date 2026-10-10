@@ -228,7 +228,12 @@ export default function PucCertificateModal({
                         )}
                       </td>
                       <td><span className="puc-safe-badge">Đạt chuẩn cách ly 14 ngày</span></td>
-                      <td><span className="puc-pass-badge">✓ Không dư lượng cấm</span></td>
+                      <td>
+                        <span className="puc-pass-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <IconCheckCircle size={13} strokeWidth={2.4} />
+                          <span>Không dư lượng cấm</span>
+                        </span>
+                      </td>
                     </tr>
                   ))
                 ) : (

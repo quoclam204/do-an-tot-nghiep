@@ -17,6 +17,7 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import CatalogPanel from "../../components/CatalogPanel";
 import { IconRotateCw, IconCheckCircle, IconArrowRight } from "../../components/icons";
+import { syncOfflineQueue } from "../../utils/offlineSync";
 
 export default function OfflineDashboardPage() {
   const supplies = [
@@ -148,11 +149,16 @@ export default function OfflineDashboardPage() {
     }));
   };
 
-  const syncLogs = () => {
+  const syncLogs = async () => {
     if (!isOnline) return;
     setLogs((current) =>
       current.map((log) => ({ ...log, syncStatus: "SYNCED" })),
     );
+    try {
+      await syncOfflineQueue();
+    } catch (e) {
+      console.error("Lỗi đồng bộ:", e);
+    }
   };
 
   const submitAuth = async (event) => {
