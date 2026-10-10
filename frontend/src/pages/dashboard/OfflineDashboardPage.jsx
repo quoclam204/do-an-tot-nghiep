@@ -17,14 +17,46 @@ import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import CatalogPanel from "../../components/CatalogPanel";
 import { IconRotateCw, IconCheckCircle, IconArrowRight } from "../../components/icons";
-import { syncOfflineQueue } from "../../utils/offlineSync";
+import { syncOfflineQueue, getCachedCatalogs, addToOfflineQueue } from "../../utils/offlineSync";
 
 export default function OfflineDashboardPage() {
-  const supplies = [
-    { name: "Phân hữu cơ", price: 12000 },
-    { name: "NPK 16-16-8", price: 18500 },
-    { name: "Thuốc sinh học", price: 45000 },
-  ];
+  const cachedCatalogs = useMemo(() => getCachedCatalogs(), []);
+
+  const availablePlots = useMemo(() => {
+    if (cachedCatalogs.seasons && cachedCatalogs.seasons.length > 0) {
+      return cachedCatalogs.seasons.map((s) => s.name || `Lô: ${s.plot?.name || 'Vườn'}`);
+    }
+    if (cachedCatalogs.farms && cachedCatalogs.farms.length > 0) {
+      const list = [];
+      cachedCatalogs.farms.forEach((f) => {
+        (f.plots || []).forEach((p) => {
+          list.push(`${f.name} - ${p.name}`);
+        });
+      });
+      if (list.length > 0) return list;
+    }
+    return [
+      "Khu A - Cà phê (Ngoại tuyến)",
+      "Khu B - Sầu riêng (Ngoại tuyến)",
+      "Khu C - Rau củ vụ mùa (Ngoại tuyến)",
+    ];
+  }, [cachedCatalogs]);
+
+  const supplies = useMemo(() => {
+    if (cachedCatalogs.materials && cachedCatalogs.materials.length > 0) {
+      return cachedCatalogs.materials.map((m) => ({
+        name: m.name,
+        price: m.defaultPrice || 20000,
+      }));
+    }
+    return [
+      { name: "Phân bón NPK 16-16-8", price: 18500 },
+      { name: "Phân hữu cơ vi sinh", price: 12000 },
+      { name: "Phân bón lá đa lượng", price: 65000 },
+      { name: "Thuốc BVTV sinh học", price: 45000 },
+      { name: "Vôi bột xử lý đất", price: 35000 },
+    ];
+  }, [cachedCatalogs]);
 
   const [logs, setLogs] = useState(() => {
     try {
@@ -48,15 +80,15 @@ export default function OfflineDashboardPage() {
     password: "",
     fullName: "",
   });
-  const [form, setForm] = useState({
-    plot: "Khu A - Cà phê",
+  const [form, setForm] = useState(() => ({
+    plot: availablePlots[0] || "Khu A - Cà phê",
     activity: "Bón phân",
-    material: "Phân hữu cơ",
+    material: supplies[0]?.name || "Phân bón NPK 16-16-8",
     quantity: "",
     cost: "",
     revenue: "",
     note: "",
-  });
+  }));
 
   useEffect(() => {
     localStorage.setItem("dalat-agri-logs", JSON.stringify(logs));
@@ -129,18 +161,53 @@ export default function OfflineDashboardPage() {
     event.preventDefault();
     if (!form.quantity && !form.revenue) return;
 
-    setLogs((current) => [
-      {
-        ...form,
-        id: crypto.randomUUID(),
-        quantity: Number(form.quantity || 0),
+    const logId = crypto.randomUUID();
+    const newLog = {
+      ...form,
+      id: logId,
+      quantity: Number(form.quantity || 0),
+      cost: calculatedCost,
+      revenue: Number(form.revenue || 0),
+      date: new Date().toLocaleDateString("vi-VN"),
+      syncStatus: isOnline ? "SYNCED" : "PENDING",
+    };
+
+    setLogs((current) => [newLog, ...current]);
+
+    // Đưa vào Safe Sync Queue để tự động đồng bộ lên Database
+    addToOfflineQueue({
+      type: 'CREATE_LOG',
+      payload: {
+        cropCycleId: 'offline_preset_plot_a',
+        activityType:
+          form.activity === 'Bón phân'
+            ? 'BON_PHAN'
+            : form.activity === 'Tưới nước'
+            ? 'TUOI_NUOC'
+            : form.activity === 'Phun thuốc'
+            ? 'PHUN_THUOC'
+            : 'THU_HOACH',
+        activityDate: new Date().toISOString().slice(0, 10),
+        notes: `[Ghi nhận ngoại tuyến] Lô: ${form.plot} | ${form.note || ''}`,
         cost: calculatedCost,
         revenue: Number(form.revenue || 0),
-        date: new Date().toLocaleDateString("vi-VN"),
-        syncStatus: isOnline ? "SYNCED" : "PENDING",
       },
-      ...current,
-    ]);
+      preview: {
+        activityType:
+          form.activity === 'Bón phân'
+            ? 'BON_PHAN'
+            : form.activity === 'Tưới nước'
+            ? 'TUOI_NUOC'
+            : form.activity === 'Phun thuốc'
+            ? 'PHUN_THUOC'
+            : 'THU_HOACH',
+        cropCycle: { name: form.plot },
+        cost: calculatedCost,
+        revenue: Number(form.revenue || 0),
+        notes: form.note,
+      },
+    });
+
     setForm((current) => ({
       ...current,
       quantity: "",
@@ -325,9 +392,11 @@ export default function OfflineDashboardPage() {
                     setForm({ ...form, plot: event.target.value })
                   }
                 >
-                  <option>Khu A - Cà phê</option>
-                  <option>Khu B - Dâu tây</option>
-                  <option>Khu C - Bơ</option>
+                  {availablePlots.map((plotName) => (
+                    <option key={plotName} value={plotName}>
+                      {plotName}
+                    </option>
+                  ))}
                 </select>
               </label>
               <label>

@@ -205,10 +205,67 @@ export default function FarmingLogPage() {
 
       // Đọc từ cache cục bộ nếu đang ngoại tuyến hoặc không lấy được từ server
       const cached = getCachedCatalogs();
-      const finalFarms = (currentFarmsRes && currentFarmsRes.length > 0) ? currentFarmsRes : ((farmsRes && farmsRes.length > 0) ? farmsRes : (cached.farms || []));
-      const finalCrops = (cropsRes && cropsRes.length > 0) ? cropsRes : (cached.crops || []);
-      const finalSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (cached.seasons || []);
-      const finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
+      let finalFarms = (currentFarmsRes && currentFarmsRes.length > 0) ? currentFarmsRes : ((farmsRes && farmsRes.length > 0) ? farmsRes : (cached.farms || []));
+      let finalCrops = (cropsRes && cropsRes.length > 0) ? cropsRes : (cached.crops || []);
+      let finalSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (cached.seasons || []);
+      let finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
+
+      // Dự phòng thông minh cho trường hợp chưa tạo mùa vụ hoặc mở máy mới ngoài rẫy:
+      if (finalSeasons.length === 0) {
+        if (finalFarms.length > 0) {
+          const synthesized = [];
+          finalFarms.forEach((f) => {
+            (f.plots || []).forEach((p) => {
+              synthesized.push({
+                id: `plot_season_${p.id}`,
+                name: `Lô: ${p.name}`,
+                plotId: p.id,
+                plot: p,
+                crop: { name: 'Cây trồng tại vườn' },
+                farm: f,
+                isOfflineSynthesized: true,
+              });
+            });
+          });
+          if (synthesized.length > 0) finalSeasons = synthesized;
+        }
+
+        if (finalSeasons.length === 0) {
+          finalSeasons = [
+            {
+              id: 'offline_preset_plot_a',
+              name: 'Lô A - Cà phê / Cây lâu năm (Ngoại tuyến)',
+              plot: { id: 'plot_a', name: 'Lô A' },
+              crop: { name: 'Cà phê Robusta' },
+              isOfflineSynthesized: true,
+            },
+            {
+              id: 'offline_preset_plot_b',
+              name: 'Lô B - Sầu riêng / Cây ăn trái (Ngoại tuyến)',
+              plot: { id: 'plot_b', name: 'Lô B' },
+              crop: { name: 'Sầu riêng Ri6' },
+              isOfflineSynthesized: true,
+            },
+            {
+              id: 'offline_preset_plot_c',
+              name: 'Lô C - Vườn rau củ / Ngắn ngày (Ngoại tuyến)',
+              plot: { id: 'plot_c', name: 'Lô C' },
+              crop: { name: 'Rau củ nông trại' },
+              isOfflineSynthesized: true,
+            },
+          ];
+        }
+      }
+
+      if (finalMaterials.length === 0) {
+        finalMaterials = [
+          { id: 'offline_mat_npk', name: 'Phân NPK 16-16-8', unit: 'Bao (50kg)', defaultPrice: 18500 },
+          { id: 'offline_mat_huuco', name: 'Phân Hữu Cơ Vi Sinh', unit: 'Bao (25kg)', defaultPrice: 12000 },
+          { id: 'offline_mat_la', name: 'Phân Bón Lá Đa Lượng', unit: 'Chai (1L)', defaultPrice: 65000 },
+          { id: 'offline_mat_bvtv', name: 'Thuốc Trừ Sâu Sinh Học', unit: 'Chai (500ml)', defaultPrice: 45000 },
+          { id: 'offline_mat_voi', name: 'Vôi Bột Xử Lý Đất', unit: 'Bao (40kg)', defaultPrice: 35000 },
+        ];
+      }
 
       // Ghép các bản ghi offline chờ đồng bộ vào danh sách hiển thị
       const optLogs = getOptimisticLogs();
@@ -239,13 +296,33 @@ export default function FarmingLogPage() {
       console.error('Lỗi khi tải dữ liệu nhật ký:', err);
       // Fallback cache khi hoàn toàn mất mạng
       const cached = getCachedCatalogs();
-      if (cached.seasons && cached.seasons.length > 0) {
-        setSeasons(cached.seasons);
-        setCrops(cached.crops);
-        setMaterials(cached.materials);
-        setFarms(cached.farms);
-        setLogs(getOptimisticLogs());
+      let fallbackSeasons = cached.seasons || [];
+      if (fallbackSeasons.length === 0) {
+        fallbackSeasons = [
+          {
+            id: 'offline_preset_plot_a',
+            name: 'Lô A - Cà phê / Cây lâu năm (Ngoại tuyến)',
+            plot: { id: 'plot_a', name: 'Lô A' },
+            crop: { name: 'Cà phê Robusta' },
+            isOfflineSynthesized: true,
+          },
+          {
+            id: 'offline_preset_plot_b',
+            name: 'Lô B - Sầu riêng / Cây ăn trái (Ngoại tuyến)',
+            plot: { id: 'plot_b', name: 'Lô B' },
+            crop: { name: 'Sầu riêng Ri6' },
+            isOfflineSynthesized: true,
+          },
+        ];
       }
+      setSeasons(fallbackSeasons);
+      setCrops(cached.crops || []);
+      setMaterials(cached.materials && cached.materials.length > 0 ? cached.materials : [
+        { id: 'offline_mat_npk', name: 'Phân NPK 16-16-8', unit: 'Bao (50kg)', defaultPrice: 18500 },
+        { id: 'offline_mat_huuco', name: 'Phân Hữu Cơ Vi Sinh', unit: 'Bao (25kg)', defaultPrice: 12000 },
+      ]);
+      setFarms(cached.farms || []);
+      setLogs(getOptimisticLogs());
     } finally {
       setLoading(false);
     }
@@ -530,22 +607,27 @@ export default function FarmingLogPage() {
       };
 
       if (form.materialId && Number(form.quantityUsed) > 0) {
+        const isOfflineMat = String(form.materialId).startsWith('offline_mat_');
         const invItem = (farmInventory || []).find((inv) => inv.materialId === form.materialId);
-        if (!invItem || Number(invItem.quantity || 0) <= 0) {
-          showToast(
-            'Vật tư này chưa được nhập vào kho của nông trại này hoặc đã hết hàng. Vui lòng nhập kho tại trang Quản lý tồn kho trước!',
-            'error'
-          );
-          setSubmitting(false);
-          return;
-        }
-        if (!editingLogId && invItem && Number(form.quantityUsed) > Number(invItem.quantity)) {
-          showToast(
-            `Số lượng sử dụng (${form.quantityUsed}) vượt quá tồn kho hiện có của nông trại (${invItem.quantity})!`,
-            'error'
-          );
-          setSubmitting(false);
-          return;
+
+        // Chỉ kiểm tra tồn kho nghiêm ngặt khi đang trực tuyến và không phải vật tư ngoại tuyến dự phòng
+        if (navigator.onLine && !isOfflineMat && farmInventory && farmInventory.length > 0) {
+          if (!invItem || Number(invItem.quantity || 0) <= 0) {
+            showToast(
+              'Vật tư này chưa được nhập vào kho của nông trại này hoặc đã hết hàng. Vui lòng nhập kho tại trang Quản lý tồn kho trước!',
+              'error'
+            );
+            setSubmitting(false);
+            return;
+          }
+          if (!editingLogId && invItem && Number(form.quantityUsed) > Number(invItem.quantity)) {
+            showToast(
+              `Số lượng sử dụng (${form.quantityUsed}) vượt quá tồn kho hiện có của nông trại (${invItem.quantity})!`,
+              'error'
+            );
+            setSubmitting(false);
+            return;
+          }
         }
 
         payload.materials = [
@@ -601,6 +683,7 @@ export default function FarmingLogPage() {
             payload,
             preview: {
               cropCycle: currentSeason,
+              plotId: currentSeason?.plotId || currentSeason?.plot?.id,
               material: selectedMaterial,
               cost: payload.materials?.[0]?.cost || 0,
             },
@@ -623,6 +706,7 @@ export default function FarmingLogPage() {
                 payload,
                 preview: {
                   cropCycle: currentSeason,
+                  plotId: currentSeason?.plotId || currentSeason?.plot?.id,
                   material: selectedMaterial,
                   cost: payload.materials?.[0]?.cost || 0,
                 },

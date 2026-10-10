@@ -9,6 +9,10 @@ import {
   apiCreateActivityLog,
   apiUpdateActivityLog,
   apiDeleteActivityLog,
+  apiGetMyFarms,
+  apiGetSeasons,
+  apiGetCrops,
+  apiGetMaterials,
 } from '../services/api';
 
 export const OFFLINE_QUEUE_KEY = 'dalatagri_offline_sync_queue_v2';
@@ -164,6 +168,41 @@ export const getCachedCatalogs = () => {
   }
 };
 
+/**
+ * Tự động tải ngầm toàn bộ Lô đất, Mùa vụ, Cây trồng và Vật tư của người dùng
+ * và lưu trước vào Cache máy khi có mạng, giúp ra vườn là có sẵn 100% dữ liệu.
+ */
+export const prefetchAndCacheCatalogs = async () => {
+  if (!checkIsOnline()) return;
+  const token = localStorage.getItem('token') || localStorage.getItem('dalat-agri-token');
+  if (!token) return;
+
+  try {
+    const [farms, seasons, crops, materials] = await Promise.all([
+      apiGetMyFarms().catch(() => []),
+      apiGetSeasons().catch(() => []),
+      apiGetCrops().catch(() => []),
+      apiGetMaterials().catch(() => []),
+    ]);
+
+    if (
+      (farms && farms.length > 0) ||
+      (seasons && seasons.length > 0) ||
+      (crops && crops.length > 0) ||
+      (materials && materials.length > 0)
+    ) {
+      cacheCatalogs({
+        farms: farms || [],
+        seasons: seasons || [],
+        crops: crops || [],
+        materials: materials || [],
+      });
+    }
+  } catch (err) {
+    console.warn('[OfflineSync] Tự động tải trước danh mục không thành công:', err);
+  }
+};
+
 // ── 5. Engine Đồng Bộ An Toàn (Safe Sync Engine) ───────────────────────
 let isSyncing = false;
 
@@ -198,6 +237,50 @@ export const syncOfflineQueue = async (onProgress) => {
 
       try {
         if (item.type === 'CREATE_LOG') {
+          // Xử lý nếu cropCycleId là ID tạm khi offline không có danh mục trước đó
+          if (
+            typeof item.payload.cropCycleId === 'string' &&
+            (item.payload.cropCycleId.startsWith('plot_season_') || item.payload.cropCycleId.startsWith('offline_preset_'))
+          ) {
+            const freshSeasons = await apiGetSeasons().catch(() => []);
+            if (freshSeasons && freshSeasons.length > 0) {
+              const matched = item.preview?.plotId
+                ? freshSeasons.find((s) => s.plotId === item.preview.plotId || s.plot?.id === item.preview.plotId)
+                : null;
+              item.payload.cropCycleId = matched ? matched.id : freshSeasons[0].id;
+            }
+          }
+
+          // Xử lý nếu vật tư sử dụng ID ngoại tuyến tạm thời (offline_mat_...)
+          if (Array.isArray(item.payload.materials) && item.payload.materials.length > 0) {
+            const freshMaterials = await apiGetMaterials().catch(() => []);
+            const processedMaterials = [];
+            for (const mat of item.payload.materials) {
+              if (typeof mat.materialId === 'string' && mat.materialId.startsWith('offline_mat_')) {
+                // Thử khớp theo tên vật tư nếu có trên server
+                const previewMatName = (item.preview?.material?.name || '').toLowerCase();
+                const matchedMat = (freshMaterials || []).find(
+                  (m) =>
+                    m.name &&
+                    previewMatName &&
+                    (m.name.toLowerCase().includes(previewMatName) || previewMatName.includes(m.name.toLowerCase()))
+                );
+                if (matchedMat) {
+                  processedMaterials.push({ ...mat, materialId: matchedMat.id });
+                } else {
+                  // Nếu server chưa có vật tư này, gộp thông tin vào ghi chú & cộng chi phí vào otherCosts để bảo toàn tiền và nhật ký của nông dân
+                  const matDisplayName = item.preview?.material?.name || 'Vật tư ngoại tuyến';
+                  const noteAdd = `[Vật tư: ${matDisplayName} - SL: ${mat.quantityUsed} - CP: ${Number(mat.cost || 0).toLocaleString('vi-VN')}đ]`;
+                  item.payload.notes = item.payload.notes ? `${item.payload.notes} | ${noteAdd}` : noteAdd;
+                  item.payload.otherCosts = Number(item.payload.otherCosts || 0) + Number(mat.cost || 0);
+                }
+              } else {
+                processedMaterials.push(mat);
+              }
+            }
+            item.payload.materials = processedMaterials;
+          }
+
           // Gửi lên máy chủ
           await apiCreateActivityLog(item.payload);
           // Xóa khỏi hàng đợi & optimistic cache
