@@ -31,7 +31,7 @@ const stripVN = (str) => {
 const fmtMoneyPDF = (v) => `${Number(v || 0).toLocaleString('vi-VN')} VND`;
 
 // ===================== PDF EXPORT =====================
-export async function exportToPDF({ financials, logs, materialUsage, seasonSummary, filterInfo }) {
+export async function exportToPDF({ financials, logs, materialUsage, seasonSummary, filterInfo, capexAnalysis }) {
   const { default: jsPDF } = await import('jspdf');
   const autotableModule = await import('jspdf-autotable');
   const autoTable = autotableModule.default || autotableModule.autoTable || autotableModule;
@@ -178,6 +178,39 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
     });
   }
 
+  // === V. KHẤU HAO KIẾN THIẾT CƠ BẢN (CapEx) & MÃ SỐ VÙNG TRỒNG (PUC) ===
+  if (capexAnalysis && capexAnalysis.plotDetails && capexAnalysis.plotDetails.length > 0) {
+    if (y > 200) { doc.addPage(); y = 15; }
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('V. KHAU HAO KIEN THIET CO BAN (CapEx) & MA VUNG TRONG (PUC)', 14, y);
+    y += 2;
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Lo / Thua', 'Cay trong', 'Ma PUC', 'Von CapEx', 'Khau hao/nam', 'Da khau hao', 'Gia tri con lai']],
+      body: capexAnalysis.plotDetails.map((item) => {
+        const p = item.plot || {};
+        const c = item.capex || {};
+        return [
+          stripVN(p.name || 'Lo dat'),
+          stripVN(c.cropName || 'Cay dai ngay'),
+          c.pucCode || 'Chua cap',
+          fmtMoneyPDF(c.initialCost),
+          fmtMoneyPDF(c.annualDepreciation),
+          `${c.percentDepreciated || 0}%`,
+          fmtMoneyPDF(c.remainingValue),
+        ];
+      }),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [16, 124, 16], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [240, 253, 244] },
+      margin: { left: 14, right: 14 },
+    });
+
+    y = (doc.lastAutoTable?.finalY ?? y) + 10;
+  }
+
   // === FOOTER ===
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
@@ -192,7 +225,7 @@ export async function exportToPDF({ financials, logs, materialUsage, seasonSumma
 
 
 // ===================== EXCEL EXPORT =====================
-export async function exportToExcel({ financials, logs, materialUsage, seasonSummary, filterInfo }) {
+export async function exportToExcel({ financials, logs, materialUsage, seasonSummary, filterInfo, capexAnalysis }) {
   const XLSX = await import('xlsx');
 
   const wb = XLSX.utils.book_new();
@@ -289,12 +322,101 @@ export async function exportToExcel({ financials, logs, materialUsage, seasonSum
     XLSX.utils.book_append_sheet(wb, wsLog, 'Lịch sử canh tác');
   }
 
+  // --- Sheet 4: Khấu hao CapEx & Mã số vùng trồng (PUC) ---
+  if (capexAnalysis && capexAnalysis.plotDetails && capexAnalysis.plotDetails.length > 0) {
+    const capexHeaders = [
+      'STT',
+      'Tên Lô / Thửa đất',
+      'Diện tích (ha)',
+      'Cây trồng',
+      'Mã số vùng trồng (PUC)',
+      'Thị trường mục tiêu',
+      'Năm trồng',
+      'Vốn đầu tư ban đầu (CapEx - VNĐ)',
+      'Chu kỳ khấu hao (năm)',
+      'Số năm đã vận hành',
+      'Khấu hao hàng năm (VNĐ)',
+      'Đã khấu hao (VNĐ)',
+      'Tỷ lệ khấu hao (%)',
+      'Giá trị còn lại (VNĐ)',
+    ];
+
+    const capexRows = capexAnalysis.plotDetails.map((item, idx) => {
+      const p = item.plot || {};
+      const c = item.capex || {};
+      return [
+        idx + 1,
+        p.name || `Lô ${idx + 1}`,
+        Number(p.area || 1),
+        c.cropName || 'Cây dài ngày',
+        c.pucCode || 'Chưa cấp',
+        c.targetMarket || 'Nội địa',
+        c.plantingYear || 2022,
+        Number(c.initialCost || 0),
+        Number(c.lifespanYears || 15),
+        Number(c.yearsActive || 0),
+        Number(c.annualDepreciation || 0),
+        Number(c.accumulatedDepreciation || 0),
+        `${c.percentDepreciated || 0}%`,
+        Number(c.remainingValue || 0),
+      ];
+    });
+
+    const capexData = [
+      ['PHÂN TÍCH KHẤU HAO KIẾN THIẾT CƠ BẢN (CapEx) & MÃ SỐ VÙNG TRỒNG (PUC)'],
+      [`Tổng vốn CapEx: ${fmtMoney(capexAnalysis.totalCapEx)} | Khấu hao năm: ${fmtMoney(capexAnalysis.totalAnnualDepreciation)} | Thời gian hoàn vốn: ${capexAnalysis.payback?.years > 0 ? `${capexAnalysis.payback.years} năm` : 'Đang tính toán'}`],
+      [],
+      capexHeaders,
+      ...capexRows,
+      [],
+      [
+        '',
+        'TỔNG CỘNG',
+        '',
+        '',
+        '',
+        '',
+        '',
+        capexAnalysis.totalCapEx || 0,
+        '',
+        '',
+        capexAnalysis.totalAnnualDepreciation || 0,
+        capexAnalysis.totalAccumulatedDepreciation || 0,
+        '',
+        (capexAnalysis.totalCapEx || 0) - (capexAnalysis.totalAccumulatedDepreciation || 0),
+      ],
+    ];
+
+    const wsCapex = XLSX.utils.aoa_to_sheet(capexData);
+    wsCapex['!cols'] = [
+      { wch: 6 },
+      { wch: 26 },
+      { wch: 14 },
+      { wch: 22 },
+      { wch: 22 },
+      { wch: 18 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 18 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 20 },
+      { wch: 16 },
+      { wch: 22 },
+    ];
+    wsCapex['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 7 } },
+    ];
+    XLSX.utils.book_append_sheet(wb, wsCapex, 'Khấu hao CapEx & PUC');
+  }
+
   XLSX.writeFile(wb, `BaoCao_DalatAgri_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 
 // ===================== WORD (DOCX) EXPORT =====================
-export async function exportToWord({ financials, logs, materialUsage, seasonSummary, filterInfo }) {
+export async function exportToWord({ financials, logs, materialUsage, seasonSummary, filterInfo, capexAnalysis }) {
   const docx = await import('docx');
   const { saveAs } = await import('file-saver');
 
@@ -537,6 +659,47 @@ export async function exportToWord({ financials, logs, materialUsage, seasonSumm
               log.notes ? (log.notes.length > 40 ? log.notes.slice(0, 40) + '...' : log.notes) : '—',
             ], idx % 2 === 1)
           ),
+        ],
+        width: { size: 100, type: WidthType.PERCENTAGE },
+      }),
+    );
+  }
+
+  // === V. KHẤU HAO KIẾN THIẾT CƠ BẢN (CapEx) & MÃ SỐ VÙNG TRỒNG (PUC) ===
+  if (capexAnalysis && capexAnalysis.plotDetails && capexAnalysis.plotDetails.length > 0) {
+    sections.push(
+      new Paragraph({
+        text: `V. KHẤU HAO KIẾN THIẾT CƠ BẢN (CapEx) & MÃ SỐ VÙNG TRỒNG (PUC)`,
+        heading: HeadingLevel.HEADING_2,
+        spacing: { before: 300, after: 120 },
+      }),
+      new Table({
+        rows: [
+          makeHeaderRow(['Lô / Thửa', 'Cây trồng', 'Mã PUC', 'Vốn CapEx', 'Khấu hao/năm', 'Đã khấu hao (%)', 'Giá trị còn lại']),
+          ...capexAnalysis.plotDetails.map((item, idx) => {
+            const p = item.plot || {};
+            const c = item.capex || {};
+            return makeDataRow([
+              p.name || `Lô ${idx + 1}`,
+              c.cropName || 'Cây dài ngày',
+              c.pucCode || 'Chưa cấp',
+              fmtMoney(c.initialCost),
+              fmtMoney(c.annualDepreciation),
+              `${c.percentDepreciated || 0}%`,
+              fmtMoney(c.remainingValue),
+            ], idx % 2 === 1);
+          }),
+          new TableRow({
+            children: [
+              makeCell('TỔNG CỘNG', { bold: true, bgColor: 'ECFDF5' }),
+              makeCell('', { bgColor: 'ECFDF5' }),
+              makeCell('', { bgColor: 'ECFDF5' }),
+              makeCell(fmtMoney(capexAnalysis.totalCapEx), { bold: true, bgColor: 'ECFDF5' }),
+              makeCell(fmtMoney(capexAnalysis.totalAnnualDepreciation), { bold: true, bgColor: 'ECFDF5' }),
+              makeCell('', { bgColor: 'ECFDF5' }),
+              makeCell(fmtMoney((capexAnalysis.totalCapEx || 0) - (capexAnalysis.totalAccumulatedDepreciation || 0)), { bold: true, bgColor: 'ECFDF5' }),
+            ],
+          }),
         ],
         width: { size: 100, type: WidthType.PERCENTAGE },
       }),

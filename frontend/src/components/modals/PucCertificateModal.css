@@ -1,0 +1,473 @@
+/* ══════════════════════════════════════════════════════
+   PucCertificateModal.css — Hồ Sơ Mã Số Vùng Trồng Xuất Khẩu
+   ══════════════════════════════════════════════════════ */
+
+.puc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.puc-modal-dialog {
+  background: #ffffff;
+  width: 100%;
+  max-width: 860px;
+  border-radius: 8px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: pucModalIn 0.2s ease-out;
+}
+
+@keyframes pucModalIn {
+  from { opacity: 0; transform: scale(0.97) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Modal Header ── */
+.puc-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: #0f172a;
+  color: #ffffff;
+  border-bottom: 1px solid #1e293b;
+}
+
+.puc-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.puc-badge-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  background: #059669;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.puc-header-title-wrap h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+}
+
+.puc-header-title-wrap p {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.puc-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-puc-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.btn-puc-action.secondary {
+  background: #334155;
+  color: #f1f5f9;
+}
+.btn-puc-action.secondary:hover {
+  background: #475569;
+}
+
+.btn-puc-action.primary {
+  background: #059669;
+  color: #ffffff;
+}
+.btn-puc-action.primary:hover {
+  background: #047857;
+}
+
+.puc-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.puc-close-btn:hover {
+  color: #ffffff;
+  background: #334155;
+}
+
+/* ── Document Container ── */
+.puc-certificate-document {
+  padding: 2.5rem 3rem;
+  overflow-y: auto;
+  background: #ffffff;
+  color: #1e293b;
+  font-family: "Times New Roman", Times, serif;
+  line-height: 1.5;
+}
+
+/* ── National Header ── */
+.puc-doc-national-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.national-title {
+  font-size: 1.05rem;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.national-motto {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.national-divider {
+  font-size: 0.85rem;
+  color: #475569;
+  margin: 4px 0 8px 0;
+}
+
+.sub-authority {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #334155;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.doc-main-heading {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #047857;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 1rem;
+}
+
+.doc-sub-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+/* ── PUC Showcase Box ── */
+.puc-code-showcase-box {
+  background: #f0fdf4;
+  border: 2px dashed #059669;
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.puc-label {
+  font-size: 0.82rem;
+  font-weight: bold;
+  color: #065f46;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.puc-code-large {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #047857;
+  letter-spacing: 3px;
+  margin: 4px 0;
+}
+
+.puc-validity-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #047857;
+  font-family: sans-serif;
+}
+
+.puc-qr-mockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.qr-box {
+  width: 72px;
+  height: 72px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-pixel-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  font-size: 9px;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.qr-caption {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-family: sans-serif;
+}
+
+/* ── Section Styles ── */
+.puc-info-section {
+  margin-bottom: 2rem;
+}
+
+.puc-section-title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #0f172a;
+  text-transform: uppercase;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+
+.puc-section-note {
+  font-size: 0.88rem;
+  color: #475569;
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.puc-grid-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  font-size: 0.95rem;
+}
+
+.puc-grid-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.puc-col-label {
+  color: #64748b;
+  font-weight: 500;
+  min-width: 140px;
+}
+
+.puc-col-value {
+  color: #0f172a;
+}
+
+.font-bold { font-weight: bold; }
+.text-green { color: #047857; }
+.text-blue { color: #0284c7; }
+.text-gray { color: #64748b; }
+
+/* ── Logs Table ── */
+.puc-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin-top: 8px;
+}
+
+.puc-log-table th,
+.puc-log-table td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.puc-log-table th {
+  background: #f8fafc;
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.puc-mat-tag {
+  display: inline-block;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 0.82rem;
+  margin: 2px;
+  color: #334155;
+  font-family: sans-serif;
+}
+
+.puc-safe-badge {
+  color: #047857;
+  font-weight: bold;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+}
+
+.puc-pass-badge {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-family: sans-serif;
+}
+
+/* ── Signature Block ── */
+.puc-signature-block {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3rem;
+  padding-top: 1rem;
+}
+
+.puc-sig-col {
+  text-align: center;
+  width: 45%;
+}
+
+.puc-sig-col.right {
+  text-align: center;
+}
+
+.sig-date {
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.sig-role {
+  font-size: 0.95rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.sig-hint {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.sig-space {
+  margin-top: 4rem;
+}
+
+.sig-name {
+  font-weight: bold;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.sig-stamp {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.stamp-circle {
+  width: 105px;
+  height: 105px;
+  border: 3px double #dc2626;
+  border-radius: 50%;
+  color: #dc2626;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  opacity: 0.85;
+  font-family: sans-serif;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  padding: 6px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.stamp-circle strong {
+  font-size: 0.75rem;
+  margin: 3px 0;
+  border-top: 1px solid #dc2626;
+  border-bottom: 1px solid #dc2626;
+  padding: 1px 4px;
+}
+
+/* ── In ấn Print Mode ── */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .puc-modal-overlay {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+  .puc-modal-dialog {
+    max-width: 100%;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .puc-certificate-document,
+  .puc-certificate-document * {
+    visibility: visible;
+  }
+  .puc-certificate-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 1cm;
+  }
+}

@@ -6,6 +6,7 @@ import {
   IconLineChart,
   IconCalculator,
   IconClipboardList,
+  IconShield,
 } from '../icons';
 
 export default function FinancialExplanationModal({
@@ -142,9 +143,14 @@ export default function FinancialExplanationModal({
       subtitle: 'Thống kê số lần chăm sóc cây trồng và số đợt thu hoạch',
       icon: <IconClipboardList size={22} strokeWidth={2.2} />,
     },
+    CAPEX: {
+      title: 'Khấu Hao Kiến Thiết Cơ Bản (CapEx) & Hoàn Vốn',
+      subtitle: 'Phân tích phân bổ chi phí 3–5 năm đầu và thời gian thu hồi vốn cây lâu năm',
+      icon: <IconShield size={22} strokeWidth={2.2} />,
+    },
   };
 
-  const currentTab = ['EXPENSE', 'REVENUE', 'PROFIT', 'LOGS'].includes(initialTab)
+  const currentTab = ['EXPENSE', 'REVENUE', 'PROFIT', 'LOGS', 'CAPEX'].includes(initialTab)
     ? initialTab
     : 'EXPENSE';
   const config = cardConfig[currentTab];
@@ -435,6 +441,52 @@ export default function FinancialExplanationModal({
                 </div>
                 <p className="detail-section-desc">
                   Mỗi đợt cắt hái nông sản và bán cho thương lái hoặc đem tiêu thụ.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 5. CHI TIẾT KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) */}
+          {currentTab === 'CAPEX' && (
+            <div className="card-detail-content">
+              <div className="detail-summary-banner" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
+                <div className="summary-banner-top">
+                  <span className="banner-label" style={{ color: '#065f46' }}>NGHIỆP VỤ TÀI CHÍNH CÂY DÀI NGÀY</span>
+                  <span className="banner-total-number" style={{ color: '#047857' }}>
+                    Khấu Hao CapEx
+                  </span>
+                </div>
+                <div className="summary-formula-box" style={{ background: 'rgba(255,255,255,0.85)', color: '#166534' }}>
+                  <strong>Khấu hao hàng năm</strong> = Tổng vốn đầu tư ban đầu (CapEx) ÷ Số năm khai thác kinh doanh
+                </div>
+              </div>
+
+              <div className="detail-section">
+                <div className="detail-section-title">
+                  <span>1. Bản chất kinh tế của cây dài ngày</span>
+                </div>
+                <p className="detail-section-desc">
+                  Cây công nghiệp và cây ăn trái lâu năm (Cà phê, Sầu riêng, Bơ, Mắc ca) trải qua 3–5 năm đầu kiến thiết cơ bản (mua giống ghép, đào hố, lắp hệ thống béc tưới ngầm, phân lót) mà <strong>hoàn toàn chưa có doanh thu</strong>.
+                </p>
+              </div>
+
+              <div className="detail-section">
+                <div className="detail-section-title">
+                  <span>2. Phân biệt OpEx (Chi phí mùa vụ) và CapEx (Vốn đầu tư)</span>
+                </div>
+                <p className="detail-section-desc">
+                  • <strong>OpEx (Chi phí vận hành niên vụ):</strong> Tiền phân bón thúc, thuốc BVTV, nhân công hái tỉa trong năm.<br />
+                  • <strong>CapEx (Vốn đầu tư ban đầu):</strong> Được phân bổ đều (khấu hao) qua 15–20 năm kinh doanh để tính đúng giá thành và không bị "lãi ảo".
+                </p>
+              </div>
+
+              <div className="detail-section">
+                <div className="detail-section-title">
+                  <span>3. Công thức tính Lợi nhuận ròng sau khấu hao & Thời gian hoàn vốn</span>
+                </div>
+                <p className="detail-section-desc">
+                  • <strong>Lợi nhuận sau khấu hao</strong> = Doanh thu thu hoạch − (Chi phí OpEx vụ + Khấu hao CapEx năm).<br />
+                  • <strong>Thời gian hoàn vốn (Payback Period)</strong> = Tổng vốn đầu tư CapEx ÷ Lợi nhuận vận hành trung bình hàng năm.
                 </p>
               </div>
             </div>

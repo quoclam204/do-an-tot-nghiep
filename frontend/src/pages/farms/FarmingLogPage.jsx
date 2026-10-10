@@ -30,6 +30,7 @@ import {
   IconAlertCircle,
   IconInfo,
   IconX,
+  IconShield,
 } from '../../components/icons';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
@@ -889,6 +890,47 @@ export default function FarmingLogPage() {
             Chăm sóc: <strong>{financials?.careLogsCount ?? logs.filter((l) => l.activityType !== 'THU_HOACH').length}</strong> lần | Thu hoạch: <strong>{financials?.harvestLogsCount ?? logs.filter((l) => l.activityType === 'THU_HOACH').length}</strong> đợt
           </div>
         </div>
+      </div>
+
+      {/* BANNER NGHIỆP VỤ CÂY DÀI NGÀY: KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) */}
+      <div style={{
+        background: '#f0fdf4',
+        border: '1px solid #bbf7d0',
+        borderRadius: '10px',
+        padding: '10px 16px',
+        marginBottom: '1.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '10px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#166534' }}>
+          <span style={{ background: '#dcfce7', padding: '4px 6px', borderRadius: '4px', display: 'flex', color: '#059669' }}>
+            <IconShield size={18} strokeWidth={2.4} />
+          </span>
+          <span>
+            <strong>Đặc thù kinh tế cây dài ngày:</strong> Số liệu trên là chi phí vận hành mùa vụ (OpEx). Để tính đúng điểm hòa vốn thực tế, hãy xem <strong>Khấu hao kiến thiết cơ bản (CapEx)</strong>.
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => handleOpenCardDetail('CAPEX')}
+          style={{
+            background: '#059669',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            padding: '6px 14px',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'background 0.15s ease'
+          }}
+          title="Bấm để mở giải trình chi tiết về khấu hao vốn đầu tư 3-5 năm đầu"
+        >
+          Giải trình Khấu hao CapEx ↗
+        </button>
       </div>
 
       {/* BIỂU ĐỒ KINH TẾ NÔNG HỘ: ĐƠN GIẢN, TRỰC QUAN */}

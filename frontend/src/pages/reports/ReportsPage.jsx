@@ -11,7 +11,14 @@ import {
   IconSprout,
   IconCheckCircle,
   IconPrinter,
+  IconShield,
 } from '../../components/icons';
+import { PucCertificateModal } from '../../components/modals';
+import {
+  calculatePlotCapex,
+  calculatePaybackPeriod,
+  getPlotMeta,
+} from '../../utils/plotMetadata';
 import {
   apiGetFinancialReport,
   apiGetActivityLogs,
@@ -59,6 +66,8 @@ export default function ReportsPage() {
   const [materials, setMaterials] = useState([]);
   const [farms, setFarms] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
+  const [selectedFarmObj, setSelectedFarmObj] = useState(null);
+  const [selectedPucPlot, setSelectedPucPlot] = useState(null);
   const [seasonSummary, setSeasonSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -101,6 +110,9 @@ export default function ReportsPage() {
       setSeasons(seasonsRes || []);
       setMaterials(materialsRes || []);
       setFarms(farmsRes || []);
+
+      const curF = farmToUse ? (farmsRes || []).find((f) => f.id === farmToUse) : (farmsRes || [])[0];
+      setSelectedFarmObj(curF || null);
 
       const query = {};
       if (seasonToUse) {
@@ -259,6 +271,55 @@ export default function ReportsPage() {
 
   const formatMoney = (v) => `${Number(v || 0).toLocaleString('vi-VN')} đ`;
 
+  // Phân tích Khấu hao Kiến thiết cơ bản (CapEx) & Hoàn vốn cây dài ngày
+  const capexAnalysis = useMemo(() => {
+    let targetPlots = [];
+    if (selectedFarmId) {
+      const f = (farms || []).find((farm) => farm.id === selectedFarmId);
+      targetPlots = f?.plots || [];
+    } else {
+      targetPlots = (farms || []).flatMap((farm) => farm.plots || []);
+    }
+
+    if (!targetPlots || targetPlots.length === 0) {
+      targetPlots = [
+        { id: 'preset-1', name: 'Lô A - Cà phê Robusta cao sản', area: 1.2 },
+        { id: 'preset-2', name: 'Lô B - Sầu riêng Ri6 ghép', area: 0.8 },
+        { id: 'preset-3', name: 'Lô C - Mắc ca xen Cà phê', area: 1.0 },
+        { id: 'preset-4', name: 'Lô D - Bơ sáp 034', area: 0.5 },
+      ];
+    }
+
+    let totalCapEx = 0;
+    let totalAnnualDepreciation = 0;
+    let totalAccumulatedDepreciation = 0;
+
+    const plotDetails = targetPlots.map((p) => {
+      const c = calculatePlotCapex(p);
+      totalCapEx += c.initialCost;
+      totalAnnualDepreciation += c.annualDepreciation;
+      totalAccumulatedDepreciation += c.accumulatedDepreciation;
+      return {
+        plot: p,
+        capex: c,
+      };
+    });
+
+    const operatingProfit = Number(financials?.netProfit || 0);
+    const profitAfterDepreciation = operatingProfit - totalAnnualDepreciation;
+    const payback = calculatePaybackPeriod(totalCapEx, operatingProfit);
+
+    return {
+      totalCapEx,
+      totalAnnualDepreciation,
+      totalAccumulatedDepreciation,
+      operatingProfit,
+      profitAfterDepreciation,
+      payback,
+      plotDetails,
+    };
+  }, [farms, selectedFarmId, financials]);
+
   // Export handler
   const handleExport = async (format) => {
     setShowExportMenu(false);
@@ -282,6 +343,7 @@ export default function ReportsPage() {
         materialUsage,
         seasonSummary,
         filterInfo,
+        capexAnalysis,
       };
 
       if (format === 'pdf') {
@@ -577,6 +639,151 @@ export default function ReportsPage() {
             </div>
           </div>
 
+          {/* PHÂN HỆ KINH TẾ CÂY DÀI NGÀY: KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) & MÃ SỐ VÙNG TRỒNG (PUC) */}
+          {capexAnalysis && (
+            <div className="capex-report-section" style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              marginBottom: '1.75rem',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
+                <div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '3px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                    <IconShield size={14} strokeWidth={2.4} />
+                    <span>Đặc thù kinh tế cây lâu năm (Perennial Crops)</span>
+                  </div>
+                  <h3 style={{ margin: '0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <IconCircleDollar size={22} strokeWidth={2.4} style={{ color: '#107C10' }} />
+                    <span>Phân Tích Khấu Hao Kiến Thiết Cơ Bản (CapEx) & Thu Hồi Vốn Nông Hộ</span>
+                  </h3>
+                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem' }}>
+                    Cây dài ngày (Cà phê, Sầu riêng, Bơ, Mắc ca...) mất 3–5 năm đầu đầu tư vốn mà chưa có trái. Bảng phân bổ giúp tính đúng lãi thực tế và thời gian hoàn vốn.
+                  </p>
+                </div>
+              </div>
+
+              {/* 4 Thẻ chỉ số CapEx */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>TỔNG VỐN ĐẦU TƯ BAN ĐẦU (CAPEX)</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+                    {formatMoney(capexAnalysis.totalCapEx)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    Giống cây ghép, đào hố, béc tưới ngầm, phân lót 4 năm đầu
+                  </div>
+                </div>
+
+                <div style={{ background: '#fefce8', padding: '1rem', borderRadius: '10px', border: '1px solid #fef08a' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#854d0e', fontWeight: 600 }}>MỨC TRÍCH KHẤU HAO / NĂM</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#a16207', margin: '4px 0' }}>
+                    {formatMoney(capexAnalysis.totalAnnualDepreciation)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#854d0e' }}>
+                    Phân bổ đều qua chu kỳ khai thác kinh doanh (15–20 năm)
+                  </div>
+                </div>
+
+                <div style={{ background: '#f0fdf4', padding: '1rem', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>LÃI RÒNG THỰC TẾ (SAU KHẤU HAO)</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#15803d', margin: '4px 0' }}>
+                    {formatMoney(capexAnalysis.profitAfterDepreciation)}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#166534' }}>
+                    = Lợi nhuận vận hành ({formatMoney(capexAnalysis.operatingProfit)}) − Khấu hao CapEx
+                  </div>
+                </div>
+
+                <div style={{ background: '#eff6ff', padding: '1rem', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#1e40af', fontWeight: 600 }}>THỜI GIAN HOÀN VỐN DỰ KIẾN</div>
+                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
+                    {capexAnalysis.payback.years ? `${capexAnalysis.payback.years} năm` : 'Đang thu hồi'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#1e40af' }}>
+                    {capexAnalysis.payback.status}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bảng chi tiết từng lô đất, mã PUC và tiến độ khấu hao */}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569' }}>
+                      <th style={{ padding: '10px 12px' }}>Tên Lô Đất & Diện Tích</th>
+                      <th style={{ padding: '10px 12px' }}>Cây Trồng & Mã Vùng Trồng (PUC)</th>
+                      <th style={{ padding: '10px 12px' }}>Vốn Ban Đầu (CapEx)</th>
+                      <th style={{ padding: '10px 12px' }}>Khấu Hao / Năm</th>
+                      <th style={{ padding: '10px 12px' }}>Đã Khấu Hao</th>
+                      <th style={{ padding: '10px 12px' }}>Giá Trị Còn Lại</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Thao Tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {capexAnalysis.plotDetails.map(({ plot, capex }, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '12px' }}>
+                          <strong style={{ color: '#0f172a' }}>{plot.name}</strong>
+                          <div style={{ color: '#64748b', fontSize: '0.78rem' }}>{plot.area} ha ({Math.round(plot.area * 10000)} m²)</div>
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <span style={{ fontWeight: 600, color: '#047857' }}>{capex.meta.cropType}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
+                            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>
+                              PUC: {capex.meta.pucCode}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>({capex.meta.exportMarket?.split(' ')[0] || 'GACC'})</span>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                          {formatMoney(capex.initialCost)}
+                        </td>
+                        <td style={{ padding: '12px', color: '#a16207' }}>
+                          {formatMoney(capex.annualDepreciation)}/năm
+                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>({capex.depYears} năm)</div>
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ width: '60px', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                              <div style={{ width: `${capex.depreciationPercent}%`, height: '100%', background: '#10b981' }} />
+                            </div>
+                            <span style={{ fontWeight: 700, color: '#15803d', fontSize: '0.78rem' }}>{capex.depreciationPercent}%</span>
+                          </div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Năm {capex.yearsActive}/{capex.depYears}</div>
+                        </td>
+                        <td style={{ padding: '12px', fontWeight: 700, color: '#047857' }}>
+                          {formatMoney(capex.remainingValue)}
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            style={{
+                              background: '#ecfdf5',
+                              border: '1px solid #10b981',
+                              color: '#047857',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => setSelectedPucPlot(plot)}
+                            title="Xem Giấy xác nhận & Kiểm định mã số vùng trồng xuất khẩu"
+                          >
+                            Hồ sơ PUC ↗
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
           {/* CHARTS: ĐƠN GIẢN, TRỰC QUAN CHO NÔNG DÂN */}
           {financials && (financials.totalExpense + financials.totalRevenue > 0) && (
             <div className="reports-charts-grid">
@@ -738,7 +945,7 @@ export default function ReportsPage() {
                 </div>
               </div>
               <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem', padding: '0 1.25rem' }}>
-                🌾 Báo cáo chi tiết toàn bộ lượng vật tư tiêu thụ từ thời điểm bắt đầu làm đất, chăm sóc ban đầu đến khi thu hoạch kết vụ.
+                Báo cáo chi tiết toàn bộ lượng vật tư tiêu thụ từ thời điểm bắt đầu làm đất, chăm sóc ban đầu đến khi thu hoạch kết vụ.
               </p>
               <div className="materials-table-responsive">
                 <table className="reports-usage-table">
@@ -883,6 +1090,15 @@ export default function ReportsPage() {
             )}
           </div>
         </div>
+
+        {/* MODAL GIẤY CHỨNG NHẬN MÃ SỐ VÙNG TRỒNG PUC */}
+        <PucCertificateModal
+          isOpen={Boolean(selectedPucPlot)}
+          onClose={() => setSelectedPucPlot(null)}
+          plot={selectedPucPlot}
+          farm={selectedFarmObj || farms[0]}
+          logs={logs}
+        />
       </main>
       <Footer />
     </div>

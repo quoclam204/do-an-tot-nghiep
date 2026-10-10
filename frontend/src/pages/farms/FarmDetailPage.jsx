@@ -30,7 +30,18 @@ import {
   IconCheck,
   IconShield,
   IconClipboardList,
+  IconCircleDollar,
+  IconAlertCircle,
+  IconInfo,
+  IconCalculator,
 } from "../../components/icons";
+import { PucCertificateModal } from "../../components/modals";
+import {
+  getPlotMeta,
+  savePlotMeta,
+  calculatePlotCapex,
+  guessPlotPreset,
+} from "../../utils/plotMetadata";
 import "./FarmDetailPage.css";
 
 // Ảnh lô đất mặc định
@@ -91,11 +102,27 @@ export default function FarmDetailPage() {
   const [error, setError] = useState("");
 
   const [activeTab, setActiveTab] = useState("plots"); // "plots" | "members"
+  const [selectedPucPlot, setSelectedPucPlot] = useState(null);
+  const [plotModalTab, setPlotModalTab] = useState("BASIC"); // "BASIC" | "PUC" | "CAPEX"
 
   const [showPlotModal, setShowPlotModal] = useState(false);
   const [editingPlot, setEditingPlot] = useState(null);
   const [plotToDelete, setPlotToDelete] = useState(null);
-  const [plotForm, setPlotForm] = useState({ name: "", area: "", unit: "ha", image: "" });
+  const [plotForm, setPlotForm] = useState({
+    name: "",
+    area: "",
+    unit: "ha",
+    image: "",
+    pucCode: "",
+    pucIssueDate: "2024-03-15",
+    pucStatus: "ACTIVE",
+    exportMarket: "Trung Quốc (Nghị định thư GACC)",
+    cropType: "",
+    initialInvestmentCost: 150000000,
+    plantingYear: 2021,
+    depreciationYears: 15,
+    capexNotes: "",
+  });
   const [saving, setSaving] = useState(false);
   const plotFileInputRef = useRef(null);
 
@@ -127,15 +154,47 @@ export default function FarmDetailPage() {
 
   const openAddModal = () => {
     setEditingPlot(null);
-    setPlotForm({ name: "", area: "", unit: "ha", image: "" });
+    setPlotModalTab("BASIC");
+    const defaultMeta = guessPlotPreset("");
+    setPlotForm({
+      name: "",
+      area: "",
+      unit: "ha",
+      image: "",
+      pucCode: defaultMeta.pucCode,
+      pucIssueDate: defaultMeta.pucIssueDate,
+      pucStatus: defaultMeta.pucStatus,
+      exportMarket: defaultMeta.exportMarket,
+      cropType: defaultMeta.cropType,
+      initialInvestmentCost: defaultMeta.initialInvestmentCost,
+      plantingYear: defaultMeta.plantingYear,
+      depreciationYears: defaultMeta.depreciationYears,
+      capexNotes: defaultMeta.capexNotes,
+    });
     setShowPlotModal(true);
   };
 
   const openEditModal = (plot) => {
     setEditingPlot(plot);
+    setPlotModalTab("BASIC");
     const stored = getStoredPlotImages();
     const currentImg = stored[plot.id] || stored[plot.name] || "";
-    setPlotForm({ name: plot.name, area: String(plot.area), unit: "ha", image: currentImg });
+    const meta = getPlotMeta(plot);
+    setPlotForm({
+      name: plot.name,
+      area: String(plot.area),
+      unit: "ha",
+      image: currentImg,
+      pucCode: meta.pucCode,
+      pucIssueDate: meta.pucIssueDate,
+      pucStatus: meta.pucStatus,
+      exportMarket: meta.exportMarket,
+      cropType: meta.cropType,
+      initialInvestmentCost: meta.initialInvestmentCost,
+      plantingYear: meta.plantingYear,
+      depreciationYears: meta.depreciationYears,
+      capexNotes: meta.capexNotes,
+    });
     setShowPlotModal(true);
   };
 
@@ -214,16 +273,32 @@ export default function FarmDetailPage() {
       // Nếu người dùng để trống ảnh thì tự lấy ảnh mặc định
       const finalImage = plotForm.image.trim() || DEFAULT_PLOT_IMAGE;
 
+      const metaToSave = {
+        pucCode: plotForm.pucCode?.trim(),
+        pucIssueDate: plotForm.pucIssueDate,
+        pucStatus: plotForm.pucStatus,
+        exportMarket: plotForm.exportMarket,
+        cropType: plotForm.cropType,
+        initialInvestmentCost: Number(plotForm.initialInvestmentCost || 0),
+        plantingYear: Number(plotForm.plantingYear || new Date().getFullYear()),
+        depreciationYears: Number(plotForm.depreciationYears || 15),
+        capexNotes: plotForm.capexNotes?.trim(),
+      };
+
       if (editingPlot) {
         await apiUpdatePlot(id, editingPlot.id, payload);
         saveStoredPlotImage(editingPlot.id, finalImage);
         saveStoredPlotImage(payload.name, finalImage);
+        savePlotMeta(editingPlot.id, metaToSave);
+        savePlotMeta(payload.name, metaToSave);
       } else {
         const res = await apiCreatePlot(id, payload);
         if (res && res.id) {
           saveStoredPlotImage(res.id, finalImage);
+          savePlotMeta(res.id, metaToSave);
         }
         saveStoredPlotImage(payload.name, finalImage);
+        savePlotMeta(payload.name, metaToSave);
       }
       setShowPlotModal(false);
       loadFarm();
@@ -496,65 +571,109 @@ export default function FarmDetailPage() {
               </div>
             ) : (
               <div className="plots-grid-layout">
-                {plots.map((plot) => (
-                  <div key={plot.id} className="plot-card-box">
-                    <div className="plot-card-cover">
-                      <img
-                        src={getPlotImage(plot)}
-                        alt={plot.name}
-                        onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
-                      />
-                      <span className="plot-card-badge">
-                        <IconCheckCircle size={12} strokeWidth={2.4} />
-                        <span>Lô canh tác</span>
-                      </span>
-                      <div className="plot-cover-actions">
-                        <button
-                          type="button"
-                          className="btn-icon-action edit"
-                          onClick={() => openEditModal(plot)}
-                          title="Chỉnh sửa lô đất & ảnh"
-                        >
-                          <IconPenLine size={15} strokeWidth={2} />
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-icon-action delete"
-                          onClick={() => handleDeletePlot(plot.id, plot.name)}
-                          title="Xóa lô đất"
-                        >
-                          <IconTrash size={15} strokeWidth={2} />
-                        </button>
-                      </div>
-                    </div>
+                {plots.map((plot) => {
+                  const capex = calculatePlotCapex(plot);
+                  const plotMeta = capex.meta;
 
-                    <div className="plot-card-body">
-                      <div className="plot-title-row">
-                        <div className="plot-icon-box">
-                          <IconSprout size={18} strokeWidth={2} />
-                        </div>
-                        <h3 className="plot-box-title">{plot.name}</h3>
-                      </div>
-
-                      <div className="plot-area-badge" title="1 ha = 10.000 m²">
-                        <IconRuler size={14} strokeWidth={2} />
-                        <span>
-                          Diện tích: <strong>{plot.area} ha</strong>
-                          <small style={{ color: "#64748b", marginLeft: "4px" }}>
-                            ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
-                          </small>
+                  return (
+                    <div key={plot.id} className="plot-card-box">
+                      <div className="plot-card-cover">
+                        <img
+                          src={getPlotImage(plot)}
+                          alt={plot.name}
+                          onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
+                        />
+                        <span className="plot-card-badge">
+                          <IconCheckCircle size={12} strokeWidth={2.4} />
+                          <span>Lô canh tác</span>
                         </span>
+                        <div className="plot-cover-actions">
+                          <button
+                            type="button"
+                            className="btn-icon-action edit"
+                            onClick={() => openEditModal(plot)}
+                            title="Chỉnh sửa lô đất & cấu hình PUC/CapEx"
+                          >
+                            <IconPenLine size={15} strokeWidth={2} />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-icon-action delete"
+                            onClick={() => handleDeletePlot(plot.id, plot.name)}
+                            title="Xóa lô đất"
+                          >
+                            <IconTrash size={15} strokeWidth={2} />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="plot-card-footer">
-                        <Link to="/dashboard" className="plot-link-journal">
-                          <span>Xem nhật ký lô này</span>
-                          <IconSprout size={14} strokeWidth={2} />
-                        </Link>
+                      <div className="plot-card-body">
+                        <div className="plot-title-row">
+                          <div className="plot-icon-box">
+                            <IconSprout size={18} strokeWidth={2} />
+                          </div>
+                          <h3 className="plot-box-title">{plot.name}</h3>
+                        </div>
+
+                        <div className="plot-area-badge" title="1 ha = 10.000 m²">
+                          <IconRuler size={14} strokeWidth={2} />
+                          <span>
+                            Diện tích: <strong>{plot.area} ha</strong>
+                            <small style={{ color: "#64748b", marginLeft: "4px" }}>
+                              ({new Intl.NumberFormat("vi-VN").format(Math.round(plot.area * 10000))} m²)
+                            </small>
+                          </span>
+                        </div>
+
+                        {/* Khối Mã số vùng trồng xuất khẩu (PUC) */}
+                        <div className="plot-puc-row">
+                          <div
+                            className="puc-badge-clickable"
+                            onClick={() => setSelectedPucPlot(plot)}
+                            title="Bấm để xem Giấy xác nhận & Kiểm định dư lượng thuốc BVTV"
+                          >
+                            <IconShield size={14} strokeWidth={2.4} />
+                            <span>PUC: <strong>{plotMeta.pucCode}</strong></span>
+                            <span className="puc-tag-market">{plotMeta.exportMarket?.split(' ')[0] || 'GACC'}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-view-puc-cert"
+                            onClick={() => setSelectedPucPlot(plot)}
+                            title="Xem chi tiết hồ sơ chứng nhận vùng trồng chuẩn Cục BVTV"
+                          >
+                            Hồ sơ PUC ↗
+                          </button>
+                        </div>
+
+                        {/* Khối Khấu hao Vốn kiến thiết cơ bản (CapEx) */}
+                        <div className="plot-capex-card-box">
+                          <div className="plot-capex-header">
+                            <span className="capex-label">
+                              <IconCircleDollar size={14} strokeWidth={2.2} />
+                              <span>Vốn Kiến Thiết (CapEx):</span>
+                            </span>
+                            <span className="capex-val">{new Intl.NumberFormat('vi-VN').format(capex.initialCost)} đ</span>
+                          </div>
+                          <div className="plot-capex-sub">
+                            <span>Khấu hao: <strong>{new Intl.NumberFormat('vi-VN').format(capex.annualDepreciation)} đ/năm</strong> ({capex.depYears} năm)</span>
+                            <span>Đã khấu hao: <strong>{capex.depreciationPercent}%</strong> ({capex.yearsActive} năm)</span>
+                          </div>
+                          <div className="capex-progress-bar" title={`Đã phân bổ khấu hao ${capex.depreciationPercent}% giá trị vườn cây lâu năm`}>
+                            <div className="capex-progress-fill" style={{ width: `${capex.depreciationPercent}%` }} />
+                          </div>
+                        </div>
+
+                        <div className="plot-card-footer">
+                          <Link to="/dashboard" className="plot-link-journal">
+                            <span>Xem nhật ký lô này</span>
+                            <IconSprout size={14} strokeWidth={2} />
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
@@ -673,202 +792,424 @@ export default function FarmDetailPage() {
                 </button>
               </div>
 
-              <form onSubmit={handleSavePlot} className="farm-modal-form">
-                {!editingPlot && (
-                  <div className="location-suggestions">
-                    <div className="suggestions-header">
-                      <span className="suggestions-label">
-                        <IconSprout size={16} strokeWidth={2.2} />
-                        Gợi ý tên lô & diện tích mẫu
-                      </span>
-                      <span className="suggestions-hint-badge">Bấm để điền nhanh</span>
-                    </div>
-                    <div className="suggestions-grid">
-                      {PRESET_PLOTS.map((p, i) => {
-                        const isSelected = plotForm.name === p.name;
-                        const areaFormatted = plotForm.unit === "m2"
-                          ? `${new Intl.NumberFormat("vi-VN").format(Math.round(p.area * 10000))} m²`
-                          : `${p.area} ha`;
+              <div className="plot-modal-tabs-bar">
+                <button
+                  type="button"
+                  className={`plot-modal-tab-btn ${plotModalTab === "BASIC" ? "active" : ""}`}
+                  onClick={() => setPlotModalTab("BASIC")}
+                >
+                  <IconSprout size={16} strokeWidth={2.2} />
+                  <span>1. Cơ Bản & Diện Tích</span>
+                </button>
+                <button
+                  type="button"
+                  className={`plot-modal-tab-btn ${plotModalTab === "PUC" ? "active" : ""}`}
+                  onClick={() => setPlotModalTab("PUC")}
+                >
+                  <IconShield size={16} strokeWidth={2.2} />
+                  <span>2. Mã Vùng Trồng (PUC)</span>
+                </button>
+                <button
+                  type="button"
+                  className={`plot-modal-tab-btn ${plotModalTab === "CAPEX" ? "active" : ""}`}
+                  onClick={() => setPlotModalTab("CAPEX")}
+                >
+                  <IconCircleDollar size={16} strokeWidth={2.2} />
+                  <span>3. Khấu Hao CapEx</span>
+                </button>
+              </div>
 
-                        return (
+              <form onSubmit={handleSavePlot} className="farm-modal-form">
+                {plotModalTab === "BASIC" && (
+                  <>
+                    {!editingPlot && (
+                      <div className="location-suggestions">
+                        <div className="suggestions-header">
+                          <span className="suggestions-label">
+                            <IconSprout size={16} strokeWidth={2.2} />
+                            Gợi ý tên lô & diện tích mẫu
+                          </span>
+                          <span className="suggestions-hint-badge">Bấm để điền nhanh</span>
+                        </div>
+                        <div className="suggestions-grid">
+                          {PRESET_PLOTS.map((p, i) => {
+                            const isSelected = plotForm.name === p.name;
+                            const areaFormatted = plotForm.unit === "m2"
+                              ? `${new Intl.NumberFormat("vi-VN").format(Math.round(p.area * 10000))} m²`
+                              : `${p.area} ha`;
+
+                            return (
+                              <button
+                                type="button"
+                                key={i}
+                                className={`suggestion-chip ${isSelected ? "active" : ""}`}
+                                onClick={() => {
+                                  const val = plotForm.unit === "m2" ? String(Math.round(p.area * 10000)) : String(p.area);
+                                  const presetData = guessPlotPreset(p.name);
+                                  setPlotForm({
+                                    ...plotForm,
+                                    name: p.name,
+                                    area: val,
+                                    pucCode: presetData.pucCode,
+                                    pucIssueDate: presetData.pucIssueDate,
+                                    pucStatus: presetData.pucStatus,
+                                    exportMarket: presetData.exportMarket,
+                                    cropType: presetData.cropType,
+                                    initialInvestmentCost: presetData.initialInvestmentCost,
+                                    plantingYear: presetData.plantingYear,
+                                    depreciationYears: presetData.depreciationYears,
+                                    capexNotes: presetData.capexNotes,
+                                  });
+                                }}
+                                title={`Điền: ${p.name} (${areaFormatted})`}
+                              >
+                                <span className="chip-icon-box">
+                                  {isSelected ? (
+                                    <IconCheck size={14} strokeWidth={2.5} />
+                                  ) : (
+                                    <IconSprout size={14} strokeWidth={2} />
+                                  )}
+                                </span>
+                                <div className="chip-text-wrap">
+                                  <span className="chip-name">{p.name}</span>
+                                  <span className="chip-area-badge">{areaFormatted}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="form-group">
+                      <label>Tên Lô / Khu vườn <span className="text-red">*</span></label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="VD: Lô A - Cà phê Robusta cao sản"
+                        value={plotForm.name}
+                        onChange={(e) => {
+                          const newName = e.target.value;
+                          setPlotForm((prev) => {
+                            const preset = guessPlotPreset(newName);
+                            return {
+                              ...prev,
+                              name: newName,
+                              // Nếu chưa nhập PUC hoặc đang ở mặc định thì gợi ý theo tên
+                              pucCode: prev.pucCode === "VN-LDO-0999" || !prev.pucCode ? preset.pucCode : prev.pucCode,
+                            };
+                          });
+                        }}
+                        className="farm-input"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <div className="form-label-with-unit">
+                        <label>
+                          Diện tích lô đất <span className="text-red">*</span>
+                        </label>
+
+                        {/* Thanh chuyển đổi đơn vị Segmented Toggle */}
+                        <div className="unit-selector-bar">
                           <button
                             type="button"
-                            key={i}
-                            className={`suggestion-chip ${isSelected ? "active" : ""}`}
-                            onClick={() => {
-                              const val = plotForm.unit === "m2" ? String(Math.round(p.area * 10000)) : String(p.area);
-                              setPlotForm({ ...plotForm, name: p.name, area: val });
-                            }}
-                            title={`Điền: ${p.name} (${areaFormatted})`}
+                            className={`unit-btn ${plotForm.unit === "ha" ? "active" : ""}`}
+                            onClick={() => handleUnitToggle("ha")}
                           >
-                            <span className="chip-icon-box">
-                              {isSelected ? (
-                                <IconCheck size={14} strokeWidth={2.5} />
-                              ) : (
-                                <IconSprout size={14} strokeWidth={2} />
-                              )}
-                            </span>
-                            <div className="chip-text-wrap">
-                              <span className="chip-name">{p.name}</span>
-                              <span className="chip-area-badge">{areaFormatted}</span>
-                            </div>
+                            <IconSprout size={13} strokeWidth={2.2} />
+                            <span>Hecta (ha)</span>
                           </button>
-                        );
-                      })}
+                          <button
+                            type="button"
+                            className={`unit-btn ${plotForm.unit === "m2" ? "active" : ""}`}
+                            onClick={() => handleUnitToggle("m2")}
+                          >
+                            <IconRuler size={13} strokeWidth={2.2} />
+                            <span>Mét vuông (m²)</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="area-input-field-wrap">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          required
+                          placeholder={plotForm.unit === "ha" ? "VD: 1.2 hoặc 1,5" : "VD: 12000 hoặc 15.000"}
+                          value={plotForm.area}
+                          onChange={(e) => handleAreaChange(e.target.value)}
+                          className="farm-input area-text-input"
+                          autoComplete="off"
+                        />
+                        <span className="area-unit-badge">
+                          {plotForm.unit === "ha" ? "ha" : "m²"}
+                        </span>
+                      </div>
+
+                      {parsedPlotArea > 0 && (
+                        <div className={`area-helper-hint ${isExceeding ? "warning" : ""}`}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            {isExceeding ? <IconAlertCircle size={14} strokeWidth={2.2} /> : <IconInfo size={14} strokeWidth={2.2} />}
+                            <span>{isExceeding ? "Cảnh báo:" : "Tương đương:"}</span>
+                          </span>
+                          <strong>
+                            {plotForm.unit === "ha"
+                              ? `${plotForm.area} ha = ${new Intl.NumberFormat("vi-VN").format(Math.round(parsedPlotArea * 10000))} m²`
+                              : `${new Intl.NumberFormat("vi-VN").format(Math.round(parsedPlotArea))} m² = ${(parsedPlotArea / 10000).toFixed(4)} ha`}
+                          </strong>
+                          {isExceeding && (
+                            <span>— Vượt quá mức còn trống của nông hộ ({availableForPlot.toFixed(2)} ha)!</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ================= KHỐI CÀI ĐẶT ẢNH LÔ ĐẤT ================= */}
+                    <div className="form-group farm-image-group">
+                      <div className="farm-image-header-row">
+                        <label className="farm-image-label">
+                          <IconImage size={15} strokeWidth={2} />
+                          <span>Hình ảnh Lô đất / Khu vườn</span>
+                        </label>
+                        <span className="farm-image-fallback-note">
+                          (Để trống sẽ tự lấy ảnh mặc định)
+                        </span>
+                      </div>
+
+                      {/* Khung xem trước ảnh */}
+                      <div className="farm-image-preview-card">
+                        <div className="preview-img-container">
+                          <img
+                            src={plotForm.image || DEFAULT_PLOT_IMAGE}
+                            alt="Xem trước ảnh lô đất"
+                            onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
+                          />
+                          <span className={`preview-badge ${plotForm.image ? "custom" : "default"}`}>
+                            {plotForm.image ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                <IconCheck size={12} strokeWidth={2.5} />
+                                <span>Ảnh đã chọn</span>
+                              </span>
+                            ) : (
+                              "Ảnh mặc định hệ thống"
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="preview-controls-col">
+                          <div className="preview-upload-row">
+                            <label className="btn-upload-file">
+                              <IconUpload size={14} strokeWidth={2} />
+                              <span>Tải ảnh từ máy</span>
+                              <input
+                                ref={plotFileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handlePlotImageFileChange}
+                                style={{ display: "none" }}
+                              />
+                            </label>
+
+                            {plotForm.image && (
+                              <button
+                                type="button"
+                                className="btn-clear-img"
+                                onClick={handleClearPlotImage}
+                                title="Khôi phục về ảnh mặc định"
+                              >
+                                <IconX size={14} strokeWidth={2} />
+                                <span>Về ảnh mặc định</span>
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="image-url-input-wrap">
+                            <input
+                              type="text"
+                              placeholder="Hoặc dán đường link ảnh hoặc đường dẫn (/farms/...)"
+                              value={plotForm.image}
+                              onChange={(e) => setPlotForm({ ...plotForm, image: e.target.value })}
+                              className="farm-input-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ảnh gợi ý mẫu nhanh */}
+                      <div className="preset-images-section">
+                        <span className="preset-images-label">Chọn nhanh ảnh vườn mẫu chuyên canh:</span>
+                        <div className="preset-images-chips">
+                          {PRESET_PLOT_IMAGES.map((p, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              className={`preset-chip-btn ${plotForm.image === p.url ? "active" : ""}`}
+                              onClick={() => setPlotForm({ ...plotForm, image: p.url })}
+                            >
+                              <img src={p.url} alt={p.label} className="preset-chip-thumb" />
+                              <span>{p.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 2: MÃ SỐ VÙNG TRỒNG (PUC) */}
+                {plotModalTab === "PUC" && (
+                  <div className="puc-tab-pane">
+                    <div className="plot-modal-alert-box info-green">
+                      <span className="plot-modal-alert-icon text-green">
+                        <IconShield size={18} strokeWidth={2.2} />
+                      </span>
+                      <div className="plot-modal-alert-text">
+                        <strong>Mã số vùng trồng (Planting Unit Code - PUC):</strong> Định danh số hóa do Cục Bảo Vệ Thực Vật cấp cho lô đất này nhằm phục vụ kiểm định dư lượng, truy xuất nguồn gốc và xuất khẩu chính ngạch (Trung Quốc GACC, EU, Hoa Kỳ).
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Mã số vùng trồng (PUC) <span className="text-red">*</span></label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="VD: VN-LDO-0082"
+                        value={plotForm.pucCode}
+                        onChange={(e) => setPlotForm({ ...plotForm, pucCode: e.target.value.toUpperCase() })}
+                        className="farm-input"
+                        style={{ fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: '1px' }}
+                      />
+                      <small style={{ color: '#64748b' }}>Định dạng chuẩn: VN-[MÃ TỈNH]-[SỐ THỨ TỰ] (Ví dụ: VN-LDO-0082 cho tỉnh Lâm Đồng)</small>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="form-group">
+                        <label>Ngày cấp chứng nhận</label>
+                        <input
+                          type="date"
+                          value={plotForm.pucIssueDate}
+                          onChange={(e) => setPlotForm({ ...plotForm, pucIssueDate: e.target.value })}
+                          className="farm-input"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Trạng thái hiệu lực</label>
+                        <select
+                          value={plotForm.pucStatus}
+                          onChange={(e) => setPlotForm({ ...plotForm, pucStatus: e.target.value })}
+                          className="farm-input"
+                        >
+                          <option value="ACTIVE">Đã cấp & Còn hiệu lực</option>
+                          <option value="PENDING">Đang trong quá trình thẩm định</option>
+                          <option value="EXPIRED">Đã hết hạn kiểm định</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Thị trường xuất khẩu mục tiêu</label>
+                      <input
+                        type="text"
+                        placeholder="VD: Trung Quốc (Nghị định thư GACC), EU (EUDR), Hoa Kỳ..."
+                        value={plotForm.exportMarket}
+                        onChange={(e) => setPlotForm({ ...plotForm, exportMarket: e.target.value })}
+                        className="farm-input"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Đối tượng cây trồng đăng ký mã số</label>
+                      <input
+                        type="text"
+                        placeholder="VD: Sầu riêng Ri6 ghép, Cà phê Robusta cao sản..."
+                        value={plotForm.cropType}
+                        onChange={(e) => setPlotForm({ ...plotForm, cropType: e.target.value })}
+                        className="farm-input"
+                      />
                     </div>
                   </div>
                 )}
 
-                <div className="form-group">
-                  <label>Tên Lô / Khu vườn <span className="text-red">*</span></label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="VD: Lô A - Cà phê Robusta cao sản"
-                    value={plotForm.name}
-                    onChange={(e) => setPlotForm({ ...plotForm, name: e.target.value })}
-                    className="farm-input"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <div className="form-label-with-unit">
-                    <label>
-                      Diện tích lô đất <span className="text-red">*</span>
-                    </label>
-
-                    {/* Thanh chuyển đổi đơn vị Segmented Toggle cực nhạy */}
-                    <div className="unit-selector-bar">
-                      <button
-                        type="button"
-                        className={`unit-btn ${plotForm.unit === "ha" ? "active" : ""}`}
-                        onClick={() => handleUnitToggle("ha")}
-                      >
-                        🌿 Hecta (ha)
-                      </button>
-                      <button
-                        type="button"
-                        className={`unit-btn ${plotForm.unit === "m2" ? "active" : ""}`}
-                        onClick={() => handleUnitToggle("m2")}
-                      >
-                        📐 Mét vuông (m²)
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="area-input-field-wrap">
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      required
-                      placeholder={plotForm.unit === "ha" ? "VD: 1.2 hoặc 1,5" : "VD: 12000 hoặc 15.000"}
-                      value={plotForm.area}
-                      onChange={(e) => handleAreaChange(e.target.value)}
-                      className="farm-input area-text-input"
-                      autoComplete="off"
-                    />
-                    <span className="area-unit-badge">
-                      {plotForm.unit === "ha" ? "ha" : "m²"}
-                    </span>
-                  </div>
-
-                  {parsedPlotArea > 0 && (
-                    <div className={`area-helper-hint ${isExceeding ? "warning" : ""}`}>
-                      <span>{isExceeding ? "⚠️ Cảnh báo:" : "💡 Tương đương:"}</span>
-                      <strong>
-                        {plotForm.unit === "ha"
-                          ? `${plotForm.area} ha = ${new Intl.NumberFormat("vi-VN").format(Math.round(parsedPlotArea * 10000))} m²`
-                          : `${new Intl.NumberFormat("vi-VN").format(Math.round(parsedPlotArea))} m² = ${(parsedPlotArea / 10000).toFixed(4)} ha`}
-                      </strong>
-                      {isExceeding && (
-                        <span>— Vượt quá mức còn trống của nông hộ ({availableForPlot.toFixed(2)} ha)!</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ================= KHỐI CÀI ĐẶT ẢNH LÔ ĐẤT ================= */}
-                <div className="form-group farm-image-group">
-                  <div className="farm-image-header-row">
-                    <label className="farm-image-label">
-                      <IconImage size={15} strokeWidth={2} />
-                      <span>Hình ảnh Lô đất / Khu vườn</span>
-                    </label>
-                    <span className="farm-image-fallback-note">
-                      (Để trống sẽ tự lấy ảnh mặc định)
-                    </span>
-                  </div>
-
-                  {/* Khung xem trước ảnh */}
-                  <div className="farm-image-preview-card">
-                    <div className="preview-img-container">
-                      <img
-                        src={plotForm.image || DEFAULT_PLOT_IMAGE}
-                        alt="Xem trước ảnh lô đất"
-                        onError={(e) => { e.target.src = DEFAULT_PLOT_IMAGE; }}
-                      />
-                      <span className={`preview-badge ${plotForm.image ? "custom" : "default"}`}>
-                        {plotForm.image ? "✓ Ảnh đã chọn" : "Ảnh mặc định hệ thống"}
+                {/* TAB 3: KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) */}
+                {plotModalTab === "CAPEX" && (
+                  <div className="capex-tab-pane">
+                    <div className="plot-modal-alert-box info-blue">
+                      <span className="plot-modal-alert-icon text-blue">
+                        <IconCircleDollar size={18} strokeWidth={2.2} />
                       </span>
+                      <div className="plot-modal-alert-text">
+                        <strong>Vốn đầu tư Kiến thiết cơ bản (CapEx):</strong> Cây dài ngày mất 3–5 năm đầu chỉ đầu tư mua giống, đào hố, béc tưới tự động, phân lót mà chưa có thu hoạch. Phân hệ này giúp phân bổ khấu hao đều qua các niên vụ kinh doanh.
+                      </div>
                     </div>
 
-                    <div className="preview-controls-col">
-                      <div className="preview-upload-row">
-                        <label className="btn-upload-file">
-                          <IconUpload size={14} strokeWidth={2} />
-                          <span>Tải ảnh từ máy</span>
-                          <input
-                            ref={plotFileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handlePlotImageFileChange}
-                            style={{ display: "none" }}
-                          />
-                        </label>
+                    <div className="form-group">
+                      <label>Tổng vốn đầu tư Kiến thiết ban đầu (VNĐ) <span className="text-red">*</span></label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1000000"
+                        placeholder="VD: 180000000 (180 triệu đồng)"
+                        value={plotForm.initialInvestmentCost}
+                        onChange={(e) => setPlotForm({ ...plotForm, initialInvestmentCost: e.target.value })}
+                        className="farm-input"
+                        style={{ fontWeight: 'bold', fontSize: '1.05rem', color: '#047857' }}
+                      />
+                      <small style={{ color: '#047857', fontWeight: 600 }}>
+                        {plotForm.initialInvestmentCost ? `= ${new Intl.NumberFormat('vi-VN').format(plotForm.initialInvestmentCost)} VNĐ` : ''}
+                      </small>
+                    </div>
 
-                        {plotForm.image && (
-                          <button
-                            type="button"
-                            className="btn-clear-img"
-                            onClick={handleClearPlotImage}
-                            title="Khôi phục về ảnh mặc định"
-                          >
-                            <IconX size={14} strokeWidth={2} />
-                            <span>Về ảnh mặc định</span>
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="image-url-input-wrap">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="form-group">
+                        <label>Năm xuống giống / trồng</label>
                         <input
-                          type="text"
-                          placeholder="Hoặc dán đường link ảnh hoặc đường dẫn (/farms/...)"
-                          value={plotForm.image}
-                          onChange={(e) => setPlotForm({ ...plotForm, image: e.target.value })}
-                          className="farm-input-sm"
+                          type="number"
+                          min="1990"
+                          max={new Date().getFullYear()}
+                          value={plotForm.plantingYear}
+                          onChange={(e) => setPlotForm({ ...plotForm, plantingYear: e.target.value })}
+                          className="farm-input"
                         />
                       </div>
+                      <div className="form-group">
+                        <label>Chu kỳ phân bổ khấu hao (Số năm)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          value={plotForm.depreciationYears}
+                          onChange={(e) => setPlotForm({ ...plotForm, depreciationYears: e.target.value })}
+                          className="farm-input"
+                        />
+                        <small style={{ color: '#64748b' }}>Cà phê 15 năm, Sầu riêng 20–25 năm</small>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Ảnh gợi ý mẫu nhanh */}
-                  <div className="preset-images-section">
-                    <span className="preset-images-label">Chọn nhanh ảnh vườn mẫu chuyên canh:</span>
-                    <div className="preset-images-chips">
-                      {PRESET_PLOT_IMAGES.map((p, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`preset-chip-btn ${plotForm.image === p.url ? "active" : ""}`}
-                          onClick={() => setPlotForm({ ...plotForm, image: p.url })}
-                        >
-                          <img src={p.url} alt={p.label} className="preset-chip-thumb" />
-                          <span>{p.label}</span>
-                        </button>
-                      ))}
+                    <div className="form-group">
+                      <label>Ghi chú các hạng mục đầu tư ban đầu</label>
+                      <textarea
+                        rows={2}
+                        placeholder="VD: Mua 150 cây giống Ri6 ghép, thuê máy bay đào hố, lắp đặt hệ thống béc tưới ngầm tự động, phân lót hữu cơ vi sinh 4 năm đầu..."
+                        value={plotForm.capexNotes}
+                        onChange={(e) => setPlotForm({ ...plotForm, capexNotes: e.target.value })}
+                        className="farm-input"
+                      />
                     </div>
+
+                    {plotForm.initialInvestmentCost > 0 && (
+                      <div className="capex-summary-card">
+                        <h4>💡 Kết quả tính toán phân bổ khấu hao tự động:</h4>
+                        <div className="capex-summary-grid">
+                          <div>Khấu hao hàng năm: <strong>{new Intl.NumberFormat('vi-VN').format(Math.round(plotForm.initialInvestmentCost / (plotForm.depreciationYears || 1)))} đ/năm</strong></div>
+                          <div>Đã vận hành: <strong>{Math.max(0, new Date().getFullYear() - (plotForm.plantingYear || new Date().getFullYear()))} năm</strong></div>
+                          <div>Khấu hao lũy kế: <strong>{new Intl.NumberFormat('vi-VN').format(Math.min(plotForm.initialInvestmentCost, Math.max(0, new Date().getFullYear() - (plotForm.plantingYear || new Date().getFullYear())) * Math.round(plotForm.initialInvestmentCost / (plotForm.depreciationYears || 1))))} đ</strong></div>
+                          <div>Giá trị còn lại: <strong>{new Intl.NumberFormat('vi-VN').format(Math.max(0, plotForm.initialInvestmentCost - Math.min(plotForm.initialInvestmentCost, Math.max(0, new Date().getFullYear() - (plotForm.plantingYear || new Date().getFullYear())) * Math.round(plotForm.initialInvestmentCost / (plotForm.depreciationYears || 1)))))} đ</strong></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
+                )}
 
                 <div className="farm-modal-actions">
                   <button
@@ -1054,6 +1395,14 @@ export default function FarmDetailPage() {
             </div>
           </div>
         )}
+
+        {/* MODAL GIẤY CHỨNG NHẬN MÃ SỐ VÙNG TRỒNG PUC */}
+        <PucCertificateModal
+          isOpen={Boolean(selectedPucPlot)}
+          onClose={() => setSelectedPucPlot(null)}
+          plot={selectedPucPlot}
+          farm={farm}
+        />
       </main>
 
       <Footer />
