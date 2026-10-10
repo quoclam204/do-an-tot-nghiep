@@ -3,7 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "npm --prefix frontend run dev",
-    "dev:backend": "npm --prefix backend run start:dev"
+    "dev:backend": "npm --prefix backend run start:dev",
+    "mobile": "npm --prefix mobile run start"
   },
   "dependencies": {
     "nodemailer": "^9.0.6"
