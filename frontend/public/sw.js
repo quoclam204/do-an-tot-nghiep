@@ -50,7 +50,7 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req).catch(async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cachedIndex = await cache.match('/index.html');
+        const cachedIndex = (await cache.match('/index.html')) || (await cache.match('/'));
         return cachedIndex || new Response('Offline - DalatAgri', {
           headers: { 'Content-Type': 'text/html; charset=utf-8' }
         });
@@ -61,8 +61,9 @@ self.addEventListener('fetch', (event) => {
 
   // 2. Tĩnh (Assets: JS, CSS, ảnh, font): Stale-while-revalidate
   const isStaticAsset =
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|webp|woff|woff2|ico|json)$/i) ||
-    url.pathname.startsWith('/assets/');
+    url.pathname.match(/\.(js|jsx|css|png|jpg|jpeg|svg|webp|woff|woff2|ico|json)$/i) ||
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.startsWith('/src/');
 
   if (isStaticAsset) {
     event.respondWith(

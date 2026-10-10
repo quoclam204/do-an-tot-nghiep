@@ -91,11 +91,7 @@ function App() {
           />
           <Route
             path="/offline-dashboard"
-            element={
-              <ProtectedRoute>
-                <OfflineDashboardPage />
-              </ProtectedRoute>
-            }
+            element={<OfflineDashboardPage />}
           />
         </Routes>
         <PwaInstallPrompt />

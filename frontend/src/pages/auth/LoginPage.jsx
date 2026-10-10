@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiLogin, apiGoogleLogin } from '../../services/api';
 import GoogleLoginButton from '../../components/GoogleLoginButton';
-import { IconEye, IconEyeOff } from '../../components/icons';
+import { IconEye, IconEyeOff, IconWifiOff } from '../../components/icons';
 import './AuthPage.css';
 
 function LoginPage() {
@@ -13,11 +13,22 @@ function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login } = useAuth();
+    const { login, token, user } = useAuth();
     const navigate = useNavigate();
+
+    // Nếu đã đăng nhập trước đó (được lưu trong localStorage), tự động vào thẳng Dashboard
+    useEffect(() => {
+        if (token && user) {
+            navigate('/dashboard');
+        }
+    }, [token, user, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!navigator.onLine) {
+            setError('Thiết bị đang mất kết nối Internet. Không thể gửi mật khẩu về máy chủ.');
+            return;
+        }
         setLoading(true);
         setError('');
         try {
@@ -84,6 +95,38 @@ function LoginPage() {
                         <h2>Chào mừng trở lại!</h2>
                         <p>Đăng nhập để tiếp tục quản lý nông trại của bạn</p>
                     </div>
+
+                    {!navigator.onLine && (
+                        <div style={{
+                            background: '#fffbeb',
+                            border: '1px solid #fde68a',
+                            borderRadius: '8px',
+                            padding: '12px 14px',
+                            marginBottom: '16px',
+                            color: '#92400e',
+                            fontSize: '0.85rem'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, marginBottom: '4px' }}>
+                                <IconWifiOff size={16} strokeWidth={2.4} />
+                                <span>Đang ở chế độ ngoại tuyến (Không có mạng)</span>
+                            </div>
+                            <p style={{ margin: '0 0 10px', lineHeight: 1.4, color: '#78350f' }}>
+                                Không thể kết nối máy chủ để kiểm tra mật khẩu. Bạn có thể sử dụng chế độ làm việc cục bộ ngay:
+                            </p>
+                            <Link to="/offline-dashboard" style={{
+                                display: 'inline-block',
+                                background: '#d97706',
+                                color: '#ffffff',
+                                padding: '6px 14px',
+                                borderRadius: '6px',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                                fontSize: '0.82rem'
+                            }}>
+                                Vào Chế độ Ngoại Tuyến độc lập →
+                            </Link>
+                        </div>
+                    )}
 
                     <form id="login-form" className="auth-form" onSubmit={handleSubmit} noValidate>
                         <div className="form-group">
