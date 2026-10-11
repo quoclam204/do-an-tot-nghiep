@@ -351,9 +351,25 @@ export default function FarmingLogPage() {
         '';
       const plotName = s.plot?.name || 'Chưa gán lô';
       const cropName = s.crop?.name || '';
+
+      let formattedLabel = s.name;
+      if (!s.isOfflineSynthesized) {
+        const parts = [`Vụ: ${s.name}`];
+        if (plotName && plotName !== 'Chưa gán lô') {
+          parts.push(`Lô: ${plotName}`);
+        }
+        if (cropName) {
+          parts.push(`(${cropName})`);
+        }
+        if (farmName) {
+          parts.push(`— Trại: ${farmName}`);
+        }
+        formattedLabel = parts.join(' · ').replace(' · (', ' (').replace(' · — ', ' — ');
+      }
+
       return {
         value: s.id,
-        label: s.name,
+        label: formattedLabel,
         seasonName: s.name,
         farmName,
         plotName,
@@ -1338,21 +1354,56 @@ export default function FarmingLogPage() {
                   {seasonOptions && seasonOptions.length > 0 ? (
                     seasonOptions.map((s) => (
                       <option key={s.value} value={s.value}>
-                        {s.label} {s.farmName ? `— [${s.farmName}]` : ''}
+                        {s.label}
                       </option>
                     ))
                   ) : (
                     <option value="">-- Chưa có mùa vụ nào --</option>
                   )}
                 </select>
-                {currentSeason && currentFarm && (
-                  <small style={{ color: 'var(--ms-gray-600, #5a5a5a)', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px', fontSize: '0.82rem' }}>
-                    <IconWarehouse size={13} style={{ color: 'var(--ms-green, #107C10)' }} />
-                    <span>Nông trại: <strong style={{ color: 'var(--ms-green-dark, #0a5e0a)' }}>{currentFarm.name}</strong></span>
+                {currentSeason && (
+                  <div style={{ marginTop: '7px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: '0.82rem' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
+                      <IconCalendar size={13} style={{ color: '#0284c7' }} />
+                      <span>Mùa vụ: <strong style={{ color: '#0f172a' }}>{currentSeason.name}</strong></span>
+                    </span>
                     {currentSeason.plot?.name && (
-                      <span> · Lô đất: <strong style={{ color: 'var(--ms-gray-800, #2a2a2a)' }}>{currentSeason.plot.name}</strong></span>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
+                        <IconMapPin size={13} style={{ color: '#16a34a' }} />
+                        <span>Lô đất: <strong style={{ color: '#0f172a' }}>{currentSeason.plot.name}</strong></span>
+                      </span>
                     )}
-                  </small>
+                    {currentSeason.crop?.name && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
+                        <IconSprout size={13} style={{ color: '#16a34a' }} />
+                        <span>Cây trồng: <strong style={{ color: '#0f172a' }}>{currentSeason.crop.name}</strong></span>
+                      </span>
+                    )}
+                    {(currentFarm?.name || currentSeason.plot?.farm?.name) && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
+                        <IconWarehouse size={13} style={{ color: '#d97706' }} />
+                        <span>Nông trại: <strong style={{ color: '#0f172a' }}>{currentFarm?.name || currentSeason.plot?.farm?.name}</strong></span>
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => navigate('/seasons')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#15803d',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        fontWeight: '600',
+                        padding: '2px 4px',
+                        marginLeft: 'auto'
+                      }}
+                      title="Quản lý hoặc đổi tên mùa vụ này"
+                    >
+                      Quản lý tại trang Mùa vụ &rarr;
+                    </button>
+                  </div>
                 )}
                 {(!seasonOptions || seasonOptions.length === 0) && (
                   <small style={{ color: '#dc2626', display: 'block', marginTop: '5px', fontSize: '0.84rem' }}>

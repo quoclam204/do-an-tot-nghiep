@@ -1,5 +1,5 @@
 // Service Worker cho DalatAgri PWA
-const CACHE_NAME = 'dalatagri-v1';
+const CACHE_NAME = 'dalatagri-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',

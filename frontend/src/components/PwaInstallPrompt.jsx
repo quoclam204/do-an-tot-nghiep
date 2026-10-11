@@ -95,7 +95,7 @@ export default function PwaInstallPrompt() {
     <>
       <div className="pwa-install-banner">
         <div className="pwa-banner-content">
-          <img src="/pwa-icon.svg" alt="DalatAgri Icon" className="pwa-app-icon" />
+          <img src="/logo.png" alt="DalatAgri Logo" className="pwa-app-icon" />
           <div className="pwa-text-group">
             <div className="pwa-title">Cài đặt DalatAgri Mobile</div>
             <div className="pwa-desc">
@@ -128,7 +128,10 @@ export default function PwaInstallPrompt() {
         <div className="pwa-ios-modal-overlay" onClick={() => setShowIosGuide(false)}>
           <div className="pwa-ios-modal" onClick={(e) => e.stopPropagation()}>
             <div className="pwa-ios-modal-header">
-              <div className="pwa-ios-title">Cài đặt DalatAgri trên iPhone</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <img src="/logo.png" alt="DalatAgri Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                <div className="pwa-ios-title">Cài đặt DalatAgri trên iPhone</div>
+              </div>
               <button
                 type="button"
                 className="pwa-ios-close"
