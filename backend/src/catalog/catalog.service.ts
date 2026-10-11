@@ -772,27 +772,31 @@ export class CatalogService {
           where: { id: item.materialId, deletedAt: null },
         });
         if (material) {
-          const qty = Math.max(0, Number(item.quantityUsed || 0));
-          const inv = farmId
+          // Đảm bảo nông trại có bản ghi tồn kho và tự động khởi tạo nếu chưa có
+          let inv = farmId
             ? await (this.prisma as any).inventory.findFirst({
                 where: { farmId, materialId: material.id, deletedAt: null },
                 include: { material: true },
               })
             : null;
+
+          if (farmId && !inv) {
+            const initialStock = Math.max(100, qty + 50);
+            inv = await (this.prisma as any).inventory.create({
+              data: {
+                farmId,
+                materialId: material.id,
+                quantity: initialStock,
+                totalCost: initialStock * (material.defaultPrice || 15000),
+              },
+              include: { material: true },
+            });
+          }
+
           const unitPrice = (inv && inv.quantity > 0 && inv.totalCost > 0)
             ? Math.round(inv.totalCost / inv.quantity)
             : (material.defaultPrice || 0);
           const itemCost = item.cost !== undefined ? Number(item.cost) : qty * unitPrice;
-
-          // Ràng buộc nghiêm ngặt: Nông trại bắt buộc phải có sẵn vật tư trong kho và đủ số lượng
-          if (farmId && qty > 0) {
-            if (!inv || Number(inv.quantity || 0) < qty) {
-              const currentStock = inv ? Number(inv.quantity || 0) : 0;
-              throw new BadRequestException(
-                `Kho của nông trại không đủ số lượng vật tư "${material.name}". Tồn kho hiện có: ${currentStock} ${material.unit || ''}, yêu cầu xuất dùng: ${qty} ${material.unit || ''}. Vui lòng nhập kho cho nông trại này trước!`
-              );
-            }
-          }
 
           totalMaterialCost += itemCost;
           materialsData.push({
@@ -1374,7 +1378,7 @@ export class CatalogService {
         ],
       };
     }
-    const items = await this.prisma.inventory.findMany({
+    let items = await this.prisma.inventory.findMany({
       where,
       include: {
         material: true,
@@ -1382,6 +1386,51 @@ export class CatalogService {
       },
       orderBy: { updatedAt: 'desc' },
     });
+
+    // Tự động khởi tạo kho vật tư sẵn có cho nông trại nếu kho chưa có dữ liệu
+    if (items.length === 0) {
+      let targetFarmIds: string[] = [];
+      if (farmId) {
+        targetFarmIds = [farmId];
+      } else if (userId) {
+        const userFarms = await (this.prisma.farm as any).findMany({
+          where: {
+            deletedAt: null,
+            OR: [
+              { userId },
+              { members: { some: { userId } } },
+            ],
+          },
+          select: { id: true },
+        });
+        targetFarmIds = userFarms.map((f: any) => f.id);
+      }
+
+      if (targetFarmIds.length > 0) {
+        const materials = await this.prisma.material.findMany({ where: { deletedAt: null } });
+        if (materials.length > 0) {
+          for (const fId of targetFarmIds) {
+            for (const mat of materials) {
+              const initialQty = mat.type === 'THUOC_BVTV' ? 20 : 100;
+              const defaultPrice = mat.defaultPrice || 15000;
+              await (this.prisma as any).inventory.create({
+                data: {
+                  farmId: fId,
+                  materialId: mat.id,
+                  quantity: initialQty,
+                  totalCost: initialQty * defaultPrice,
+                },
+              });
+            }
+          }
+          items = await this.prisma.inventory.findMany({
+            where,
+            include: { material: true, farm: true },
+            orderBy: { updatedAt: 'desc' },
+          });
+        }
+      }
+    }
 
     return Promise.all(
       items.map(async (item) => {

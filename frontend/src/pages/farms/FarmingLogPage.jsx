@@ -194,12 +194,13 @@ export default function FarmingLogPage() {
       ]);
 
       // Cache danh mục nếu tải thành công
-      if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0)) {
+      if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0) || (invRes && invRes.length > 0)) {
         cacheCatalogs({
           farms: currentFarmsRes || farmsRes || [],
           crops: cropsRes || [],
           seasons: seasonsRes || [],
           materials: materialsRes || [],
+          inventory: invRes || [],
         });
       }
 
@@ -209,6 +210,7 @@ export default function FarmingLogPage() {
       let finalCrops = (cropsRes && cropsRes.length > 0) ? cropsRes : (cached.crops || []);
       let finalSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (cached.seasons || []);
       let finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
+      let finalInventory = (invRes && invRes.length > 0) ? invRes : (cached.inventory || []);
 
       // Dự phòng thông minh cho trường hợp chưa tạo mùa vụ hoặc mở máy mới ngoài rẫy:
       if (finalSeasons.length === 0) {
@@ -278,7 +280,7 @@ export default function FarmingLogPage() {
       if (!farms || farms.length === 0) setFarms(finalFarms);
       setFinancials(finRes);
       setActivityTypes(typesRes || []);
-      setInventory(invRes || []);
+      setInventory(finalInventory);
 
       if (finalSeasons && finalSeasons.length > 0) {
         setForm((prev) => {
@@ -322,6 +324,7 @@ export default function FarmingLogPage() {
         { id: 'offline_mat_huuco', name: 'Phân Hữu Cơ Vi Sinh', unit: 'Bao (25kg)', defaultPrice: 12000 },
       ]);
       setFarms(cached.farms || []);
+      setInventory(cached.inventory || []);
       setLogs(getOptimisticLogs());
     } finally {
       setLoading(false);
@@ -411,6 +414,43 @@ export default function FarmingLogPage() {
     if (selectedInventoryItem?.material) return selectedInventoryItem.material;
     return (materials || []).find((m) => m.id === form.materialId);
   }, [selectedInventoryItem, materials, form.materialId]);
+
+  const availableMaterialOptions = useMemo(() => {
+    // 1. Vật tư có trong kho nông trại:
+    const fromInventory = (farmInventory || []).map((inv) => {
+      const m = inv.material || {};
+      const isOutOfStock = Number(inv.quantity || 0) <= 0;
+      return {
+        id: inv.materialId,
+        name: m.name || 'Vật tư',
+        unit: m.unit || 'đơn vị',
+        unitPrice: Number(inv.unitPrice || m.defaultPrice || 0),
+        inStock: inv.quantity,
+        isOutOfStock,
+        isFromInventory: true,
+      };
+    });
+
+    // 2. Vật tư từ danh mục chung (materials) chưa có trong kho nông trại:
+    const invMatIds = new Set(fromInventory.map((item) => item.id));
+    const fromCatalog = (materials || [])
+      .filter((m) => !invMatIds.has(m.id))
+      .map((m) => ({
+        id: m.id,
+        name: m.name,
+        unit: m.unit || 'đơn vị',
+        unitPrice: Number(m.defaultPrice || 0),
+        inStock: null,
+        isOutOfStock: false,
+        isFromInventory: false,
+      }));
+
+    return {
+      fromInventory,
+      fromCatalog,
+      all: [...fromInventory, ...fromCatalog],
+    };
+  }, [farmInventory, materials]);
 
   // Xử lý khi chọn Mùa Vụ trong Form: Tự động reset vật tư
   const handleCropCycleChange = (cycleId) => {
@@ -735,6 +775,24 @@ export default function FarmingLogPage() {
             }
           }
         }
+      }
+
+      // Tự động trừ ngay vật tư tiêu hao trong kho nông trại (Cả khi Offline & Online)
+      if (form.materialId && Number(form.quantityUsed) > 0) {
+        const usedQty = Number(form.quantityUsed);
+        setInventory((prev) => {
+          const updated = (prev || []).map((inv) => {
+            if (inv.materialId === form.materialId && (!activeFarmId || inv.farmId === activeFarmId)) {
+              return {
+                ...inv,
+                quantity: Math.max(0, Number(inv.quantity || 0) - usedQty),
+              };
+            }
+            return inv;
+          });
+          cacheCatalogs({ inventory: updated });
+          return updated;
+        });
       }
 
       // Reset form tức thì để người dùng không phải chờ
@@ -1580,29 +1638,45 @@ export default function FarmingLogPage() {
                   className="form-control"
                 >
                   <option value="">-- Không sử dụng vật tư / Chỉ dùng nhân công --</option>
-                  {farmInventory.map((inv) => {
-                    const m = inv.material || {};
-                    const isOutOfStock = Number(inv.quantity || 0) <= 0;
-                    return (
-                      <option key={inv.materialId} value={inv.materialId} disabled={isOutOfStock}>
-                        {m.name || 'Vật tư'}{isOutOfStock ? ' [Hết hàng]' : ` (Còn: ${inv.quantity} ${m.unit || 'đv'} - ${Number(inv.unitPrice || m.defaultPrice || 0).toLocaleString('vi-VN')} đ)`}
-                      </option>
-                    );
-                  })}
-                  {form.materialId && selectedMaterial && !farmInventory.some((inv) => inv.materialId === form.materialId) && (
+                  {availableMaterialOptions.fromInventory.length > 0 && (
+                    <optgroup label="📦 Vật tư sẵn có trong kho nông trại">
+                      {availableMaterialOptions.fromInventory.map((item) => (
+                        <option key={item.id} value={item.id} disabled={item.isOutOfStock}>
+                          {item.name} {item.isOutOfStock ? '[Hết hàng]' : `(Còn: ${item.inStock} ${item.unit} - ${item.unitPrice.toLocaleString('vi-VN')} đ)`}
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {availableMaterialOptions.fromCatalog.length > 0 && (
+                    <optgroup label={availableMaterialOptions.fromInventory.length > 0 ? "🌱 Vật tư danh mục khác / Ngoại tuyến" : "🌱 Danh mục vật tư nông nghiệp sẵn có"}>
+                      {availableMaterialOptions.fromCatalog.map((item) => (
+                        <option key={item.id} value={item.id}>
+                          {item.name} ({item.unitPrice > 0 ? `${item.unitPrice.toLocaleString('vi-VN')} đ/${item.unit}` : item.unit})
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {form.materialId && selectedMaterial && !availableMaterialOptions.all.some((m) => m.id === form.materialId) && (
                     <option value={form.materialId}>
                       {selectedMaterial.name} (Đã dùng trong nhật ký này)
                     </option>
                   )}
                 </select>
-                {activeFarmId && farmInventory.length === 0 && (
-                  <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', fontSize: '0.8rem', color: '#991b1b', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      <IconAlertCircle size={14} strokeWidth={2.4} />
-                      <span>Kho của nông trại này hiện chưa có vật tư nào.</span>
-                    </span>
-                    <a href="/inventory" style={{ color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}>+ Nhập kho ngay</a>
-                  </div>
+                {farmInventory.length === 0 && (
+                  !navigator.onLine ? (
+                    <div style={{ marginTop: '0.5rem', padding: '0.45rem 0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '6px', fontSize: '0.8rem', color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <IconCheckCircle size={14} style={{ color: '#16a34a' }} />
+                      <span>Đang ở chế độ ngoại tuyến: Sẵn sàng đầy đủ danh mục phân bón & thuốc BVTV tiêu chuẩn để bạn ghi nhận.</span>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '0.5rem', padding: '0.45rem 0.75rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.8rem', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                        <IconInfo size={14} style={{ color: '#0284c7' }} />
+                        <span>Kho trang trại chưa có số dư tồn kho. Bạn có thể chọn vật tư từ danh mục trên để ghi nhận.</span>
+                      </span>
+                      <a href="/inventory" style={{ color: '#15803d', fontWeight: 600, textDecoration: 'underline' }}>+ Quản lý tồn kho</a>
+                    </div>
+                  )
                 )}
               </div>
 
@@ -1616,8 +1690,8 @@ export default function FarmingLogPage() {
                           Tồn kho nông trại: {selectedInventoryItem.quantity} {selectedMaterial?.unit || ''}
                         </span>
                       ) : (
-                        <span style={{ fontSize: '0.8rem', color: '#b91c1c', fontWeight: 600 }}>
-                          Chưa nhập kho nông trại này (Tồn: 0)
+                        <span style={{ fontSize: '0.8rem', color: '#0369a1', fontWeight: 500 }}>
+                          (Ghi nhận theo thực tế sử dụng)
                         </span>
                       )}
                     </div>

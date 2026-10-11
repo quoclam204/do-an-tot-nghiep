@@ -13,6 +13,7 @@ import {
   apiGetSeasons,
   apiGetCrops,
   apiGetMaterials,
+  apiGetInventory,
 } from '../services/api';
 
 export const OFFLINE_QUEUE_KEY = 'dalatagri_offline_sync_queue_v2';
@@ -162,14 +163,14 @@ export const cacheCatalogs = (catalogs) => {
 export const getCachedCatalogs = () => {
   try {
     const raw = localStorage.getItem(CACHED_CATALOGS_KEY);
-    return raw ? JSON.parse(raw) : { farms: [], crops: [], seasons: [], materials: [] };
+    return raw ? JSON.parse(raw) : { farms: [], crops: [], seasons: [], materials: [], inventory: [] };
   } catch {
-    return { farms: [], crops: [], seasons: [], materials: [] };
+    return { farms: [], crops: [], seasons: [], materials: [], inventory: [] };
   }
 };
 
 /**
- * Tự động tải ngầm toàn bộ Lô đất, Mùa vụ, Cây trồng và Vật tư của người dùng
+ * Tự động tải ngầm toàn bộ Lô đất, Mùa vụ, Cây trồng, Vật tư và Tồn kho của người dùng
  * và lưu trước vào Cache máy khi có mạng, giúp ra vườn là có sẵn 100% dữ liệu.
  */
 export const prefetchAndCacheCatalogs = async () => {
@@ -178,24 +179,27 @@ export const prefetchAndCacheCatalogs = async () => {
   if (!token) return;
 
   try {
-    const [farms, seasons, crops, materials] = await Promise.all([
+    const [farms, seasons, crops, materials, inventory] = await Promise.all([
       apiGetMyFarms().catch(() => []),
       apiGetSeasons().catch(() => []),
       apiGetCrops().catch(() => []),
       apiGetMaterials().catch(() => []),
+      apiGetInventory().catch(() => []),
     ]);
 
     if (
       (farms && farms.length > 0) ||
       (seasons && seasons.length > 0) ||
       (crops && crops.length > 0) ||
-      (materials && materials.length > 0)
+      (materials && materials.length > 0) ||
+      (inventory && inventory.length > 0)
     ) {
       cacheCatalogs({
         farms: farms || [],
         seasons: seasons || [],
         crops: crops || [],
         materials: materials || [],
+        inventory: inventory || [],
       });
     }
   } catch (err) {
@@ -313,8 +317,18 @@ export const syncOfflineQueue = async (onProgress) => {
       }
     }
 
-    // Phát sự kiện thông báo đồng bộ hoàn tất
+    // Phát sự kiện thông báo đồng bộ hoàn tất & cập nhật lại kho vật tư
     if (typeof window !== 'undefined') {
+      if (syncedCount > 0) {
+        apiGetInventory()
+          .then((freshInv) => {
+            if (freshInv && freshInv.length > 0) {
+              cacheCatalogs({ inventory: freshInv });
+            }
+          })
+          .catch(() => {});
+      }
+
       window.dispatchEvent(
         new CustomEvent('dalatagri:sync_completed', {
           detail: {
