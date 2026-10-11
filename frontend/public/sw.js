@@ -40,26 +40,39 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Chỉ cache các request HTTP/HTTPS và phương thức GET
+  // Chỉ xử lý các request HTTP/HTTPS và phương thức GET
   if (req.method !== 'GET' || !url.protocol.startsWith('http')) {
     return;
   }
 
-  // 1. Navigation requests (chuyển trang trong SPA): Network-first, fallback về index.html nếu mất mạng
+  // 1. Navigation requests (chuyển trang trong SPA, gõ URL thanh địa chỉ, F5):
+  // Thử tải qua mạng trước, nếu mất mạng (Offline) thì nạp index.html từ Cache
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(async () => {
-        const cache = await caches.open(CACHE_NAME);
-        const cachedIndex = (await cache.match('/index.html')) || (await cache.match('/'));
-        return cachedIndex || new Response('Offline - DalatAgri', {
-          headers: { 'Content-Type': 'text/html; charset=utf-8' }
-        });
-      })
+      (async () => {
+        try {
+          const networkResponse = await fetch(req);
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(req, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (err) {
+          const cache = await caches.open(CACHE_NAME);
+          const cachedIndex = (await cache.match('/index.html')) || (await cache.match('/'));
+          if (cachedIndex) return cachedIndex;
+
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>DalatAgri Ngoại Tuyến</title></head><body><h2>DalatAgri - Ngoại tuyến</h2><p>Vui lòng kết nối mạng một lần để tải ứng dụng.</p></body></html>',
+            { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
+        }
+      })()
     );
     return;
   }
 
-  // 2. Tĩnh (Assets: JS, CSS, ảnh, font): Stale-while-revalidate
+  // 2. Tài nguyên tĩnh (JS, CSS, Ảnh, Font, Manifest): Cache First, fallback Network
   const isStaticAsset =
     url.pathname.match(/\.(js|jsx|css|png|jpg|jpeg|svg|webp|woff|woff2|ico|json)$/i) ||
     url.pathname.startsWith('/assets/') ||
@@ -67,54 +80,70 @@ self.addEventListener('fetch', (event) => {
 
   if (isStaticAsset) {
     event.respondWith(
-      caches.open(CACHE_NAME).then(async (cache) => {
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
         const cachedResponse = await cache.match(req);
-        const fetchPromise = fetch(req)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(req, networkResponse.clone());
+        if (cachedResponse) {
+          // Nạp ngầm cập nhật mới nếu có mạng
+          fetch(req).then((networkRes) => {
+            if (networkRes && networkRes.status === 200) {
+              cache.put(req, networkRes.clone());
             }
-            return networkResponse;
-          })
-          .catch(() => cachedResponse);
+          }).catch(() => {});
+          return cachedResponse;
+        }
 
-        return cachedResponse || fetchPromise;
-      })
-    );
-    return;
-  }
-
-  // 3. API requests: Network-first
-  if (url.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(req)
-        .then((networkResponse) => {
-          // Lưu cache nhẹ nhàng các response GET thành công để xem offline
+        try {
+          const networkResponse = await fetch(req);
           if (networkResponse && networkResponse.status === 200) {
-            const resClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, resClone));
+            cache.put(req, networkResponse.clone());
           }
           return networkResponse;
-        })
-        .catch(async () => {
-          const cache = await caches.open(CACHE_NAME);
-          const cachedResponse = await cache.match(req);
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return new Response(JSON.stringify({ offline: true, message: 'Bạn đang ngoại tuyến' }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        })
+        } catch (err) {
+          return new Response('', { status: 408, statusText: 'Offline Asset Unavailable' });
+        }
+      })()
     );
     return;
   }
 
-  // Mặc định: Network với fallback cache
+  // 3. API requests: Network First, fallback Cache hoặc thông báo Offline JSON
+  if (url.pathname.includes('/api/')) {
+    event.respondWith(
+      (async () => {
+        try {
+          const networkResponse = await fetch(req);
+          if (networkResponse && networkResponse.status === 200) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(req, networkResponse.clone());
+          }
+          return networkResponse;
+        } catch (err) {
+          const cache = await caches.open(CACHE_NAME);
+          const cachedResponse = await cache.match(req);
+          if (cachedResponse) return cachedResponse;
+
+          return new Response(
+            JSON.stringify({ offline: true, message: 'Thiết bị đang ngoại tuyến' }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        }
+      })()
+    );
+    return;
+  }
+
+  // 4. Mặc định: Network first với fallback cache an toàn
   event.respondWith(
-    fetch(req).catch(async () => {
-      const cache = await caches.open(CACHE_NAME);
-      return cache.match(req);
-    })
+    (async () => {
+      try {
+        return await fetch(req);
+      } catch (err) {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(req);
+        if (cached) return cached;
+        return new Response('Offline', { status: 503, statusText: 'Offline' });
+      }
+    })()
   );
 });

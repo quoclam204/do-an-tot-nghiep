@@ -708,13 +708,25 @@ export default function FarmingLogPage() {
       }
 
       let savedLog;
+      const queuePreview = {
+        cropCycle: currentSeason,
+        plotId: currentSeason?.plotId || currentSeason?.plot?.id || (typeof form.cropCycleId === 'string' && form.cropCycleId.startsWith('plot_season_') ? form.cropCycleId.replace('plot_season_', '') : null),
+        plotName: currentSeason?.plot?.name || currentSeason?.name,
+        farmId: activeFarmId || currentSeason?.plot?.farmId || currentFarm?.id,
+        farmName: currentFarm?.name || currentSeason?.farm?.name || currentSeason?.plot?.farm?.name,
+        cropId: currentSeason?.cropId || currentSeason?.crop?.id,
+        cropName: currentSeason?.crop?.name,
+        material: selectedMaterial,
+        cost: payload.materials?.[0]?.cost || 0,
+      };
+
       if (editingLogId) {
         if (!navigator.onLine) {
           addToOfflineQueue({
             type: 'UPDATE_LOG',
             payload,
             logId: editingLogId,
-            preview: { notes: form.notes },
+            preview: { ...queuePreview, notes: form.notes },
           });
           showToast('Đã lưu cập nhật ngoại tuyến. Sẽ tự động đồng bộ khi có mạng!', 'warning');
           setEditingLogId(null);
@@ -732,7 +744,7 @@ export default function FarmingLogPage() {
                 type: 'UPDATE_LOG',
                 payload,
                 logId: editingLogId,
-                preview: { notes: form.notes },
+                preview: { ...queuePreview, notes: form.notes },
               });
               showToast('Mạng yếu, đã lưu cập nhật ngoại tuyến. Sẽ tự động đồng bộ khi có mạng!', 'warning');
               setEditingLogId(null);
@@ -747,12 +759,7 @@ export default function FarmingLogPage() {
           const queueItem = addToOfflineQueue({
             type: 'CREATE_LOG',
             payload,
-            preview: {
-              cropCycle: currentSeason,
-              plotId: currentSeason?.plotId || currentSeason?.plot?.id,
-              material: selectedMaterial,
-              cost: payload.materials?.[0]?.cost || 0,
-            },
+            preview: queuePreview,
           });
           const optLog = addOptimisticLog(queueItem);
           setLogs((prev) => [optLog, ...prev]);
@@ -770,12 +777,7 @@ export default function FarmingLogPage() {
               const queueItem = addToOfflineQueue({
                 type: 'CREATE_LOG',
                 payload,
-                preview: {
-                  cropCycle: currentSeason,
-                  plotId: currentSeason?.plotId || currentSeason?.plot?.id,
-                  material: selectedMaterial,
-                  cost: payload.materials?.[0]?.cost || 0,
-                },
+                preview: queuePreview,
               });
               const optLog = addOptimisticLog(queueItem);
               setLogs((prev) => [optLog, ...prev]);

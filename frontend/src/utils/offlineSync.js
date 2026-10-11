@@ -11,6 +11,7 @@ import {
   apiDeleteActivityLog,
   apiGetMyFarms,
   apiGetSeasons,
+  apiCreateSeason,
   apiGetCrops,
   apiGetMaterials,
   apiGetInventory,
@@ -263,6 +264,71 @@ export const prefetchAndCacheCatalogs = async () => {
 let isSyncing = false;
 
 /**
+ * Tìm kiếm hoặc khởi tạo vụ mùa chính xác cho Lô đất / Nông trại được chọn khi ghi ngoại tuyến
+ * Tuyệt đối không bao giờ lấy bừa vụ mùa của nông trại khác!
+ */
+export const resolveCropCycleForSync = async (payload, preview) => {
+  const isTemporarySeason =
+    typeof payload.cropCycleId === 'string' &&
+    (payload.cropCycleId.startsWith('plot_season_') || payload.cropCycleId.startsWith('offline_preset_'));
+
+  if (!isTemporarySeason) return;
+
+  const targetPlotId =
+    preview?.plotId ||
+    payload?.plotId ||
+    (typeof payload.cropCycleId === 'string' && payload.cropCycleId.startsWith('plot_season_')
+      ? payload.cropCycleId.replace('plot_season_', '')
+      : null);
+  const targetFarmId = preview?.farmId || payload?.farmId;
+  const targetFarmName = preview?.farmName;
+
+  const freshSeasons = await apiGetSeasons().catch(() => []);
+  let matched = null;
+
+  // 1. Tìm đúng vụ mùa thuộc Lô đất này
+  if (targetPlotId) {
+    matched = (freshSeasons || []).find((s) => s.plotId === targetPlotId || s.plot?.id === targetPlotId);
+  }
+
+  // 2. Nếu Lô đất này chưa có vụ mùa, tìm vụ mùa thuộc cùng Nông trại này
+  if (!matched && (targetFarmId || targetFarmName)) {
+    matched = (freshSeasons || []).find(
+      (s) =>
+        (targetFarmId && (s.plot?.farmId === targetFarmId || s.farmId === targetFarmId)) ||
+        (targetFarmName && s.plot?.farm?.name === targetFarmName)
+    );
+  }
+
+  // 3. Nếu nông trại này chưa có vụ mùa nào trên máy chủ, tự động tạo vụ mùa chuẩn cho Lô đất/Nông trại này
+  if (!matched && targetPlotId) {
+    const freshCrops = await apiGetCrops().catch(() => []);
+    const cropToUse =
+      (freshCrops || []).find(
+        (c) => preview?.cropName && c.name?.toLowerCase().includes(preview.cropName.toLowerCase())
+      ) || (freshCrops || [])[0];
+
+    if (cropToUse) {
+      const createdSeason = await apiCreateSeason({
+        name: `Vụ mùa - ${preview?.plotName || 'Lô canh tác'}`,
+        plotId: targetPlotId,
+        cropId: preview?.cropId || cropToUse.id,
+        startDate: payload?.activityDate || new Date().toISOString().slice(0, 10),
+        expectedEndDate: new Date(Date.now() + 180 * 86400000).toISOString().slice(0, 10),
+      }).catch(() => null);
+
+      if (createdSeason) {
+        matched = createdSeason;
+      }
+    }
+  }
+
+  if (matched) {
+    payload.cropCycleId = matched.id;
+  }
+};
+
+/**
  * Thực hiện đồng bộ tuần tự (FIFO) toàn bộ hàng đợi lên Server
  * Tránh xung đột, đảm bảo an toàn toàn vẹn dữ liệu
  */
@@ -293,19 +359,8 @@ export const syncOfflineQueue = async (onProgress) => {
 
       try {
         if (item.type === 'CREATE_LOG') {
-          // Xử lý nếu cropCycleId là ID tạm khi offline không có danh mục trước đó
-          if (
-            typeof item.payload.cropCycleId === 'string' &&
-            (item.payload.cropCycleId.startsWith('plot_season_') || item.payload.cropCycleId.startsWith('offline_preset_'))
-          ) {
-            const freshSeasons = await apiGetSeasons().catch(() => []);
-            if (freshSeasons && freshSeasons.length > 0) {
-              const matched = item.preview?.plotId
-                ? freshSeasons.find((s) => s.plotId === item.preview.plotId || s.plot?.id === item.preview.plotId)
-                : null;
-              item.payload.cropCycleId = matched ? matched.id : freshSeasons[0].id;
-            }
-          }
+          // Xử lý nếu cropCycleId là ID tạm khi offline: Tuyệt đối không gán nhầm sang nông trại khác
+          await resolveCropCycleForSync(item.payload, item.preview);
 
           // Xử lý nếu vật tư sử dụng ID ngoại tuyến tạm thời (offline_mat_...)
           if (Array.isArray(item.payload.materials) && item.payload.materials.length > 0) {
@@ -344,6 +399,7 @@ export const syncOfflineQueue = async (onProgress) => {
           removeOptimisticLog(item.id);
           syncedCount++;
         } else if (item.type === 'UPDATE_LOG') {
+          await resolveCropCycleForSync(item.payload, item.preview);
           await apiUpdateActivityLog(item.logId, item.payload);
           removeFromOfflineQueue(item.id);
           syncedCount++;

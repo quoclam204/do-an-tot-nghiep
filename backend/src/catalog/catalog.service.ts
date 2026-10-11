@@ -742,10 +742,50 @@ export class CatalogService {
   }
 
   async createActivityLog(input: any) {
-    const cropCycle = await this.prisma.cropCycle.findFirst({
+    let cropCycle: any = await this.prisma.cropCycle.findFirst({
       where: { id: input.cropCycleId, deletedAt: null },
       include: { plot: true },
     });
+
+    if (!cropCycle) {
+      const targetPlotId = input.plotId || (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_') ? input.cropCycleId.replace('plot_season_', '') : null);
+      if (targetPlotId) {
+        cropCycle = await this.prisma.cropCycle.findFirst({
+          where: { plotId: targetPlotId, deletedAt: null },
+          include: { plot: true },
+          orderBy: { startDate: 'desc' },
+        });
+
+        if (!cropCycle) {
+          const plot = await this.prisma.plot.findFirst({
+            where: { id: targetPlotId, deletedAt: null },
+            include: { farm: true },
+          });
+          if (plot) {
+            const crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+            if (crop) {
+              const now = new Date();
+              const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+              cropCycle = await (this.prisma as any).cropCycle.create({
+                data: {
+                  name: `Vụ mùa - ${plot.name}`,
+                  plotId: plot.id,
+                  cropId: crop.id,
+                  startDate: now,
+                  expectedEndDate: endDate,
+                  status: 'IN_PROGRESS',
+                },
+                include: { plot: true },
+              });
+              input.cropCycleId = cropCycle.id;
+            }
+          }
+        } else {
+          input.cropCycleId = cropCycle.id;
+        }
+      }
+    }
+
     if (!cropCycle) throw new NotFoundException('Không tìm thấy mùa vụ canh tác');
     const farmId = (cropCycle as any).plot?.farmId;
 
@@ -928,7 +968,53 @@ export class CatalogService {
     });
     if (!log) throw new NotFoundException('Không tìm thấy nhật ký canh tác');
 
-    const farmId = log.cropCycle?.plot?.farmId;
+    let farmId = log.cropCycle?.plot?.farmId;
+    let newCropCycleId = log.cropCycleId;
+
+    if (input.cropCycleId && input.cropCycleId !== log.cropCycleId) {
+      let resolvedCropCycle: any = await this.prisma.cropCycle.findFirst({
+        where: { id: input.cropCycleId, deletedAt: null },
+        include: { plot: true },
+      });
+      if (!resolvedCropCycle) {
+        const targetPlotId = input.plotId || (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_') ? input.cropCycleId.replace('plot_season_', '') : null);
+        if (targetPlotId) {
+          resolvedCropCycle = await this.prisma.cropCycle.findFirst({
+            where: { plotId: targetPlotId, deletedAt: null },
+            include: { plot: true },
+            orderBy: { startDate: 'desc' },
+          });
+          if (!resolvedCropCycle) {
+            const plot = await this.prisma.plot.findFirst({
+              where: { id: targetPlotId, deletedAt: null },
+              include: { farm: true },
+            });
+            if (plot) {
+              const crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+              if (crop) {
+                const now = new Date();
+                const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+                resolvedCropCycle = await (this.prisma as any).cropCycle.create({
+                  data: {
+                    name: `Vụ mùa - ${plot.name}`,
+                    plotId: plot.id,
+                    cropId: crop.id,
+                    startDate: now,
+                    expectedEndDate: endDate,
+                    status: 'IN_PROGRESS',
+                  },
+                  include: { plot: true },
+                });
+              }
+            }
+          }
+        }
+      }
+      if (resolvedCropCycle) {
+        newCropCycleId = resolvedCropCycle.id;
+        farmId = resolvedCropCycle.plot?.farmId || farmId;
+      }
+    }
 
     const isHiredLabor = input.isHiredLabor !== undefined ? Boolean(input.isHiredLabor) : log.isHiredLabor;
     const laborWorkers = isHiredLabor ? Number(input.laborWorkers ?? log.laborWorkers ?? 0) : 0;
@@ -1032,6 +1118,7 @@ export class CatalogService {
     const totalCost = laborCost + otherCosts + totalMaterialCost;
 
     const updateData: any = {
+      ...(newCropCycleId && newCropCycleId !== log.cropCycleId && { cropCycleId: newCropCycleId }),
       ...(input.activityType && { activityType: input.activityType }),
       ...(input.activityDate && { activityDate: new Date(input.activityDate) }),
       ...(input.notes !== undefined && { notes: input.notes?.trim() || null }),
