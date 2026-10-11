@@ -214,51 +214,57 @@ export default function FarmingLogPage() {
       let finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
       let finalInventory = (invRes && invRes.length > 0) ? invRes : (cached.inventory || []);
 
-      // Dự phòng thông minh cho trường hợp chưa tạo mùa vụ hoặc mở máy mới ngoài rẫy:
-      if (finalSeasons.length === 0) {
-        if (finalFarms.length > 0) {
-          const synthesized = [];
-          finalFarms.forEach((f) => {
-            (f.plots || []).forEach((p) => {
-              synthesized.push({
-                id: `plot_season_${p.id}`,
-                name: `Lô: ${p.name}`,
-                plotId: p.id,
-                plot: p,
-                crop: { name: 'Cây trồng tại vườn' },
-                farm: f,
-                isOfflineSynthesized: true,
-              });
-            });
-          });
-          if (synthesized.length > 0) finalSeasons = synthesized;
-        }
+      // Luôn bổ sung tất cả các Lô đất của mọi Nông trại chưa có mùa vụ chính thức vào danh sách
+      // để nông dân luôn có thể chọn bất kỳ Nông trại & Lô đất nào để ghi nhật ký ngay!
+      const existingPlotIds = new Set(
+        (finalSeasons || []).map((s) => s.plotId || s.plot?.id).filter(Boolean)
+      );
 
-        if (finalSeasons.length === 0) {
-          finalSeasons = [
-            {
-              id: 'offline_preset_plot_a',
-              name: 'Lô A - Cà phê / Cây lâu năm (Ngoại tuyến)',
-              plot: { id: 'plot_a', name: 'Lô A' },
-              crop: { name: 'Cà phê Robusta' },
+      const synthesizedFromPlots = [];
+      (finalFarms || []).forEach((f) => {
+        (f.plots || []).forEach((p) => {
+          if (!existingPlotIds.has(p.id)) {
+            synthesizedFromPlots.push({
+              id: `plot_season_${p.id}`,
+              name: `Lô: ${p.name}`,
+              plotId: p.id,
+              plot: p,
+              crop: { name: 'Cây trồng tại vườn' },
+              farm: f,
               isOfflineSynthesized: true,
-            },
-            {
-              id: 'offline_preset_plot_b',
-              name: 'Lô B - Sầu riêng / Cây ăn trái (Ngoại tuyến)',
-              plot: { id: 'plot_b', name: 'Lô B' },
-              crop: { name: 'Sầu riêng Ri6' },
-              isOfflineSynthesized: true,
-            },
-            {
-              id: 'offline_preset_plot_c',
-              name: 'Lô C - Vườn rau củ / Ngắn ngày (Ngoại tuyến)',
-              plot: { id: 'plot_c', name: 'Lô C' },
-              crop: { name: 'Rau củ nông trại' },
-              isOfflineSynthesized: true,
-            },
-          ];
-        }
+            });
+          }
+        });
+      });
+
+      if (synthesizedFromPlots.length > 0) {
+        finalSeasons = [...finalSeasons, ...synthesizedFromPlots];
+      }
+
+      if (finalSeasons.length === 0) {
+        finalSeasons = [
+          {
+            id: 'offline_preset_plot_a',
+            name: 'Lô A - Cà phê / Cây lâu năm (Ngoại tuyến)',
+            plot: { id: 'plot_a', name: 'Lô A' },
+            crop: { name: 'Cà phê Robusta' },
+            isOfflineSynthesized: true,
+          },
+          {
+            id: 'offline_preset_plot_b',
+            name: 'Lô B - Sầu riêng / Cây ăn trái (Ngoại tuyến)',
+            plot: { id: 'plot_b', name: 'Lô B' },
+            crop: { name: 'Sầu riêng Ri6' },
+            isOfflineSynthesized: true,
+          },
+          {
+            id: 'offline_preset_plot_c',
+            name: 'Lô C - Vườn rau củ / Ngắn ngày (Ngoại tuyến)',
+            plot: { id: 'plot_c', name: 'Lô C' },
+            crop: { name: 'Rau củ nông trại' },
+            isOfflineSynthesized: true,
+          },
+        ];
       }
 
       if (finalMaterials.length === 0) {
@@ -290,8 +296,12 @@ export default function FarmingLogPage() {
 
       if (finalSeasons && finalSeasons.length > 0) {
         setForm((prev) => {
-          const exists = finalSeasons.some((s) => s.id === prev.cropCycleId);
-          const firstSeason = exists ? finalSeasons.find((s) => s.id === prev.cropCycleId) : finalSeasons[0];
+          const availableForFarm = selectedFarmId
+            ? finalSeasons.filter((s) => s.farm?.id === selectedFarmId || s.plot?.farmId === selectedFarmId || s.plot?.farm?.id === selectedFarmId)
+            : finalSeasons;
+          const candidateList = availableForFarm.length > 0 ? availableForFarm : finalSeasons;
+          const exists = candidateList.some((s) => s.id === prev.cropCycleId);
+          const firstSeason = exists ? candidateList.find((s) => s.id === prev.cropCycleId) : candidateList[0];
           return {
             ...prev,
             cropCycleId: firstSeason?.id || '',
@@ -354,8 +364,13 @@ export default function FarmingLogPage() {
 
   const seasonOptions = useMemo(() => {
     if (!seasons || seasons.length === 0) return [];
-    return seasons.map((s) => {
+    const listToFilter = selectedFarmId
+      ? seasons.filter((s) => s.farm?.id === selectedFarmId || s.plot?.farmId === selectedFarmId || s.plot?.farm?.id === selectedFarmId)
+      : seasons;
+
+    return listToFilter.map((s) => {
       const farmName =
+        s.farm?.name ||
         s.plot?.farm?.name ||
         farms.find((f) => f.id === s.plot?.farmId)?.name ||
         farms.find((f) => f.id === selectedFarmId)?.name ||
@@ -376,6 +391,8 @@ export default function FarmingLogPage() {
           parts.push(`— Trại: ${farmName}`);
         }
         formattedLabel = parts.join(' · ').replace(' · (', ' (').replace(' · — ', ' — ');
+      } else {
+        formattedLabel = `${s.name}${farmName ? ` — Trại: ${farmName}` : ''}`;
       }
 
       return {
@@ -390,6 +407,16 @@ export default function FarmingLogPage() {
       };
     });
   }, [seasons, farms, selectedFarmId]);
+
+  const groupedSeasonOptions = useMemo(() => {
+    const groups = {};
+    (seasonOptions || []).forEach((opt) => {
+      const farmKey = opt.farmName || 'Nông trại canh tác';
+      if (!groups[farmKey]) groups[farmKey] = [];
+      groups[farmKey].push(opt);
+    });
+    return groups;
+  }, [seasonOptions]);
 
   const currentSeason = useMemo(() => {
     return (seasons || []).find((s) => s.id === form.cropCycleId);
@@ -956,9 +983,13 @@ export default function FarmingLogPage() {
   const displayedLogs = useMemo(() => {
     return logs.filter((log) => {
       if (shiftFilter !== 'ALL' && log.workShift !== shiftFilter) return false;
+      if (selectedFarmId) {
+        const logFarmId = log.cropCycle?.plot?.farmId || log.cropCycle?.plot?.farm?.id || log.farmId;
+        if (logFarmId && logFarmId !== selectedFarmId) return false;
+      }
       return true;
     });
-  }, [logs, shiftFilter]);
+  }, [logs, shiftFilter, selectedFarmId]);
 
   return (
     <div className="farming-log-container">
@@ -1438,11 +1469,15 @@ export default function FarmingLogPage() {
                   className="form-control"
                   disabled={!seasonOptions || seasonOptions.length === 0}
                 >
-                  {seasonOptions && seasonOptions.length > 0 ? (
-                    seasonOptions.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
+                  {Object.keys(groupedSeasonOptions).length > 0 ? (
+                    Object.entries(groupedSeasonOptions).map(([groupFarmName, opts]) => (
+                      <optgroup key={groupFarmName} label={`🏡 ${groupFarmName}`}>
+                        {opts.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))
                   ) : (
                     <option value="">-- Chưa có mùa vụ nào --</option>
