@@ -772,6 +772,7 @@ export class CatalogService {
           where: { id: item.materialId, deletedAt: null },
         });
         if (material) {
+          const qty = Math.max(0, Number(item.quantityUsed || 0));
           // Đảm bảo nông trại có bản ghi tồn kho và tự động khởi tạo nếu chưa có
           let inv = farmId
             ? await (this.prisma as any).inventory.findFirst({
