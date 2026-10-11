@@ -160,12 +160,64 @@ export const cacheCatalogs = (catalogs) => {
   }
 };
 
+export const DEFAULT_OFFLINE_MATERIALS = [
+  { id: 'offline_mat_npk', name: 'Phân NPK 16-16-8 Đầu Trâu', unit: 'Bao (50kg)', defaultPrice: 18500 },
+  { id: 'offline_mat_huuco', name: 'Phân Hữu Cơ Vi Sinh Quế Lâm', unit: 'Bao (25kg)', defaultPrice: 12000 },
+  { id: 'offline_mat_la', name: 'Phân Bón Lá Đa Lượng Đầu Trâu', unit: 'Chai (1L)', defaultPrice: 65000 },
+  { id: 'offline_mat_bvtv', name: 'Thuốc Trừ Sâu Sinh Học Radiant', unit: 'Chai (500ml)', defaultPrice: 45000 },
+  { id: 'offline_mat_voi', name: 'Vôi Bột Nông Nghiệp Khử Trùng', unit: 'Bao (40kg)', defaultPrice: 35000 },
+  { id: 'offline_mat_kali', name: 'Phân Kali Clorua', unit: 'Bao (50kg)', defaultPrice: 16000 },
+];
+
+export const buildDefaultInventory = (farms = [], materials = DEFAULT_OFFLINE_MATERIALS) => {
+  const targetFarms = Array.isArray(farms) && farms.length > 0 ? farms : [{ id: 'offline_farm_default', name: 'Nông trại' }];
+  const mats = Array.isArray(materials) && materials.length > 0 ? materials : DEFAULT_OFFLINE_MATERIALS;
+  const result = [];
+  targetFarms.forEach((farm) => {
+    const fId = farm.id || 'offline_farm_default';
+    mats.forEach((mat) => {
+      const defaultQty = mat.name.toLowerCase().includes('thuốc') ? 25 : 50;
+      const defaultUnitPrice = Number(mat.defaultPrice || 20000);
+      result.push({
+        id: `inv_preset_${fId}_${mat.id}`,
+        farmId: fId,
+        materialId: mat.id,
+        quantity: defaultQty,
+        unitPrice: defaultUnitPrice,
+        totalCost: defaultQty * defaultUnitPrice,
+        material: {
+          id: mat.id,
+          name: mat.name,
+          unit: mat.unit || 'đơn vị',
+          defaultPrice: defaultUnitPrice,
+        },
+        farm: { id: fId, name: farm.name || 'Nông trại' },
+        isOfflineSynthesized: true,
+      });
+    });
+  });
+  return result;
+};
+
 export const getCachedCatalogs = () => {
   try {
     const raw = localStorage.getItem(CACHED_CATALOGS_KEY);
-    return raw ? JSON.parse(raw) : { farms: [], crops: [], seasons: [], materials: [], inventory: [] };
+    const parsed = raw ? JSON.parse(raw) : { farms: [], crops: [], seasons: [], materials: [], inventory: [] };
+    if (!parsed.materials || parsed.materials.length === 0) {
+      parsed.materials = DEFAULT_OFFLINE_MATERIALS;
+    }
+    if (!parsed.inventory || parsed.inventory.length === 0) {
+      parsed.inventory = buildDefaultInventory(parsed.farms || [], parsed.materials);
+    }
+    return parsed;
   } catch {
-    return { farms: [], crops: [], seasons: [], materials: [], inventory: [] };
+    return {
+      farms: [],
+      crops: [],
+      seasons: [],
+      materials: DEFAULT_OFFLINE_MATERIALS,
+      inventory: buildDefaultInventory([], DEFAULT_OFFLINE_MATERIALS),
+    };
   }
 };
 

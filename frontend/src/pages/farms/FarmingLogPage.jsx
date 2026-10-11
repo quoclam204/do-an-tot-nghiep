@@ -42,6 +42,8 @@ import {
   cacheCatalogs,
   getCachedCatalogs,
   getOptimisticLogs,
+  buildDefaultInventory,
+  DEFAULT_OFFLINE_MATERIALS,
 } from '../../utils/offlineSync';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
@@ -269,6 +271,10 @@ export default function FarmingLogPage() {
         ];
       }
 
+      if (!finalInventory || finalInventory.length === 0) {
+        finalInventory = buildDefaultInventory(finalFarms, finalMaterials);
+      }
+
       // Ghép các bản ghi offline chờ đồng bộ vào danh sách hiển thị
       const optLogs = getOptimisticLogs();
       const finalLogs = [...optLogs, ...(logsRes || [])];
@@ -319,12 +325,14 @@ export default function FarmingLogPage() {
       }
       setSeasons(fallbackSeasons);
       setCrops(cached.crops || []);
-      setMaterials(cached.materials && cached.materials.length > 0 ? cached.materials : [
-        { id: 'offline_mat_npk', name: 'Phân NPK 16-16-8', unit: 'Bao (50kg)', defaultPrice: 18500 },
-        { id: 'offline_mat_huuco', name: 'Phân Hữu Cơ Vi Sinh', unit: 'Bao (25kg)', defaultPrice: 12000 },
-      ]);
-      setFarms(cached.farms || []);
-      setInventory(cached.inventory || []);
+      const fallbackMats = cached.materials && cached.materials.length > 0 ? cached.materials : DEFAULT_OFFLINE_MATERIALS;
+      const fallbackFarms = cached.farms || [];
+      const fallbackInv = cached.inventory && cached.inventory.length > 0
+        ? cached.inventory
+        : buildDefaultInventory(fallbackFarms, fallbackMats);
+      setMaterials(fallbackMats);
+      setFarms(fallbackFarms);
+      setInventory(fallbackInv);
       setLogs(getOptimisticLogs());
     } finally {
       setLoading(false);
@@ -401,8 +409,10 @@ export default function FarmingLogPage() {
   }, [selectedFarmId, currentSeason, farms]);
 
   const farmInventory = useMemo(() => {
-    if (!activeFarmId) return inventory || [];
-    return (inventory || []).filter((inv) => inv.farmId === activeFarmId);
+    if (!inventory || inventory.length === 0) return [];
+    if (!activeFarmId) return inventory;
+    const filtered = (inventory || []).filter((inv) => inv.farmId === activeFarmId || !inv.farmId);
+    return filtered.length > 0 ? filtered : inventory;
   }, [inventory, activeFarmId]);
 
   const selectedInventoryItem = useMemo(
@@ -781,8 +791,10 @@ export default function FarmingLogPage() {
       if (form.materialId && Number(form.quantityUsed) > 0) {
         const usedQty = Number(form.quantityUsed);
         setInventory((prev) => {
+          let found = false;
           const updated = (prev || []).map((inv) => {
-            if (inv.materialId === form.materialId && (!activeFarmId || inv.farmId === activeFarmId)) {
+            if (inv.materialId === form.materialId && (!activeFarmId || !inv.farmId || inv.farmId === activeFarmId)) {
+              found = true;
               return {
                 ...inv,
                 quantity: Math.max(0, Number(inv.quantity || 0) - usedQty),
@@ -790,6 +802,21 @@ export default function FarmingLogPage() {
             }
             return inv;
           });
+          if (!found) {
+            const initialQty = 50;
+            const remaining = Math.max(0, initialQty - usedQty);
+            const unitPrice = Number(selectedMaterial?.defaultPrice || selectedMaterial?.unitPrice || 20000);
+            updated.push({
+              id: `inv_custom_${Date.now()}_${form.materialId}`,
+              farmId: activeFarmId || 'default_farm',
+              materialId: form.materialId,
+              quantity: remaining,
+              unitPrice: unitPrice,
+              totalCost: remaining * unitPrice,
+              material: selectedMaterial || { id: form.materialId, name: 'Vật tư', unit: 'đơn vị' },
+              isOfflineSynthesized: true,
+            });
+          }
           cacheCatalogs({ inventory: updated });
           return updated;
         });
