@@ -43,6 +43,7 @@ import {
   getCachedCatalogs,
   getOptimisticLogs,
   buildDefaultInventory,
+  resolveCropCycleForSync,
   DEFAULT_OFFLINE_MATERIALS,
 } from '../../utils/offlineSync';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
@@ -759,6 +760,14 @@ export default function FarmingLogPage() {
           setEditingLogId(null);
         } else {
           try {
+            // Tự động phân giải hoặc khởi tạo mùa vụ thực trên server nếu chọn Lô đất chưa có mùa vụ
+            const resolvedSeason = await resolveCropCycleForSync(payload, queuePreview);
+            if (resolvedSeason) {
+              setSeasons((prev) => {
+                const exists = (prev || []).some((s) => s.id === resolvedSeason.id);
+                return exists ? prev : [resolvedSeason, ...prev];
+              });
+            }
             savedLog = await apiUpdateActivityLog(editingLogId, payload);
             showToast('Cập nhật nhật ký canh tác thành công!');
             setEditingLogId(null);
@@ -793,6 +802,15 @@ export default function FarmingLogPage() {
           showToast('Đã lưu an toàn vào máy (Ngoại tuyến). Tự động đồng bộ khi có mạng!', 'warning');
         } else {
           try {
+            // Tự động phân giải hoặc khởi tạo mùa vụ thực trên server nếu chọn Lô đất chưa có mùa vụ
+            const resolvedSeason = await resolveCropCycleForSync(payload, queuePreview);
+            if (resolvedSeason) {
+              setSeasons((prev) => {
+                const exists = (prev || []).some((s) => s.id === resolvedSeason.id);
+                return exists ? prev : [resolvedSeason, ...prev];
+              });
+              setForm((prev) => ({ ...prev, cropCycleId: resolvedSeason.id }));
+            }
             savedLog = await apiCreateActivityLog(payload);
             showToast('Đã ghi nhật ký canh tác & hạch toán thành công!');
             if (savedLog) {

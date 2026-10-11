@@ -270,11 +270,11 @@ let isSyncing = false;
 export const resolveCropCycleForSync = async (payload, preview) => {
   const isTemporarySeason =
     typeof payload.cropCycleId === 'string' &&
-    (payload.cropCycleId.startsWith('plot_season_') || payload.cropCycleId.startsWith('offline_preset_'));
+    (payload.cropCycleId.startsWith('plot_season_') || payload.cropCycleId.startsWith('offline_preset_') || !payload.cropCycleId.includes('-'));
 
-  if (!isTemporarySeason) return;
+  if (!isTemporarySeason) return null;
 
-  const targetPlotId =
+  let targetPlotId =
     preview?.plotId ||
     payload?.plotId ||
     (typeof payload.cropCycleId === 'string' && payload.cropCycleId.startsWith('plot_season_')
@@ -283,11 +283,13 @@ export const resolveCropCycleForSync = async (payload, preview) => {
   const targetFarmId = preview?.farmId || payload?.farmId;
   const targetFarmName = preview?.farmName;
 
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   const freshSeasons = await apiGetSeasons().catch(() => []);
   let matched = null;
 
   // 1. Tìm đúng vụ mùa thuộc Lô đất này
-  if (targetPlotId) {
+  if (targetPlotId && uuidRegex.test(targetPlotId)) {
     matched = (freshSeasons || []).find((s) => s.plotId === targetPlotId || s.plot?.id === targetPlotId);
   }
 
@@ -301,24 +303,41 @@ export const resolveCropCycleForSync = async (payload, preview) => {
   }
 
   // 3. Nếu nông trại này chưa có vụ mùa nào trên máy chủ, tự động tạo vụ mùa chuẩn cho Lô đất/Nông trại này
-  if (!matched && targetPlotId) {
-    const freshCrops = await apiGetCrops().catch(() => []);
-    const cropToUse =
-      (freshCrops || []).find(
-        (c) => preview?.cropName && c.name?.toLowerCase().includes(preview.cropName.toLowerCase())
-      ) || (freshCrops || [])[0];
+  if (!matched) {
+    // Nếu targetPlotId không phải UUID hợp lệ, thử lấy từ Nông trại
+    if (!targetPlotId || !uuidRegex.test(targetPlotId)) {
+      const freshFarms = await apiGetMyFarms().catch(() => []);
+      const farmObj = (freshFarms || []).find(
+        (f) => (targetFarmId && f.id === targetFarmId) || (targetFarmName && f.name === targetFarmName)
+      );
+      if (farmObj && farmObj.plots && farmObj.plots.length > 0) {
+        targetPlotId = farmObj.plots[0].id;
+      }
+    }
 
-    if (cropToUse) {
-      const createdSeason = await apiCreateSeason({
-        name: `Vụ mùa - ${preview?.plotName || 'Lô canh tác'}`,
-        plotId: targetPlotId,
-        cropId: preview?.cropId || cropToUse.id,
-        startDate: payload?.activityDate || new Date().toISOString().slice(0, 10),
-        expectedEndDate: new Date(Date.now() + 180 * 86400000).toISOString().slice(0, 10),
-      }).catch(() => null);
+    if (targetPlotId && uuidRegex.test(targetPlotId)) {
+      const freshCrops = await apiGetCrops().catch(() => []);
+      const cropToUse =
+        (freshCrops || []).find(
+          (c) => preview?.cropName && c.name?.toLowerCase().includes(preview.cropName.toLowerCase())
+        ) || (freshCrops || [])[0];
 
-      if (createdSeason) {
-        matched = createdSeason;
+      if (cropToUse) {
+        const createdSeason = await apiCreateSeason({
+          name: `Vụ mùa - ${preview?.plotName || 'Lô canh tác'}`,
+          plotId: targetPlotId,
+          cropId: (preview?.cropId && uuidRegex.test(preview.cropId)) ? preview.cropId : cropToUse.id,
+          startDate: payload?.activityDate || new Date().toISOString().slice(0, 10),
+          expectedEndDate: new Date(Date.now() + 180 * 86400000).toISOString().slice(0, 10),
+          isIntercropped: true,
+        }).catch((err) => {
+          console.warn('apiCreateSeason error:', err?.response?.data || err?.message);
+          return null;
+        });
+
+        if (createdSeason) {
+          matched = createdSeason;
+        }
       }
     }
   }
@@ -326,6 +345,7 @@ export const resolveCropCycleForSync = async (payload, preview) => {
   if (matched) {
     payload.cropCycleId = matched.id;
   }
+  return matched;
 };
 
 /**

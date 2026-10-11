@@ -268,7 +268,7 @@ export class CatalogService {
 
   findSeasons(userId?: string, role?: string, farmId?: string) {
     const where: any = { deletedAt: null };
-    if (farmId) {
+    if (farmId && isUUID(farmId)) {
       where.plot = { farmId, deletedAt: null };
     }
     if (role && role !== 'ADMIN' && userId) {
@@ -699,10 +699,10 @@ export class CatalogService {
   async findActivityLogs(userId?: string, role?: string, cropCycleId?: string, farmId?: string) {
     const where: any = {
       deletedAt: null,
-      ...(cropCycleId && { cropCycleId }),
+      ...(cropCycleId && isUUID(cropCycleId) && { cropCycleId }),
     };
 
-    if (farmId) {
+    if (farmId && isUUID(farmId)) {
       where.cropCycle = {
         plot: { farmId, deletedAt: null },
       };
@@ -742,14 +742,23 @@ export class CatalogService {
   }
 
   async createActivityLog(input: any) {
-    let cropCycle: any = await this.prisma.cropCycle.findFirst({
-      where: { id: input.cropCycleId, deletedAt: null },
-      include: { plot: true },
-    });
+    let cropCycle: any = null;
+
+    if (input.cropCycleId && isUUID(input.cropCycleId)) {
+      cropCycle = await this.prisma.cropCycle.findFirst({
+        where: { id: input.cropCycleId, deletedAt: null },
+        include: { plot: true },
+      });
+    }
 
     if (!cropCycle) {
-      const targetPlotId = input.plotId || (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_') ? input.cropCycleId.replace('plot_season_', '') : null);
-      if (targetPlotId) {
+      const targetPlotId = (input.plotId && isUUID(input.plotId))
+        ? input.plotId
+        : (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_')
+            ? input.cropCycleId.replace('plot_season_', '')
+            : null);
+
+      if (targetPlotId && isUUID(targetPlotId)) {
         cropCycle = await this.prisma.cropCycle.findFirst({
           where: { plotId: targetPlotId, deletedAt: null },
           include: { plot: true },
@@ -762,7 +771,15 @@ export class CatalogService {
             include: { farm: true },
           });
           if (plot) {
-            const crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+            let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+            if (!crop) {
+              crop = await (this.prisma as any).crop.create({
+                data: {
+                  name: 'Cây trồng tự nhiên',
+                  type: 'OTHER',
+                },
+              });
+            }
             if (crop) {
               const now = new Date();
               const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
@@ -774,6 +791,7 @@ export class CatalogService {
                   startDate: now,
                   expectedEndDate: endDate,
                   status: 'IN_PROGRESS',
+                  isIntercropped: true,
                 },
                 include: { plot: true },
               });
@@ -783,6 +801,63 @@ export class CatalogService {
         } else {
           input.cropCycleId = cropCycle.id;
         }
+      }
+    }
+
+    // Nếu vẫn chưa có vụ mùa nhưng có farmId hợp lệ
+    if (!cropCycle && input.farmId && isUUID(input.farmId)) {
+      cropCycle = await this.prisma.cropCycle.findFirst({
+        where: { plot: { farmId: input.farmId }, deletedAt: null },
+        include: { plot: true },
+        orderBy: { startDate: 'desc' },
+      });
+      if (!cropCycle) {
+        const plot = await this.prisma.plot.findFirst({
+          where: { farmId: input.farmId, deletedAt: null },
+          include: { farm: true },
+        });
+        if (plot) {
+          let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+          if (!crop) {
+            crop = await (this.prisma as any).crop.create({
+              data: {
+                name: 'Cây trồng tự nhiên',
+                type: 'OTHER',
+              },
+            });
+          }
+          if (crop) {
+            const now = new Date();
+            const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
+            cropCycle = await (this.prisma as any).cropCycle.create({
+              data: {
+                name: `Vụ mùa - ${plot.name}`,
+                plotId: plot.id,
+                cropId: crop.id,
+                startDate: now,
+                expectedEndDate: endDate,
+                status: 'IN_PROGRESS',
+                isIntercropped: true,
+              },
+              include: { plot: true },
+            });
+            input.cropCycleId = cropCycle.id;
+          }
+        }
+      } else {
+        input.cropCycleId = cropCycle.id;
+      }
+    }
+
+    // Dự phòng an toàn cuối cùng
+    if (!cropCycle) {
+      cropCycle = await this.prisma.cropCycle.findFirst({
+        where: { deletedAt: null },
+        include: { plot: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (cropCycle) {
+        input.cropCycleId = cropCycle.id;
       }
     }
 
@@ -972,13 +1047,19 @@ export class CatalogService {
     let newCropCycleId = log.cropCycleId;
 
     if (input.cropCycleId && input.cropCycleId !== log.cropCycleId) {
-      let resolvedCropCycle: any = await this.prisma.cropCycle.findFirst({
-        where: { id: input.cropCycleId, deletedAt: null },
-        include: { plot: true },
-      });
+      let resolvedCropCycle: any = isUUID(input.cropCycleId)
+        ? await this.prisma.cropCycle.findFirst({
+            where: { id: input.cropCycleId, deletedAt: null },
+            include: { plot: true },
+          })
+        : null;
       if (!resolvedCropCycle) {
-        const targetPlotId = input.plotId || (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_') ? input.cropCycleId.replace('plot_season_', '') : null);
-        if (targetPlotId) {
+        const targetPlotId = (input.plotId && isUUID(input.plotId))
+          ? input.plotId
+          : (typeof input.cropCycleId === 'string' && input.cropCycleId.startsWith('plot_season_')
+              ? input.cropCycleId.replace('plot_season_', '')
+              : null);
+        if (targetPlotId && isUUID(targetPlotId)) {
           resolvedCropCycle = await this.prisma.cropCycle.findFirst({
             where: { plotId: targetPlotId, deletedAt: null },
             include: { plot: true },
@@ -990,7 +1071,15 @@ export class CatalogService {
               include: { farm: true },
             });
             if (plot) {
-              const crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+              let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
+              if (!crop) {
+                crop = await (this.prisma as any).crop.create({
+                  data: {
+                    name: 'Cây trồng tự nhiên',
+                    type: 'OTHER',
+                  },
+                });
+              }
               if (crop) {
                 const now = new Date();
                 const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
@@ -1002,6 +1091,7 @@ export class CatalogService {
                     startDate: now,
                     expectedEndDate: endDate,
                     status: 'IN_PROGRESS',
+                    isIntercropped: true,
                   },
                   include: { plot: true },
                 });
@@ -1152,11 +1242,11 @@ export class CatalogService {
 
     // Xây dựng filter
     const where: any = { deletedAt: null };
-    if (cropCycleId) where.cropCycleId = cropCycleId;
-    if (farmId || plotId) {
+    if (cropCycleId && isUUID(cropCycleId)) where.cropCycleId = cropCycleId;
+    if ((farmId && isUUID(farmId)) || (plotId && isUUID(plotId))) {
       where.cropCycle = { deletedAt: null, ...(where.cropCycle || {}) };
-      if (plotId) where.cropCycle.plotId = plotId;
-      if (farmId) where.cropCycle = { ...where.cropCycle, plot: { farmId, deletedAt: null } };
+      if (plotId && isUUID(plotId)) where.cropCycle.plotId = plotId;
+      if (farmId && isUUID(farmId)) where.cropCycle = { ...where.cropCycle, plot: { farmId, deletedAt: null } };
     }
     if (startDate || endDate) {
       where.activityDate = {};

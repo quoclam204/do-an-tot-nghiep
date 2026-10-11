@@ -11,7 +11,7 @@ import {
   IconInfo,
 } from '../icons';
 import { apiCreateActivityLog, apiUpdateActivityLog } from '../../services/api';
-import { addToOfflineQueue } from '../../utils/offlineSync';
+import { addToOfflineQueue, resolveCropCycleForSync } from '../../utils/offlineSync';
 
 const getTodayDateStr = () => {
   const now = new Date();
@@ -166,6 +166,17 @@ export default function QuickHarvestModal({
 
       // 2. Có mạng -> Gửi lên máy chủ, nếu rớt mạng giữa chừng thì fallback vào hàng đợi ngoại tuyến
       try {
+        const curSeason = (seasons || []).find((s) => s.id === cropCycleId);
+        await resolveCropCycleForSync(payload, {
+          cropCycle: curSeason,
+          plotId: curSeason?.plotId || curSeason?.plot?.id,
+          plotName: curSeason?.plot?.name || curSeason?.name,
+          farmId: curSeason?.plot?.farmId || curSeason?.plot?.farm?.id || curSeason?.farm?.id,
+          farmName: curSeason?.plot?.farm?.name || curSeason?.farm?.name,
+          cropId: curSeason?.cropId || curSeason?.crop?.id,
+          cropName: curSeason?.crop?.name,
+        });
+
         if (editingLog && editingLog.id) {
           await apiUpdateActivityLog(editingLog.id, payload);
         } else {
