@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './QuickHarvestModal.css';
 import {
   IconX,
+  IconScale,
   IconSprout,
   IconCalendar,
   IconBanknote,
@@ -236,7 +237,7 @@ export default function QuickHarvestModal({
         <div className="harvest-modal-header">
           <div className="harvest-modal-title-group">
             <div className="harvest-modal-icon">
-              <IconSprout size={24} strokeWidth={2.4} />
+              <IconScale size={24} strokeWidth={2.4} />
             </div>
             <div>
               <h3 className="harvest-modal-title">
@@ -300,7 +301,30 @@ export default function QuickHarvestModal({
               {seasonDropdownOpen && (
                 <div className="harvest-dropdown-menu">
                   {seasons.length === 0 ? (
-                    <div className="harvest-dropdown-empty">Chưa có mùa vụ nào sẵn sàng</div>
+                    <div className="harvest-dropdown-empty" style={{ padding: '12px', textAlign: 'center' }}>
+                      <p style={{ margin: '0 0 8px 0', color: '#b45309', fontSize: '0.86rem' }}>
+                        Chưa có mùa vụ nào. Vui lòng thiết lập mùa vụ trước.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          window.location.href = '/seasons?create=true';
+                        }}
+                        style={{
+                          background: 'var(--ms-green, #107C10)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '6px 12px',
+                          fontSize: '0.82rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Thiết lập mùa vụ ngay &rarr;
+                      </button>
+                    </div>
                   ) : (
                     seasons.map((s) => {
                       const isSelected = s.id === cropCycleId;
@@ -323,6 +347,22 @@ export default function QuickHarvestModal({
                 </div>
               )}
             </div>
+            {seasons.length === 0 && (
+              <div style={{ marginTop: '6px', fontSize: '0.82rem', color: '#b45309' }}>
+                Lô đất / nông trại này chưa có mùa vụ nào.{' '}
+                <a
+                  href="/seasons?create=true"
+                  style={{ color: '#15803d', fontWeight: 600, textDecoration: 'underline' }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onClose();
+                    window.location.href = '/seasons?create=true';
+                  }}
+                >
+                  Thiết lập mùa vụ tại đây &rarr;
+                </a>
+              </div>
+            )}
             {/* Input ẩn để đảm bảo validation HTML5 form */}
             <input
               type="text"

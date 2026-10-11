@@ -317,10 +317,30 @@ export const resolveCropCycleForSync = async (payload, preview) => {
 
     if (targetPlotId && uuidRegex.test(targetPlotId)) {
       const freshCrops = await apiGetCrops().catch(() => []);
+      const farmNameLower = (targetFarmName || '').toLowerCase();
+      const plotNameLower = (preview?.plotName || '').toLowerCase();
+      const cropNameLower = (preview?.cropName || '').toLowerCase();
+
       const cropToUse =
-        (freshCrops || []).find(
-          (c) => preview?.cropName && c.name?.toLowerCase().includes(preview.cropName.toLowerCase())
-        ) || (freshCrops || [])[0];
+        (freshCrops || []).find((c) => {
+          const cName = (c.name || '').toLowerCase();
+          if (cropNameLower && cropNameLower !== 'cây trồng tại vườn' && cName.includes(cropNameLower)) return true;
+          if (farmNameLower) {
+            if (farmNameLower.includes('dâu') && cName.includes('dâu')) return true;
+            if (farmNameLower.includes('cà phê') && cName.includes('cà phê')) return true;
+            if (farmNameLower.includes('sầu riêng') && cName.includes('sầu riêng')) return true;
+            if (farmNameLower.includes('rau') && cName.includes('rau')) return true;
+            if (farmNameLower.includes('hoa') && cName.includes('hoa')) return true;
+            if (farmNameLower.includes(cName)) return true;
+          }
+          if (plotNameLower) {
+            if (plotNameLower.includes('dâu') && cName.includes('dâu')) return true;
+            if (plotNameLower.includes('cà phê') && cName.includes('cà phê')) return true;
+            if (plotNameLower.includes('sầu riêng') && cName.includes('sầu riêng')) return true;
+            if (plotNameLower.includes(cName)) return true;
+          }
+          return false;
+        }) || (freshCrops || [])[0];
 
       if (cropToUse) {
         const createdSeason = await apiCreateSeason({

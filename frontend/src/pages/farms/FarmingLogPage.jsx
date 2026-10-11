@@ -20,6 +20,8 @@ import {
   IconCheckCircle,
   IconRotateCw,
   IconCalendar,
+  IconScale,
+  IconPlus,
   IconMapPin,
   IconWarehouse,
   IconClock,
@@ -114,6 +116,7 @@ const buildNotes = (cleanNotes, otherCostName) => {
 export default function FarmingLogPage() {
   const navigate = useNavigate();
   const [farms, setFarms] = useState([]);
+  const [plots, setPlots] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [crops, setCrops] = useState([]);
   const [seasons, setSeasons] = useState([]);
@@ -185,7 +188,7 @@ export default function FarmingLogPage() {
         setFarms(farmsRes || []);
       }
 
-      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes] = await Promise.all([
+      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes, plotsRes] = await Promise.all([
         apiGetCrops().catch(() => []),
         apiGetSeasons(farmToUse || undefined).catch(() => []),
         apiGetMaterials().catch(() => []),
@@ -194,6 +197,7 @@ export default function FarmingLogPage() {
         apiGetFinancialReport(undefined, farmToUse || undefined).catch(() => null),
         apiGetActivityTypes(farmToUse || undefined).catch(() => []),
         farmToUse ? apiGetInventory(farmToUse).catch(() => []) : apiGetInventory().catch(() => []),
+        api.get('/catalog/plots', { params: farmToUse ? { farmId: farmToUse } : {} }).then((r) => r.data).catch(() => []),
       ]);
 
       // Cache danh mục nếu tải thành công
@@ -215,34 +219,8 @@ export default function FarmingLogPage() {
       let finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
       let finalInventory = (invRes && invRes.length > 0) ? invRes : (cached.inventory || []);
 
-      // Luôn bổ sung tất cả các Lô đất của mọi Nông trại chưa có mùa vụ chính thức vào danh sách
-      // để nông dân luôn có thể chọn bất kỳ Nông trại & Lô đất nào để ghi nhật ký ngay!
-      const existingPlotIds = new Set(
-        (finalSeasons || []).map((s) => s.plotId || s.plot?.id).filter(Boolean)
-      );
-
-      const synthesizedFromPlots = [];
-      (finalFarms || []).forEach((f) => {
-        (f.plots || []).forEach((p) => {
-          if (!existingPlotIds.has(p.id)) {
-            synthesizedFromPlots.push({
-              id: `plot_season_${p.id}`,
-              name: `Lô: ${p.name}`,
-              plotId: p.id,
-              plot: p,
-              crop: { name: 'Cây trồng tại vườn' },
-              farm: f,
-              isOfflineSynthesized: true,
-            });
-          }
-        });
-      });
-
-      if (synthesizedFromPlots.length > 0) {
-        finalSeasons = [...finalSeasons, ...synthesizedFromPlots];
-      }
-
-      if (finalSeasons.length === 0) {
+      // Chỉ sử dụng mùa vụ thực tế từ hệ thống. Nếu ngoại tuyến và chưa có cache thì mới dùng preset
+      if (finalSeasons.length === 0 && !navigator.onLine) {
         finalSeasons = [
           {
             id: 'offline_preset_plot_a',
@@ -291,6 +269,7 @@ export default function FarmingLogPage() {
       setMaterials(finalMaterials);
       setLogs(finalLogs);
       if (!farms || farms.length === 0) setFarms(finalFarms);
+      setPlots(plotsRes || []);
       setFinancials(finRes);
       setActivityTypes(typesRes || []);
       setInventory(finalInventory);
@@ -300,7 +279,7 @@ export default function FarmingLogPage() {
           const availableForFarm = selectedFarmId
             ? finalSeasons.filter((s) => s.farm?.id === selectedFarmId || s.plot?.farmId === selectedFarmId || s.plot?.farm?.id === selectedFarmId)
             : finalSeasons;
-          const candidateList = availableForFarm.length > 0 ? availableForFarm : finalSeasons;
+          const candidateList = availableForFarm.length > 0 ? availableForFarm : (selectedFarmId ? [] : finalSeasons);
           const exists = candidateList.some((s) => s.id === prev.cropCycleId);
           const firstSeason = exists ? candidateList.find((s) => s.id === prev.cropCycleId) : candidateList[0];
           return {
@@ -379,21 +358,10 @@ export default function FarmingLogPage() {
       const plotName = s.plot?.name || 'Chưa gán lô';
       const cropName = s.crop?.name || '';
 
+      // Nhãn ngắn gọn, thân thiện, dễ nhìn cho nông dân: "Tên Lô — Tên Vụ"
       let formattedLabel = s.name;
-      if (!s.isOfflineSynthesized) {
-        const parts = [`Vụ: ${s.name}`];
-        if (plotName && plotName !== 'Chưa gán lô') {
-          parts.push(`Lô: ${plotName}`);
-        }
-        if (cropName) {
-          parts.push(`(${cropName})`);
-        }
-        if (farmName) {
-          parts.push(`— Trại: ${farmName}`);
-        }
-        formattedLabel = parts.join(' · ').replace(' · (', ' (').replace(' · — ', ' — ');
-      } else {
-        formattedLabel = `${s.name}${farmName ? ` — Trại: ${farmName}` : ''}`;
+      if (plotName && plotName !== 'Chưa gán lô') {
+        formattedLabel = `${plotName} — ${s.name}`;
       }
 
       return {
@@ -418,6 +386,37 @@ export default function FarmingLogPage() {
     });
     return groups;
   }, [seasonOptions]);
+
+  const hasNoSeasonsForCurrentFarm = useMemo(() => {
+    return !seasonOptions || seasonOptions.length === 0;
+  }, [seasonOptions]);
+
+  const farmPlots = useMemo(() => {
+    let result = plots || [];
+    if (result.length === 0 && farms && farms.length > 0) {
+      result = farms.flatMap((f) => f.plots || []);
+    }
+    if (selectedFarmId) {
+      result = result.filter((p) => p.farmId === selectedFarmId);
+    }
+    return result;
+  }, [plots, farms, selectedFarmId]);
+
+  const unassignedPlots = useMemo(() => {
+    if (!farmPlots || farmPlots.length === 0) return [];
+    return farmPlots.filter((p) => {
+      const hasSeason = (seasons || []).some(
+        (s) => s.plotId === p.id || s.plot?.id === p.id
+      );
+      return !hasSeason;
+    });
+  }, [farmPlots, seasons]);
+
+  const selectedUnassignedPlot = useMemo(() => {
+    if (!form.cropCycleId || !form.cropCycleId.startsWith('unassigned_plot_')) return null;
+    const pId = form.cropCycleId.replace('unassigned_plot_', '');
+    return farmPlots.find((p) => p.id === pId) || null;
+  }, [form.cropCycleId, farmPlots]);
 
   const currentSeason = useMemo(() => {
     return (seasons || []).find((s) => s.id === form.cropCycleId);
@@ -679,8 +678,8 @@ export default function FarmingLogPage() {
   // Submit nhật ký (Tạo mới hoặc Cập nhật)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.cropCycleId) {
-      showToast('Vui lòng chọn mùa vụ canh tác (Lô & Cây trồng)!', 'error');
+    if (!form.cropCycleId || form.cropCycleId.startsWith('unassigned_plot_')) {
+      showToast('Lô đất này chưa có mùa vụ canh tác. Vui lòng chuyển sang trang Mùa Vụ để thiết lập trước!', 'warning');
       return;
     }
 
@@ -1064,7 +1063,7 @@ export default function FarmingLogPage() {
             onClick={() => setIsHarvestModalOpen(true)}
             title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
           >
-            <IconSprout size={16} strokeWidth={2.2} />
+            <IconScale size={16} strokeWidth={2.2} />
             <span>Ghi Thu Hoạch</span>
           </button>
           <button
@@ -1268,10 +1267,10 @@ export default function FarmingLogPage() {
           type="button"
           onClick={() => handleOpenCardDetail('CAPEX')}
           style={{
-            background: '#059669',
+            background: 'var(--ms-green, #107C10)',
             color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
+            border: '1px solid var(--ms-green, #107C10)',
+            borderRadius: 'var(--radius-sm)',
             padding: '6px 14px',
             fontSize: '0.82rem',
             fontWeight: 700,
@@ -1455,52 +1454,205 @@ export default function FarmingLogPage() {
             )}
           </div>
 
+          {/* Thông báo xanh nhã nhặn, đơn giản khi nông trại chưa có mùa vụ */}
+          {hasNoSeasonsForCurrentFarm && (
+            <div
+              style={{
+                background: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                marginBottom: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <IconCalendar size={18} style={{ color: '#16a34a', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.86rem', color: '#166534' }}>
+                  {selectedFarmId && currentFarm?.name
+                    ? `${currentFarm.name} chưa có mùa vụ nào.`
+                    : 'Nông trại này chưa có mùa vụ nào.'} Vui lòng thiết lập mùa vụ trước khi ghi nhật ký.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
+                style={{
+                  background: 'var(--ms-green, #107C10)',
+                  color: '#ffffff',
+                  border: '1px solid var(--ms-green, #107C10)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  fontWeight: '600',
+                  fontSize: '0.82rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <IconCalendar size={14} strokeWidth={2.2} />
+                <span>Thiết lập mùa vụ ngay &rarr;</span>
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="farming-form">
             {/* Hàng 1: Lô Đất & Mùa Vụ Canh Tác + Loại Hoạt Động Chăm Sóc */}
             <div className="form-row">
               <div className="form-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                   <label style={{ margin: 0 }}>Lô Đất & Mùa Vụ Canh Tác <span className="text-red">*</span></label>
-                  {(!seasonOptions || seasonOptions.length === 0) && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}` : '/seasons')}
-                      style={{
-                        background: '#ffffff',
-                        color: '#15803d',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '6px',
-                        padding: '3px 9px',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        cursor: 'pointer'
-                      }}
-                      title="Chuyển đến trang Mùa vụ để tạo mùa vụ mới"
-                    >
-                      + Tạo mùa vụ mới &rarr;
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
+                    style={{
+                      background: '#ffffff',
+                      color: '#15803d',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      padding: '3px 9px',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                    title="Chuyển đến trang Mùa vụ để tạo mùa vụ mới"
+                  >
+                    + Tạo mùa vụ mới &rarr;
+                  </button>
                 </div>
                 <select
                   value={form.cropCycleId}
                   onChange={(e) => handleCropCycleChange(e.target.value)}
                   className="form-control"
-                  disabled={!seasonOptions || seasonOptions.length === 0}
+                  disabled={hasNoSeasonsForCurrentFarm && unassignedPlots.length === 0}
+                  style={hasNoSeasonsForCurrentFarm && unassignedPlots.length === 0 ? { background: '#f8fafc', borderColor: '#cbd5e1', color: '#94a3b8' } : {}}
                 >
-                  {Object.keys(groupedSeasonOptions).length > 0 ? (
-                    Object.entries(groupedSeasonOptions).map(([groupFarmName, opts]) => (
-                      <optgroup key={groupFarmName} label={`🏡 ${groupFarmName}`}>
-                        {opts.map((s) => (
-                          <option key={s.value} value={s.value}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))
+                  {hasNoSeasonsForCurrentFarm && unassignedPlots.length === 0 ? (
+                    <option value="">-- Chưa có mùa vụ nào. Vui lòng thiết lập mùa vụ trước --</option>
                   ) : (
-                    <option value="">-- Chưa có mùa vụ nào --</option>
+                    <>
+                      <option value="">-- Chọn Lô / Mùa vụ --</option>
+                      {Object.entries(groupedSeasonOptions).map(([groupFarmName, opts]) => (
+                        <optgroup
+                          key={groupFarmName}
+                          label={farms.length > 1 && !selectedFarmId ? `${groupFarmName} (Đang canh tác)` : 'Mùa vụ đang canh tác'}
+                        >
+                          {opts.map((s) => (
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                      {unassignedPlots.length > 0 && (
+                        <optgroup label="Lô chưa có mùa vụ">
+                          {unassignedPlots.map((p) => (
+                            <option key={`unassigned_plot_${p.id}`} value={`unassigned_plot_${p.id}`}>
+                              {p.name} (Chưa có mùa vụ)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
                   )}
                 </select>
+
+                {/* Thông báo xanh nhã nhặn, đơn giản & đồng bộ màu sắc DalatAgri */}
+                {selectedUnassignedPlot && (
+                  <div
+                    style={{
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: '8px',
+                      padding: '10px 14px',
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <IconCalendar size={18} style={{ color: '#16a34a', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.86rem', color: '#166534' }}>
+                        Lô <strong>"{selectedUnassignedPlot.name}"</strong> chưa có mùa vụ canh tác.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          `/seasons?farmId=${selectedUnassignedPlot.farmId || selectedFarmId}&plotId=${selectedUnassignedPlot.id}&create=true`
+                        )
+                      }
+                      style={{
+                        background: 'var(--ms-green, #107C10)',
+                        color: '#ffffff',
+                        border: '1px solid var(--ms-green, #107C10)',
+                        borderRadius: '6px',
+                        padding: '6px 12px',
+                        fontWeight: '600',
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <IconCalendar size={14} strokeWidth={2.2} />
+                      <span>Thiết lập mùa vụ ngay &rarr;</span>
+                    </button>
+                  </div>
+                )}
+
+                {hasNoSeasonsForCurrentFarm && unassignedPlots.length === 0 ? (
+                  <div style={{ marginTop: '7px', fontSize: '0.83rem', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <IconInfo size={14} />
+                    <span>Lô đất / nông trại này chưa có mùa vụ nào.</span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#15803d',
+                        fontWeight: '700',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Bấm vào đây để chuyển sang trang Mùa Vụ &rarr;
+                    </button>
+                  </div>
+                ) : !selectedUnassignedPlot && (
+                  <div style={{ marginTop: '6px', fontSize: '0.8rem', color: '#64748b' }}>
+                    <span>Chưa thấy lô hoặc mùa vụ bạn cần? </span>
+                    <button
+                      type="button"
+                      onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#15803d',
+                        fontWeight: '600',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        padding: 0,
+                      }}
+                    >
+                      Tạo mùa vụ mới cho lô đất tại đây &rarr;
+                    </button>
+                  </div>
+                )}
                 {currentSeason && (
                   <div style={{ marginTop: '7px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: '0.82rem' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
@@ -1544,11 +1696,6 @@ export default function FarmingLogPage() {
                       Quản lý tại trang Mùa vụ &rarr;
                     </button>
                   </div>
-                )}
-                {(!seasonOptions || seasonOptions.length === 0) && (
-                  <small style={{ color: '#dc2626', display: 'block', marginTop: '5px', fontSize: '0.84rem' }}>
-                    Chưa có mùa vụ nào cho nông trại này.
-                  </small>
                 )}
               </div>
 
@@ -1947,24 +2094,57 @@ export default function FarmingLogPage() {
               />
             </div>
 
-            <button
-              type="submit"
-              className="btn-submit-log"
-              disabled={submitting}
-              style={editingLogId ? { background: '#0284c7', borderColor: '#0369a1' } : {}}
-            >
-              {submitting ? (
-                <>
-                  <IconRotateCw size={18} strokeWidth={2.4} className="spin-fast" />
-                  <span>{editingLogId ? 'Đang cập nhật nhật ký...' : 'Đang lưu nhật ký & hạch toán...'}</span>
-                </>
-              ) : (
-                <>
-                  <IconCheckCircle size={18} strokeWidth={2.4} />
-                  <span>{editingLogId ? 'Lưu Thay Đổi Nhật Ký Canh Tác' : 'Lưu Nhật Ký & Hạch Toán Dòng Tiền'}</span>
-                </>
-              )}
-            </button>
+            {selectedUnassignedPlot ? (
+              <button
+                type="button"
+                className="btn-submit-log"
+                onClick={() =>
+                  navigate(
+                    `/seasons?farmId=${selectedUnassignedPlot.farmId || selectedFarmId}&plotId=${selectedUnassignedPlot.id}&create=true`
+                  )
+                }
+                style={{
+                  background: 'var(--ms-green, #107C10)',
+                  borderColor: 'var(--ms-green, #107C10)',
+                  color: '#ffffff',
+                }}
+              >
+                <IconCalendar size={18} strokeWidth={2.4} />
+                <span>Lô "{selectedUnassignedPlot.name}" Chưa Có Mùa Vụ — Thiết Lập Mùa Vụ Ngay &rarr;</span>
+              </button>
+            ) : hasNoSeasonsForCurrentFarm ? (
+              <button
+                type="button"
+                className="btn-submit-log"
+                onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
+                style={{
+                  background: 'var(--ms-green, #107C10)',
+                  borderColor: 'var(--ms-green, #107C10)',
+                  color: '#ffffff',
+                }}
+              >
+                <IconCalendar size={18} strokeWidth={2.4} />
+                <span>Nông Trại Chưa Có Mùa Vụ — Thiết Lập Mùa Vụ Ngay &rarr;</span>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="btn-submit-log"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <IconRotateCw size={18} strokeWidth={2.4} className="spin-fast" />
+                    <span>{editingLogId ? 'Đang cập nhật nhật ký...' : 'Đang lưu nhật ký & hạch toán...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <IconCheckCircle size={18} strokeWidth={2.4} />
+                    <span>{editingLogId ? 'Lưu Thay Đổi Nhật Ký Canh Tác' : 'Lưu Nhật Ký & Hạch Toán Dòng Tiền'}</span>
+                  </>
+                )}
+              </button>
+            )}
           </form>
         </div>
 

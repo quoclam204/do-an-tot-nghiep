@@ -164,9 +164,9 @@
 }
 
 .btn-compact-submit {
-  background: #16a34a;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
-  border: none;
+  border: 1px solid var(--ms-green, #107C10);
   padding: 0.48rem 0.95rem;
   font-size: 0.85rem;
   font-weight: 700;
@@ -177,7 +177,8 @@
 }
 
 .btn-compact-submit:hover:not(:disabled) {
-  background: #15803d;
+  background: var(--ms-green-dark, #0a5e0a);
+  border-color: var(--ms-green-dark, #0a5e0a);
 }
 
 .btn-compact-submit:disabled {
@@ -403,9 +404,9 @@
 }
 
 .btn-compact-select {
-  background: #16a34a;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
-  border: none;
+  border: 1px solid var(--ms-green, #107C10);
   padding: 0.2rem 0.65rem;
   border-radius: 4px;
   font-size: 0.75rem;
@@ -416,7 +417,8 @@
 }
 
 .btn-compact-select:hover {
-  background: #15803d;
+  background: var(--ms-green-dark, #0a5e0a);
+  border-color: var(--ms-green-dark, #0a5e0a);
 }
 
 .btn-compact-select.is-selected {

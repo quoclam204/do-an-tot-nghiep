@@ -442,7 +442,6 @@ export default function ReportsPage() {
             <div className="export-dropdown-wrapper" ref={exportMenuRef}>
               <button
                 className="btn-apply-filter btn-export-main"
-                style={{ background: '#0284c7', border: '1px solid #0284c7' }}
                 onClick={() => setShowExportMenu(!showExportMenu)}
                 disabled={exporting}
                 title="Xuất báo cáo ra file Word, PDF hoặc Excel"

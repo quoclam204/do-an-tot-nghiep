@@ -103,11 +103,11 @@
 }
 
 .btn-puc-action.primary {
-  background: #059669;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
 }
 .btn-puc-action.primary:hover {
-  background: #047857;
+  background: var(--ms-green-dark, #0a5e0a);
 }
 
 .puc-close-btn {

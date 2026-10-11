@@ -741,6 +741,36 @@ export class CatalogService {
     });
   }
 
+  private async findMatchingCrop(farmName = '', plotName = '') {
+    const fLower = (farmName || '').toLowerCase();
+    const pLower = (plotName || '').toLowerCase();
+    const allCrops = await this.prisma.crop.findMany({ where: { deletedAt: null } });
+    if (!allCrops || allCrops.length === 0) {
+      return (this.prisma as any).crop.create({
+        data: { name: 'Cây trồng tự nhiên', type: 'OTHER' },
+      });
+    }
+    const matched = allCrops.find((c) => {
+      const cLower = (c.name || '').toLowerCase();
+      if (fLower) {
+        if (fLower.includes('dâu') && cLower.includes('dâu')) return true;
+        if (fLower.includes('cà phê') && cLower.includes('cà phê')) return true;
+        if (fLower.includes('sầu riêng') && cLower.includes('sầu riêng')) return true;
+        if (fLower.includes('rau') && cLower.includes('rau')) return true;
+        if (fLower.includes('hoa') && cLower.includes('hoa')) return true;
+        if (fLower.includes(cLower)) return true;
+      }
+      if (pLower) {
+        if (pLower.includes('dâu') && cLower.includes('dâu')) return true;
+        if (pLower.includes('cà phê') && cLower.includes('cà phê')) return true;
+        if (pLower.includes('sầu riêng') && cLower.includes('sầu riêng')) return true;
+        if (pLower.includes(cLower)) return true;
+      }
+      return false;
+    });
+    return matched || allCrops[0];
+  }
+
   async createActivityLog(input: any) {
     let cropCycle: any = null;
 
@@ -771,15 +801,7 @@ export class CatalogService {
             include: { farm: true },
           });
           if (plot) {
-            let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
-            if (!crop) {
-              crop = await (this.prisma as any).crop.create({
-                data: {
-                  name: 'Cây trồng tự nhiên',
-                  type: 'OTHER',
-                },
-              });
-            }
+            const crop = await this.findMatchingCrop(plot.farm?.name, plot.name);
             if (crop) {
               const now = new Date();
               const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
@@ -817,15 +839,7 @@ export class CatalogService {
           include: { farm: true },
         });
         if (plot) {
-          let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
-          if (!crop) {
-            crop = await (this.prisma as any).crop.create({
-              data: {
-                name: 'Cây trồng tự nhiên',
-                type: 'OTHER',
-              },
-            });
-          }
+          const crop = await this.findMatchingCrop(plot.farm?.name, plot.name);
           if (crop) {
             const now = new Date();
             const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
@@ -1071,15 +1085,7 @@ export class CatalogService {
               include: { farm: true },
             });
             if (plot) {
-              let crop = await this.prisma.crop.findFirst({ where: { deletedAt: null } });
-              if (!crop) {
-                crop = await (this.prisma as any).crop.create({
-                  data: {
-                    name: 'Cây trồng tự nhiên',
-                    type: 'OTHER',
-                  },
-                });
-              }
+              const crop = await this.findMatchingCrop(plot.farm?.name, plot.name);
               if (crop) {
                 const now = new Date();
                 const endDate = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);

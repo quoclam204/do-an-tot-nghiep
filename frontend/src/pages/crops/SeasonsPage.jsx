@@ -64,6 +64,7 @@ export default function SeasonsPage() {
   const [filterStatus, setFilterStatus] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [modalFarmFilter, setModalFarmFilter] = useState(farmIdFromUrl || '');
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -89,6 +90,21 @@ export default function SeasonsPage() {
       setGrowthCycles(cyclesRes || []);
       setPlots(plotsRes || []);
       setFarms(farmsRes || []);
+
+      if (searchParams.get('create') === 'true') {
+        const initialFarm = farmIdFromUrl || selectedFarmId || '';
+        const plotIdFromUrl = searchParams.get('plotId') || '';
+        setEditingId(null);
+        setModalFarmFilter(initialFarm);
+        const availPlots = initialFarm ? (plotsRes || []).filter((p) => p.farmId === initialFarm) : (plotsRes || []);
+        const targetPlotId = plotIdFromUrl || availPlots[0]?.id || (plotsRes || [])[0]?.id || '';
+        setForm({
+          ...emptyForm,
+          plotId: targetPlotId,
+          cropId: (cropsRes || [])[0]?.id || '',
+        });
+        setShowModal(true);
+      }
     } catch (err) {
       console.error('Lỗi tải dữ liệu mùa vụ:', err);
     } finally {
@@ -98,7 +114,7 @@ export default function SeasonsPage() {
 
   useEffect(() => {
     loadData(farmIdFromUrl || undefined);
-  }, [farmIdFromUrl]);
+  }, [farmIdFromUrl, searchParams]);
 
   // Calculate progress percentage
   const getProgress = (start, end) => {
@@ -175,8 +191,6 @@ export default function SeasonsPage() {
     const uniqueCrops = new Set(seasons.map((s) => s.cropId)).size;
     return { total: seasons.length, active, completed, upcoming, uniqueCrops };
   }, [seasons]);
-
-  const [modalFarmFilter, setModalFarmFilter] = useState('');
 
   // Lọc danh sách lô đất hiển thị trong modal theo nông trại
   const modalPlots = useMemo(() => {
@@ -363,13 +377,12 @@ export default function SeasonsPage() {
           <div className="seasons-hero-banner">
             <div className="seasons-hero-text">
               <div className="seasons-pill-tag">
-                <IconBookOpen size={16} strokeWidth={2.2} />
+                <IconCalendar size={16} strokeWidth={2.2} />
                 <span>QUẢN LÝ MÙA VỤ CANH TÁC</span>
               </div>
               <h1>Mùa vụ & Chu kỳ canh tác</h1>
               <p className="seasons-hero-desc">
-                Theo dõi tiến độ từng mùa vụ, gắn với lô trồng và cây trồng cụ thể.
-                Quản lý thời gian bắt đầu, kết thúc và trạng thái vụ mùa.
+                Quản lý lịch xuống giống, thu hoạch và tiến độ canh tác của từng lô đất.
               </p>
             </div>
             <div className="seasons-hero-actions">
@@ -386,7 +399,7 @@ export default function SeasonsPage() {
               <div className="stat-card-top">
                 <span className="stat-card-label">Tổng mùa vụ</span>
                 <div className="stat-card-icon green">
-                  <IconBookOpen size={20} strokeWidth={2} />
+                  <IconCalendar size={20} strokeWidth={2} />
                 </div>
               </div>
               <span className="stat-card-value">{stats.total}</span>
@@ -495,7 +508,7 @@ export default function SeasonsPage() {
             <div className="materials-table-card">
               <div className="seasons-empty">
                 <div className="seasons-empty-icon">
-                  <IconBookOpen size={32} strokeWidth={2} />
+                  <IconCalendar size={32} strokeWidth={2} />
                 </div>
                 <h3>Chưa có mùa vụ nào</h3>
                 <p>

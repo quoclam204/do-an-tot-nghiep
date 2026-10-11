@@ -158,15 +158,15 @@
 }
 
 .filter-chip.active {
-  background: #15803d;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
-  border-color: #15803d;
-  box-shadow: 0 2px 5px rgba(21, 128, 61, 0.25);
+  border-color: var(--ms-green, #107C10);
+  box-shadow: 0 2px 5px rgba(16, 124, 16, 0.25);
 }
 
 .filter-chip.active:hover {
-  background: #166534;
-  border-color: #166534;
+  background: var(--ms-green-dark, #0a5e0a);
+  border-color: var(--ms-green-dark, #0a5e0a);
 }
 
 /* ================= SEASONS GRID ================= */

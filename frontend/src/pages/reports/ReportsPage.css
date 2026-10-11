@@ -601,8 +601,8 @@
 }
 
 .btn-export-main:hover {
-  background: #0369a1 !important;
-  border-color: #0369a1 !important;
+  background: var(--ms-green-dark) !important;
+  border-color: var(--ms-green-dark) !important;
 }
 
 .btn-export-main:disabled {

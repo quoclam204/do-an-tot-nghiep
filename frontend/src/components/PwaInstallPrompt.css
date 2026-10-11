@@ -83,7 +83,7 @@
 }
 
 .pwa-install-btn {
-  background: #16a34a;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
   border: none;
   padding: 8px 14px;
@@ -93,11 +93,11 @@
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s, transform 0.1s;
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25);
+  box-shadow: 0 2px 4px rgba(16, 124, 16, 0.25);
 }
 
 .pwa-install-btn:hover {
-  background: #15803d;
+  background: var(--ms-green-dark, #0a5e0a);
 }
 
 .pwa-install-btn:active {
@@ -206,7 +206,7 @@
 
 .pwa-ios-done-btn {
   width: 100%;
-  background: #16a34a;
+  background: var(--ms-green, #107C10);
   color: #ffffff;
   border: none;
   padding: 11px;

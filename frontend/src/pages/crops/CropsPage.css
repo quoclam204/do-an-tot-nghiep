@@ -879,11 +879,11 @@
 }
 
 .preset-pill-btn.active {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--ms-green, #107C10);
+  border-color: var(--ms-green, #107C10);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(21, 128, 61, 0.25);
+  box-shadow: 0 2px 5px rgba(16, 124, 16, 0.25);
 }
 
 .preset-pill-icon {
@@ -1293,8 +1293,8 @@
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  background: #16a34a;
-  border: 1px solid #16a34a;
+  background: var(--ms-green, #107C10);
+  border: 1px solid var(--ms-green, #107C10);
   color: #ffffff;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1302,8 +1302,8 @@
 }
 
 .drawer-footer .crops-btn-primary:hover {
-  background: #15803d;
-  border-color: #15803d;
+  background: var(--ms-green-dark, #0a5e0a);
+  border-color: var(--ms-green-dark, #0a5e0a);
 }
 
 /* ================= RESPONSIVE ================= */

@@ -1434,7 +1434,8 @@
 }
 
 .btn-view-puc-cert:hover {
-  background: #047857;
+  background: var(--ms-green, #107C10);
+  border-color: var(--ms-green, #107C10);
   color: #ffffff;
 }
 
