@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { apiLogin, apiGoogleLogin } from '../../services/api';
+import { apiLogin, apiGoogleLogin, api } from '../../services/api';
 import GoogleLoginButton from '../../components/GoogleLoginButton';
 import { IconEye, IconEyeOff, IconWifiOff } from '../../components/icons';
 import './AuthPage.css';
@@ -12,6 +12,7 @@ function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [slowNotice, setSlowNotice] = useState(false);
 
     const { login, token, user } = useAuth();
     const navigate = useNavigate();
@@ -20,8 +21,23 @@ function LoginPage() {
     useEffect(() => {
         if (token && user) {
             navigate('/dashboard');
+        } else {
+            // Tự động "đánh thức" server Render ngầm ngay khi mở trang đăng nhập
+            api.get('/').catch(() => {});
         }
     }, [token, user, navigate]);
+
+    useEffect(() => {
+        let timer;
+        if (loading) {
+            timer = setTimeout(() => {
+                setSlowNotice(true);
+            }, 3500);
+        } else {
+            setSlowNotice(false);
+        }
+        return () => clearTimeout(timer);
+    }, [loading]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -190,6 +206,21 @@ function LoginPage() {
                                 'Đăng nhập'
                             )}
                         </button>
+                        {slowNotice && (
+                            <div style={{
+                                marginTop: '12px',
+                                padding: '10px 14px',
+                                background: '#f0fdf4',
+                                border: '1px solid #bbf7d0',
+                                borderRadius: '8px',
+                                fontSize: '0.82rem',
+                                color: '#166534',
+                                lineHeight: 1.45,
+                                textAlign: 'center'
+                            }}>
+                                ⏳ <strong>Máy chủ đang khởi động lại (Render Cold Start)</strong>: Sau một thời gian không hoạt động, máy chủ miễn phí cần khoảng 30-50 giây để khởi động container và nạp CSDL. Vui lòng giữ màn hình, bạn sẽ được chuyển vào ứng dụng ngay khi máy chủ sẵn sàng!
+                            </div>
+                        )}
                     </form>
 
                     <div className="auth-divider">
