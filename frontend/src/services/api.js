@@ -211,6 +211,18 @@ export const apiCreateGrowthCycle = async (data) => {
     return response.data;
 };
 
+/** Cập nhật chu kỳ sinh trưởng */
+export const apiUpdateGrowthCycle = async (id, data) => {
+    const response = await api.patch(`/catalog/growth-cycles/${id}`, data);
+    return response.data;
+};
+
+/** Xóa chu kỳ sinh trưởng */
+export const apiDeleteGrowthCycle = async (id) => {
+    const response = await api.delete(`/catalog/growth-cycles/${id}`);
+    return response.data;
+};
+
 /** Lấy danh sách mùa vụ / chu kỳ canh tác */
 export const apiGetSeasons = async (farmId) => {
     const response = await api.get('/catalog/seasons', { params: farmId ? { farmId } : {} });
@@ -486,15 +498,28 @@ export const apiAdminGetAllFarms = async (params = {}) => {
     return response.data;
 };
 
+/** Admin tạo nông hộ mới */
+export const apiAdminCreateFarm = async (data) => {
+    const response = await api.post('/catalog/farms', data);
+    return response.data;
+};
+
 /** Admin lấy tất cả nhật ký toàn hệ thống */
 export const apiAdminGetAllActivityLogs = async (params = {}) => {
     const response = await api.get('/catalog/admin/activity-logs', { params });
     return response.data;
 };
 
-/** Admin đặt lại mật khẩu người dùng */
-export const apiAdminResetPassword = async (userId, newPassword) => {
-    const response = await api.post(`/users/${userId}/reset-password`, { newPassword });
+/** Admin cập nhật thông tin người dùng */
+export const apiAdminUpdateUser = async (id, data) => {
+    const response = await api.patch(`/users/${id}/admin-update`, data);
     return response.data;
 };
+
+/** Admin xóa vĩnh viễn tài khoản trong thùng rác */
+export const apiAdminPermanentDeleteUser = async (id) => {
+    const response = await api.delete(`/users/${id}/permanent`);
+    return response.data;
+};
+
 

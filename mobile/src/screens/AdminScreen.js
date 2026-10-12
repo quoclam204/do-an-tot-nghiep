@@ -23,7 +23,6 @@ import {
   apiUpdateUserRole,
   apiToggleUserActive,
   apiDeleteUser,
-  apiAdminResetPassword,
   apiAdminGetAllFarms,
   apiAdminGetAllActivityLogs,
 } from '../services/api';
@@ -47,10 +46,6 @@ export default function AdminScreen() {
   const [users, setUsers] = useState([]);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
-  const [resetModalOpen, setResetModalOpen] = useState(false);
-  const [targetUser, setTargetUser] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
-  const [submittingReset, setSubmittingReset] = useState(false);
 
   // Farms All
   const [allFarms, setAllFarms] = useState([]);
@@ -159,24 +154,6 @@ export default function AdminScreen() {
         },
       },
     ]);
-  };
-
-  const handleResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      Alert.alert('Lỗi', 'Mật khẩu mới tối thiểu 6 ký tự');
-      return;
-    }
-    setSubmittingReset(true);
-    try {
-      await apiAdminResetPassword(targetUser.id, newPassword);
-      Alert.alert('Thành công', `Đã đặt lại mật khẩu cho ${targetUser.email}`);
-      setResetModalOpen(false);
-      setNewPassword('');
-    } catch {
-      Alert.alert('Lỗi', 'Không thể đặt lại mật khẩu');
-    } finally {
-      setSubmittingReset(false);
-    }
   };
 
   const filteredUsers = users.filter((u) => {
@@ -405,19 +382,6 @@ export default function AdminScreen() {
                             Đổi role
                           </Text>
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={styles.textAction}
-                          onPress={() => {
-                            setTargetUser(item);
-                            setResetModalOpen(true);
-                          }}
-                        >
-                          <Feather name="key" size={13} color={COLORS.primary} />
-                          <Text style={{ fontSize: 12, color: COLORS.primary, fontWeight: '600' }}>
-                            Reset MK
-                          </Text>
-                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>
@@ -476,55 +440,6 @@ export default function AdminScreen() {
           )}
         </View>
       )}
-
-      {/* Modal Reset Password */}
-      <Modal visible={resetModalOpen} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Đặt lại mật khẩu</Text>
-              <TouchableOpacity onPress={() => setResetModalOpen(false)}>
-                <Feather name="x" size={22} color={COLORS.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={{ padding: 16 }}>
-              <Text style={{ fontSize: 13, color: COLORS.textMuted, marginBottom: 12 }}>
-                Đặt mật khẩu mới cho tài khoản: <Text style={{ fontWeight: '700' }}>{targetUser?.email}</Text>
-              </Text>
-
-              <Text style={styles.formLabel}>Mật khẩu mới *</Text>
-              <TextInput
-                style={styles.formInput}
-                placeholder="Nhập tối thiểu 6 ký tự..."
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
-            </View>
-
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.modalCancelBtn}
-                onPress={() => setResetModalOpen(false)}
-              >
-                <Text style={styles.modalCancelText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalSubmitBtn}
-                onPress={handleResetPassword}
-                disabled={submittingReset}
-              >
-                {submittingReset ? (
-                  <ActivityIndicator color={COLORS.white} />
-                ) : (
-                  <Text style={styles.modalSubmitText}>Xác nhận</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }

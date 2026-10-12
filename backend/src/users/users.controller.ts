@@ -100,6 +100,22 @@ export class UsersController {
     return this.usersService.softDelete(id, req.user.userId);
   }
 
+  /** PATCH /users/:id/admin-update - Cập nhật thông tin người dùng (ADMIN) */
+  @Patch(':id/admin-update')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  adminUpdateUser(@Param('id') id: string, @Body() dto: { fullName?: string; phone?: string; role?: any }) {
+    return this.usersService.adminUpdateUser(id, dto);
+  }
+
+  /** DELETE /users/:id/permanent - Xóa vĩnh viễn tài khoản (ADMIN) */
+  @Delete(':id/permanent')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN')
+  permanentDelete(@Param('id') id: string, @Request() req: any) {
+    return this.usersService.permanentDelete(id, req.user.userId);
+  }
+
   /** POST /users/admin/create - Admin tạo tài khoản mới */
   @Post('admin/create')
   @UseGuards(RolesGuard)

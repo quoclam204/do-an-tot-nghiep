@@ -90,6 +90,16 @@ export class CatalogController {
     return this.catalogService.createGrowthCycle(body);
   }
 
+  @Patch('growth-cycles/:id')
+  updateGrowthCycle(@Param('id') id: string, @Body() body: any) {
+    return this.catalogService.updateGrowthCycle(id, body);
+  }
+
+  @Delete('growth-cycles/:id')
+  deleteGrowthCycle(@Param('id') id: string) {
+    return this.catalogService.deleteGrowthCycle(id);
+  }
+
   @Get('seasons')
   @UseGuards(JwtAuthGuard)
   findSeasons(@Request() req: any, @Query('farmId') farmId?: string) {

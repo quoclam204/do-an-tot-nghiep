@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   apiGetUsers, apiGetPendingUsers, apiGetDeletedUsers,
-  apiAdminCreateUser, apiUpdateUserRole, apiToggleUserActive,
+  apiAdminCreateUser, apiAdminUpdateUser, apiAdminPermanentDeleteUser,
+  apiUpdateUserRole, apiToggleUserActive,
   apiDeleteUser, apiRestoreUser, apiApproveUser, apiRejectUser,
-  apiAdminResetPassword,
 } from '../../../services/api';
 import {
   IconUsers, IconClock, IconRotateCw, IconPlus, IconLock, IconUnlock,
-  IconTrash, IconCheckCircle, IconXCircle, IconAlertTriangle, IconShield,
+  IconTrash, IconCheckCircle, IconXCircle, IconAlertTriangle,
+  IconPenLine, IconDownload, IconWarehouse,
 } from '../../../components/icons';
 
 const TABS = [
@@ -26,8 +27,8 @@ export default function PanelUsers() {
   const [success, setSuccess] = useState('');
   const [searchText, setSearchText] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(null); // userId
-  const [resetPwd, setResetPwd] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
+  const [viewingUser, setViewingUser] = useState(null);
   const [newUser, setNewUser] = useState({ fullName: '', email: '', phone: '', password: '', role: 'OWNER' });
 
   useEffect(() => { loadData(); }, [tab]);
@@ -50,29 +51,44 @@ export default function PanelUsers() {
     try { await apiApproveUser(id); showSuccess(`Đã phê duyệt tài khoản ${name}`); await loadData(); }
     catch (e) { showError(e.response?.data?.message || 'Lỗi phê duyệt'); }
   };
+
   const handleReject = async (id, name) => {
     const reason = window.prompt(`Lý do từ chối tài khoản "${name}":`);
     if (reason === null) return;
     try { await apiRejectUser(id, reason || 'Không đủ điều kiện'); showSuccess(`Đã từ chối tài khoản ${name}`); await loadData(); }
     catch (e) { showError(e.response?.data?.message || 'Lỗi từ chối'); }
   };
+
   const handleToggle = async (id) => {
-    try { await apiToggleUserActive(id); showSuccess('Đã cập nhật trạng thái'); await loadData(); }
-    catch (e) { showError(e.response?.data?.message || 'Lỗi'); }
+    try { await apiToggleUserActive(id); showSuccess('Đã cập nhật trạng thái hoạt động'); await loadData(); }
+    catch (e) { showError(e.response?.data?.message || 'Lỗi cập nhật'); }
   };
+
   const handleChangeRole = async (id, role) => {
     try { await apiUpdateUserRole(id, role); showSuccess('Đã cập nhật vai trò'); await loadData(); }
     catch (e) { showError(e.response?.data?.message || 'Lỗi đổi vai trò'); }
   };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Chuyển tài khoản này vào thùng rác?')) return;
-    try { await apiDeleteUser(id); showSuccess('Đã xóa tài khoản'); await loadData(); }
+    try { await apiDeleteUser(id); showSuccess('Đã chuyển tài khoản vào thùng rác'); await loadData(); }
     catch (e) { showError(e.response?.data?.message || 'Lỗi xóa'); }
   };
+
   const handleRestore = async (id) => {
-    try { await apiRestoreUser(id); showSuccess('Đã khôi phục tài khoản'); await loadData(); }
+    try { await apiRestoreUser(id); showSuccess('Đã khôi phục tài khoản thành công'); await loadData(); }
     catch (e) { showError(e.response?.data?.message || 'Lỗi khôi phục'); }
   };
+
+  const handlePermanentDelete = async (id, name) => {
+    if (!window.confirm(`CẢNH BÁO: Xóa vĩnh viễn tài khoản "${name}" khỏi cơ sở dữ liệu?\nHành động này không thể hoàn tác!`)) return;
+    try {
+      await apiAdminPermanentDeleteUser(id);
+      showSuccess(`Đã xóa vĩnh viễn tài khoản ${name}`);
+      await loadData();
+    } catch (e) { showError(e.response?.data?.message || 'Lỗi xóa vĩnh viễn'); }
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault(); setLoading(true);
     try {
@@ -84,13 +100,45 @@ export default function PanelUsers() {
     } catch (e) { showError(e.response?.data?.message || 'Lỗi tạo tài khoản'); }
     finally { setLoading(false); }
   };
-  const handleResetPwd = async () => {
-    if (!resetPwd || resetPwd.length < 6) { showError('Mật khẩu phải ít nhất 6 ký tự'); return; }
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setLoading(true);
     try {
-      const res = await apiAdminResetPassword(showResetModal, resetPwd);
-      showSuccess(res.message || 'Đã đặt lại mật khẩu');
-      setShowResetModal(null); setResetPwd('');
-    } catch (e) { showError(e.response?.data?.message || 'Lỗi đặt lại mật khẩu'); }
+      await apiAdminUpdateUser(editingUser.id, {
+        fullName: editingUser.fullName,
+        phone: editingUser.phone,
+        role: editingUser.role,
+      });
+      showSuccess(`Đã cập nhật thông tin tài khoản ${editingUser.fullName}`);
+      setEditingUser(null);
+      await loadData();
+    } catch (e) { showError(e.response?.data?.message || 'Lỗi cập nhật người dùng'); }
+    finally { setLoading(false); }
+  };
+
+  const handleExportCSV = () => {
+    const list = tab === 'active' ? activeList : tab === 'pending' ? pendingList : deletedList;
+    if (list.length === 0) return;
+    const header = ['Họ và tên', 'Email', 'Số điện thoại', 'Vai trò', 'Trạng thái', 'Ngày đăng ký', 'Đăng nhập cuối'];
+    const rows = list.map(u => [
+      `"${u.fullName || ''}"`,
+      `"${u.email || ''}"`,
+      `"${u.phone || ''}"`,
+      `"${u.role || ''}"`,
+      `"${u.isActive ? 'Hoạt động' : 'Bị khóa'}"`,
+      `"${u.createdAt ? new Date(u.createdAt).toLocaleDateString('vi-VN') : ''}"`,
+      `"${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('vi-VN') : ''}"`,
+    ]);
+    const csv = '\ufeff' + [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `danh-sach-nguoi-dung-${tab}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const activeList = users.filter(u => !searchText || u.fullName?.toLowerCase().includes(searchText.toLowerCase()) || u.email?.toLowerCase().includes(searchText.toLowerCase()));
@@ -122,6 +170,9 @@ export default function PanelUsers() {
         </div>
         <div className="toolbar-right">
           <input className="search-input" placeholder="Tìm kiếm tên, email..." value={searchText} onChange={e => setSearchText(e.target.value)} />
+          <button className="btn-action-secondary" onClick={handleExportCSV} title="Xuất dữ liệu CSV">
+            <IconDownload size={14} /> Xuất CSV
+          </button>
           <button className="btn-action-primary" onClick={() => setShowCreateModal(true)}>
             <IconPlus size={15} /> Tạo tài khoản
           </button>
@@ -144,7 +195,15 @@ export default function PanelUsers() {
                   <tr><td colSpan={7} className="table-empty">Không tìm thấy tài khoản nào</td></tr>
                 ) : activeList.map(u => (
                   <tr key={u.id}>
-                    <td><div className="user-cell"><span className="user-avatar-sm">{u.fullName?.charAt(0) || 'U'}</span><strong>{u.fullName || '—'}</strong></div></td>
+                    <td>
+                      <div className="user-cell" style={{ cursor: 'pointer' }} onClick={() => setViewingUser(u)} title="Bấm để xem chi tiết">
+                        <span className="user-avatar-sm">{u.fullName?.charAt(0) || 'U'}</span>
+                        <div>
+                          <strong>{u.fullName || '—'}</strong>
+                          {u.farms?.length > 0 && <span className="text-muted text-xs block">{u.farms.length} nông trại</span>}
+                        </div>
+                      </div>
+                    </td>
                     <td className="text-muted">{u.email}</td>
                     <td className="text-muted">{u.phone || '—'}</td>
                     <td>
@@ -164,11 +223,14 @@ export default function PanelUsers() {
                     <td className="text-muted text-sm">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('vi-VN') : '—'}</td>
                     <td>
                       <div className="action-btns">
-                        <button className={`btn-xs ${u.isActive ? 'orange' : 'green'}`} onClick={() => handleToggle(u.id)} title={u.isActive ? 'Khóa' : 'Mở khóa'}>
-                          {u.isActive ? <><IconLock size={12} />Khóa</> : <><IconUnlock size={12} />Mở</>}
+                        <button className="btn-xs gray" onClick={() => setViewingUser(u)} title="Xem chi tiết người dùng">
+                          Chi tiết
                         </button>
-                        <button className="btn-xs blue" onClick={() => setShowResetModal(u.id)} title="Đặt lại mật khẩu">
-                          <IconShield size={12} />Mật khẩu
+                        <button className="btn-xs blue" onClick={() => setEditingUser({ ...u })} title="Chỉnh sửa thông tin">
+                          <IconPenLine size={12} />Sửa
+                        </button>
+                        <button className={`btn-xs ${u.isActive ? 'orange' : 'green'}`} onClick={() => handleToggle(u.id)} title={u.isActive ? 'Khóa tài khoản' : 'Mở khóa tài khoản'}>
+                          {u.isActive ? <><IconLock size={12} />Khóa</> : <><IconUnlock size={12} />Mở</>}
                         </button>
                         <button className="btn-xs red" onClick={() => handleDelete(u.id)} title="Chuyển vào thùng rác">
                           <IconTrash size={12} />Xóa
@@ -224,7 +286,7 @@ export default function PanelUsers() {
           <div className="panel-table-container">
             <table className="panel-table">
               <thead><tr>
-                <th>Họ và tên</th><th>Email</th><th>Vai trò</th><th>Thời điểm xóa</th><th className="text-center">Khôi phục</th>
+                <th>Họ và tên</th><th>Email</th><th>Vai trò</th><th>Thời điểm xóa</th><th className="text-center">Thao tác</th>
               </tr></thead>
               <tbody>
                 {loading ? (
@@ -238,7 +300,8 @@ export default function PanelUsers() {
                     <td><span className="role-badge">{u.role}</span></td>
                     <td className="text-muted">{new Date(u.deletedAt).toLocaleString('vi-VN')}</td>
                     <td><div className="action-btns justify-center">
-                      <button className="btn-xs green" onClick={() => handleRestore(u.id)}><IconRotateCw size={12} />Khôi phục</button>
+                      <button className="btn-xs green" onClick={() => handleRestore(u.id)} title="Khôi phục lại tài khoản"><IconRotateCw size={12} />Khôi phục</button>
+                      <button className="btn-xs red" onClick={() => handlePermanentDelete(u.id, u.fullName || u.email)} title="Xóa vĩnh viễn khỏi CSDL"><IconTrash size={12} />Xóa vĩnh viễn</button>
                     </div></td>
                   </tr>
                 ))}
@@ -270,8 +333,9 @@ export default function PanelUsers() {
                 <input type="tel" value={newUser.phone} onChange={e => setNewUser({...newUser, phone: e.target.value})} placeholder="0912345678" />
               </div>
               <div className="form-row">
-                <label>Mật khẩu <span className="req">*</span></label>
-                <input type="password" required minLength={6} value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} placeholder="Tối thiểu 6 ký tự" />
+                <label>Mật khẩu khởi tạo</label>
+                <input type="password" minLength={6} value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} placeholder="Để trống nếu muốn hệ thống tự sinh mã bảo mật" />
+                <span className="text-muted text-xs mt-1">Gợi ý: Có thể để trống, hệ thống sẽ tự sinh mật khẩu bảo mật và gửi hướng dẫn kích hoạt cho người dùng.</span>
               </div>
               <div className="form-row">
                 <label>Vai trò</label>
@@ -290,22 +354,78 @@ export default function PanelUsers() {
         </div>
       )}
 
-      {/* Modal: Reset mật khẩu */}
-      {showResetModal && (
-        <div className="modal-backdrop" onClick={() => setShowResetModal(null)}>
-          <div className="modal-dialog sm" onClick={e => e.stopPropagation()}>
+      {/* Modal: Chỉnh sửa người dùng */}
+      {editingUser && (
+        <div className="modal-backdrop" onClick={() => setEditingUser(null)}>
+          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title"><IconShield size={18} className="text-primary-green" /><h3>Đặt lại mật khẩu</h3></div>
-              <button className="modal-close" onClick={() => setShowResetModal(null)}>&times;</button>
+              <div className="modal-title"><IconPenLine size={18} className="text-primary-green" /><h3>Chỉnh sửa tài khoản</h3></div>
+              <button className="modal-close" onClick={() => setEditingUser(null)}>&times;</button>
             </div>
-            <div className="modal-form">
+            <form onSubmit={handleUpdate} className="modal-form">
               <div className="form-row">
-                <label>Mật khẩu mới <span className="req">*</span></label>
-                <input type="password" minLength={6} value={resetPwd} onChange={e => setResetPwd(e.target.value)} placeholder="Ít nhất 6 ký tự" />
+                <label>Email (Định danh cố định)</label>
+                <input disabled value={editingUser.email} style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+              </div>
+              <div className="form-row">
+                <label>Họ và tên <span className="req">*</span></label>
+                <input required value={editingUser.fullName || ''} onChange={e => setEditingUser({...editingUser, fullName: e.target.value})} />
+              </div>
+              <div className="form-row">
+                <label>Số điện thoại</label>
+                <input type="tel" value={editingUser.phone || ''} onChange={e => setEditingUser({...editingUser, phone: e.target.value})} placeholder="0912345678" />
+              </div>
+              <div className="form-row">
+                <label>Vai trò người dùng</label>
+                <select value={editingUser.role} onChange={e => setEditingUser({...editingUser, role: e.target.value})}>
+                  <option value="OWNER">Chủ nông hộ (OWNER)</option>
+                  <option value="ADMIN">Quản trị viên (ADMIN)</option>
+                  <option value="WORKER">Công nhân (WORKER)</option>
+                </select>
               </div>
               <div className="modal-footer">
-                <button className="btn-cancel" onClick={() => setShowResetModal(null)}>Hủy</button>
-                <button className="btn-primary" onClick={handleResetPwd}>Đặt lại mật khẩu</button>
+                <button type="button" className="btn-cancel" onClick={() => setEditingUser(null)}>Hủy</button>
+                <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Chi tiết người dùng */}
+      {viewingUser && (
+        <div className="modal-backdrop" onClick={() => setViewingUser(null)}>
+          <div className="modal-dialog" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title"><IconUsers size={18} className="text-primary-green" /><h3>Chi tiết tài khoản</h3></div>
+              <button className="modal-close" onClick={() => setViewingUser(null)}>&times;</button>
+            </div>
+            <div className="modal-form">
+              <div className="detail-grid-user" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div><span className="text-muted text-xs">Họ và tên:</span><p><strong>{viewingUser.fullName || '—'}</strong></p></div>
+                <div><span className="text-muted text-xs">Email:</span><p><strong>{viewingUser.email}</strong></p></div>
+                <div><span className="text-muted text-xs">Số điện thoại:</span><p><strong>{viewingUser.phone || 'Chưa cập nhật'}</strong></p></div>
+                <div><span className="text-muted text-xs">Vai trò hệ thống:</span><p><span className="role-badge">{viewingUser.role}</span></p></div>
+                <div><span className="text-muted text-xs">Trạng thái:</span><p><span className={`status-badge ${viewingUser.isActive ? 'active' : 'inactive'}`}>{viewingUser.isActive ? 'Đang hoạt động' : 'Bị khóa'}</span></p></div>
+                <div><span className="text-muted text-xs">Xét duyệt:</span><p><span className="status-badge active">{viewingUser.approvalStatus || 'APPROVED'}</span></p></div>
+                <div><span className="text-muted text-xs">Ngày đăng ký:</span><p>{viewingUser.createdAt ? new Date(viewingUser.createdAt).toLocaleString('vi-VN') : '—'}</p></div>
+                <div><span className="text-muted text-xs">Đăng nhập gần nhất:</span><p>{viewingUser.lastLoginAt ? new Date(viewingUser.lastLoginAt).toLocaleString('vi-VN') : 'Chưa đăng nhập'}</p></div>
+              </div>
+              {viewingUser.farms?.length > 0 && (
+                <div className="user-farms-section">
+                  <h4 style={{ fontSize: '0.9rem', marginBottom: '8px' }}><IconWarehouse size={14} /> Nông trại sở hữu ({viewingUser.farms.length})</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {viewingUser.farms.map(f => (
+                      <li key={f.id} style={{ padding: '6px 10px', background: 'var(--surface-sunken)', borderRadius: '6px', marginBottom: '6px', fontSize: '0.85rem' }}>
+                        <strong>{f.name}</strong> — {f.location} ({f.totalArea} ha)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => setViewingUser(null)}>Đóng</button>
+                <button type="button" className="btn-primary" onClick={() => { setEditingUser({ ...viewingUser }); setViewingUser(null); }}>Chỉnh sửa</button>
               </div>
             </div>
           </div>

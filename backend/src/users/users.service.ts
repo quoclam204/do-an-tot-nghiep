@@ -305,6 +305,35 @@ export class UsersService {
     });
   }
 
+  /** Admin cập nhật thông tin người dùng */
+  async adminUpdateUser(id: string, dto: { fullName?: string; phone?: string; role?: any }) {
+    const user = await this.prisma.user.findFirst({ where: { id, deletedAt: null } });
+    if (!user) throw new BadRequestException('Người dùng không tồn tại');
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        ...(dto.fullName && { fullName: dto.fullName.trim() }),
+        ...(dto.phone !== undefined && { phone: dto.phone ? dto.phone.trim() : null }),
+        ...(dto.role && { role: dto.role }),
+      },
+      select: {
+        id: true, email: true, phone: true, fullName: true, role: true, isActive: true, approvalStatus: true,
+      },
+    });
+  }
+
+  /** Xóa vĩnh viễn tài khoản trong thùng rác (ADMIN) */
+  async permanentDelete(id: string, requesterId: string) {
+    if (id === requesterId) throw new ForbiddenException('Không thể xóa tài khoản của chính mình');
+    const user = await this.prisma.user.findFirst({ where: { id } });
+    if (!user) throw new BadRequestException('Người dùng không tồn tại');
+
+    await this.prisma.refreshToken.deleteMany({ where: { userId: id } });
+    await this.prisma.farmMember.deleteMany({ where: { userId: id } });
+    return this.prisma.user.delete({ where: { id } });
+  }
+
   /** Admin tạo tài khoản cho nông hộ (Admin không được đặt hoặc biết mật khẩu) */
   async createByAdmin(dto: { email: string; fullName: string; password?: string; role?: string; phone?: string }) {
     const email = dto.email.trim().toLowerCase();

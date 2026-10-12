@@ -266,6 +266,64 @@ export class CatalogService {
     });
   }
 
+  async updateGrowthCycle(id: string, input: any) {
+    const cycle = await this.prisma.growthCycle.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!cycle) throw new NotFoundException('Không tìm thấy chu kỳ sinh trưởng');
+    const stages = input.stages || [];
+    let totalDurationDays = cycle.totalDurationDays;
+    if (stages.length > 0) {
+      totalDurationDays = stages.reduce((sum: number, s: any) => sum + (Number(s.durationDays) || 0), 0);
+    }
+    const updateData: any = {};
+    if (input.name) updateData.name = this.text(input.name, 'name');
+    if (input.description !== undefined) updateData.description = input.description;
+    if (input.cropId) updateData.cropId = input.cropId;
+    if (input.yearsToFlower !== undefined) updateData.yearsToFlower = input.yearsToFlower ? Number(input.yearsToFlower) : null;
+    if (input.yearsToHarvest !== undefined) updateData.yearsToHarvest = input.yearsToHarvest ? Number(input.yearsToHarvest) : null;
+    if (stages.length > 0) updateData.totalDurationDays = totalDurationDays;
+
+    await this.prisma.growthCycle.update({
+      where: { id },
+      data: updateData,
+    });
+
+    if (stages.length > 0) {
+      await this.prisma.growthStage.deleteMany({ where: { growthCycleId: id } });
+      for (let i = 0; i < stages.length; i++) {
+        const stage = stages[i];
+        await this.prisma.growthStage.create({
+          data: {
+            growthCycleId: id,
+            name: this.text(stage.name, 'stage.name'),
+            sequence: stage.sequence ?? i + 1,
+            durationDays: this.positiveInteger(stage.durationDays, 'durationDays'),
+            description: stage.description || null,
+            suggestedActivities: stage.suggestedActivities || null,
+          },
+        });
+      }
+    }
+
+    return this.prisma.growthCycle.findUnique({
+      where: { id },
+      include: { stages: { orderBy: { sequence: 'asc' } }, crop: true },
+    });
+  }
+
+  async deleteGrowthCycle(id: string) {
+    const cycle = await this.prisma.growthCycle.findFirst({
+      where: { id, deletedAt: null },
+    });
+    if (!cycle) throw new NotFoundException('Không tìm thấy chu kỳ sinh trưởng');
+    await this.prisma.growthStage.updateMany({
+      where: { growthCycleId: id },
+      data: { deletedAt: new Date() },
+    });
+    return this.softDelete(this.prisma.growthCycle, id);
+  }
+
   findSeasons(userId?: string, role?: string, farmId?: string) {
     const where: any = { deletedAt: null };
     if (farmId && isUUID(farmId)) {
@@ -1226,6 +1284,7 @@ export class CatalogService {
       laborCost,
       otherCosts,
       cost: totalCost,
+      ...(input.syncStatus && { syncStatus: input.syncStatus }),
     };
 
     if (input.activityType === 'THU_HOACH' || log.activityType === 'THU_HOACH') {
