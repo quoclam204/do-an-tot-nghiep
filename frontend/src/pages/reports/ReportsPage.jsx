@@ -48,7 +48,7 @@ import {
 import { exportToPDF, exportToExcel, exportToWord } from '../../utils/exportReport';
 import './ReportsPage.css';
 
-const COLORS = ['#16a34a', '#d97706', '#dc2626', '#8b5cf6', '#0284c7', '#f43f5e'];
+const COLORS = ['#107C10', '#d97706', '#dc2626', '#8b5cf6', '#0284c7', '#f43f5e'];
 
 const ACTIVITY_LABELS = {
   BON_PHAN: 'Bón phân',
@@ -385,12 +385,12 @@ export default function ReportsPage() {
             <div className="reports-hero-text">
               <div className="reports-pill-tag">
                 <IconLineChart size={16} strokeWidth={2.2} />
-                <span>BÁO CÁO KINH TẾ NÔNG HỘ</span>
+                <span>BÁO CÁO THU CHI NÔNG HỘ</span>
               </div>
-              <h1>Báo cáo tổng hợp chi phí & doanh thu</h1>
+              <h1>Báo cáo thu chi & hiệu quả mùa vụ</h1>
               <p className="reports-hero-desc">
-                Phân tích cơ cấu chi phí, lượng vật tư tiêu thụ, doanh thu thu hoạch
-                và lợi nhuận ròng theo từng mùa vụ hoặc khoảng thời gian.
+                Theo dõi rõ ràng các khoản tiền vốn đầu tư, chi phí vật tư, tiền bán nông sản
+                và lợi nhuận thực tế theo từng mùa vụ canh tác.
               </p>
             </div>
           </div>
@@ -446,147 +446,117 @@ export default function ReportsPage() {
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
-            <button className="btn-apply-filter" onClick={handleApplyFilter}>
-              <IconCheckCircle size={16} strokeWidth={2.5} />
-              Áp dụng bộ lọc
-            </button>
-            <div className="export-dropdown-wrapper" ref={exportMenuRef}>
-              <button
-                className="btn-apply-filter btn-export-main"
-                onClick={() => setShowExportMenu(!showExportMenu)}
-                disabled={exporting}
-                title="Xuất báo cáo ra file Word, PDF hoặc Excel"
-              >
-                {exporting ? (
-                  <span className="export-spinner" />
-                ) : (
-                  <IconPrinter size={16} strokeWidth={2} />
-                )}
-                <span>{exporting ? 'Đang xuất...' : 'Xuất báo cáo'}</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2 }}>
-                  <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+            <div className="report-filter-actions">
+              <button className="btn-apply-filter" onClick={handleApplyFilter}>
+                <IconCheckCircle size={16} strokeWidth={2.5} />
+                <span>Xem báo cáo</span>
               </button>
-              {showExportMenu && (
-                <div className="export-dropdown-menu">
-                  <div className="export-dropdown-header">Chọn định dạng xuất</div>
-                  <button className="export-dropdown-item" onClick={() => handleExport('pdf')}>
-                    <span className="export-icon export-icon-pdf">PDF</span>
-                    <div className="export-item-text">
-                      <strong>Xuất file PDF</strong>
-                      <span>Báo cáo dạng bảng số liệu, dễ in ấn</span>
-                    </div>
-                  </button>
-                  <button className="export-dropdown-item" onClick={() => handleExport('word')}>
-                    <span className="export-icon export-icon-word">DOC</span>
-                    <div className="export-item-text">
-                      <strong>Xuất file Word</strong>
-                      <span>File .docx có thể chỉnh sửa</span>
-                    </div>
-                  </button>
-                  <button className="export-dropdown-item" onClick={() => handleExport('excel')}>
-                    <span className="export-icon export-icon-excel">XLS</span>
-                    <div className="export-item-text">
-                      <strong>Xuất file Excel</strong>
-                      <span>Dữ liệu dạng bảng tính .xlsx</span>
-                    </div>
-                  </button>
-                </div>
-              )}
+              <div className="export-dropdown-wrapper" ref={exportMenuRef}>
+                <button
+                  className="btn-apply-filter btn-export-main"
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  disabled={exporting}
+                  title="Xuất báo cáo ra file Word, PDF hoặc Excel"
+                >
+                  {exporting ? (
+                    <span className="export-spinner" />
+                  ) : (
+                    <IconPrinter size={16} strokeWidth={2} />
+                  )}
+                  <span>{exporting ? 'Đang xuất...' : 'Xuất báo cáo'}</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ marginLeft: 2 }}>
+                    <path d="M3 5L6 8L9 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                {showExportMenu && (
+                  <div className="export-dropdown-menu">
+                    <div className="export-dropdown-header">Chọn định dạng xuất</div>
+                    <button className="export-dropdown-item" onClick={() => handleExport('pdf')}>
+                      <span className="export-icon export-icon-pdf">PDF</span>
+                      <div className="export-item-text">
+                        <strong>Xuất file PDF</strong>
+                        <span>Báo cáo bảng số liệu, thuận tiện in ấn</span>
+                      </div>
+                    </button>
+                    <button className="export-dropdown-item" onClick={() => handleExport('word')}>
+                      <span className="export-icon export-icon-word">DOC</span>
+                      <div className="export-item-text">
+                        <strong>Xuất file Word</strong>
+                        <span>Tài liệu .docx có thể chỉnh sửa</span>
+                      </div>
+                    </button>
+                    <button className="export-dropdown-item" onClick={() => handleExport('excel')}>
+                      <span className="export-icon export-icon-excel">XLS</span>
+                      <div className="export-item-text">
+                        <strong>Xuất file Excel</strong>
+                        <span>Bảng tính chi tiết .xlsx</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* BÁO CÁO CHI TIẾT TỔNG KẾT VỤ MÙA */}
+          {/* BÁO CÁO CHI TIẾT TỔNG KẾT VỤ MÙA (NỀN TRẮNG THANH LỊCH) */}
           {seasonSummary && (
-            <div className="season-summary-card" style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              marginBottom: '1.5rem',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1rem' }}>
+            <div className="season-summary-card">
+              <div className="season-summary-header">
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <IconSprout size={20} strokeWidth={2.2} style={{ color: '#16a34a' }} />
-                      <span>{seasonSummary.season?.name}</span>
-                    </span>
-                    <span style={{
-                      background: seasonSummary.season?.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9',
-                      color: seasonSummary.season?.status === 'ACTIVE' ? '#166534' : '#475569',
-                      padding: '2px 8px',
-                      borderRadius: '999px',
-                      fontSize: '0.75rem',
-                      fontWeight: 700
-                    }}>
+                  <div className="season-summary-title">
+                    <IconSprout size={20} strokeWidth={2.2} style={{ color: 'var(--ms-green, #107C10)' }} />
+                    <span>{seasonSummary.season?.name}</span>
+                    <span className={`season-status-pill ${seasonSummary.season?.status === 'ACTIVE' ? 'active' : ''}`}>
                       {seasonSummary.season?.status === 'ACTIVE' ? 'Đang canh tác' : 'Đã kết thúc vụ'}
                     </span>
                   </div>
-                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.9rem' }}>
+                  <p className="season-summary-subtitle">
                     Cây trồng: <strong>{seasonSummary.season?.cropName}</strong> | Lô: <strong>{seasonSummary.season?.plotName}</strong> | Nông trại: <strong>{seasonSummary.season?.farmName}</strong>
                   </p>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>Thời gian vụ mùa</div>
-                  <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.9rem' }}>
+                <div className="season-summary-dates">
+                  <div className="season-dates-label">Thời gian vụ mùa</div>
+                  <div className="season-dates-value">
                     {formatDate(seasonSummary.season?.startDate)} ➔ {formatDate(seasonSummary.season?.actualEndDate || seasonSummary.season?.expectedEndDate)}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '1rem', border: '1px solid #fecaca' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 600 }}>TỔNG ĐẦU TƯ VỤ MÙA</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b91c1c', margin: '4px 0' }}>
+              <div className="season-summary-stats-grid">
+                <div className="season-stat-box">
+                  <div className="season-stat-label">Tổng vốn đầu tư vụ mùa</div>
+                  <div className="season-stat-val text-red">
                     {formatMoney(seasonSummary.summary?.totalInvestment)}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#7f1d1d', lineHeight: '1.5' }}>
+                  <div className="season-stat-sub">
                     • Vật tư: {formatMoney(seasonSummary.summary?.totalMaterialCost)}<br />
-                    • Nhân công: {formatMoney(seasonSummary.summary?.totalLaborCost)} ({seasonSummary.summary?.totalWorkers || 0} công)<br />
-                    • Chi phí khác: {formatMoney(seasonSummary.summary?.totalOtherCosts)}
+                    • Công lao động: {formatMoney(seasonSummary.summary?.totalLaborCost)} ({seasonSummary.summary?.totalWorkers || 0} công)<br />
+                    • Chi khác: {formatMoney(seasonSummary.summary?.totalOtherCosts)}
                   </div>
                 </div>
 
-                <div style={{ background: '#eff6ff', borderRadius: '12px', padding: '1rem', border: '1px solid #bfdbfe' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600 }}>TỔNG DOANH THU THU HOẠCH</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
+                <div className="season-stat-box">
+                  <div className="season-stat-label">Tổng tiền bán nông sản</div>
+                  <div className="season-stat-val text-blue">
                     {formatMoney(seasonSummary.summary?.totalRevenue)}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#1e3a8a', lineHeight: '1.5' }}>
-                    • Sản lượng: <strong>{(seasonSummary.summary?.totalHarvestQty || 0).toLocaleString()} kg</strong><br />
-                    • Đơn giá trung bình: {seasonSummary.summary?.totalHarvestQty > 0 ? formatMoney(seasonSummary.summary?.totalRevenue / seasonSummary.summary?.totalHarvestQty) : '—'}/kg
+                  <div className="season-stat-sub">
+                    • Đã thu hoạch: <strong>{(seasonSummary.summary?.totalHarvestQty || 0).toLocaleString()} kg</strong><br />
+                    • Giá bán bình quân: {seasonSummary.summary?.totalHarvestQty > 0 ? formatMoney(seasonSummary.summary?.totalRevenue / seasonSummary.summary?.totalHarvestQty) : '—'}/kg
                   </div>
                 </div>
 
-                <div style={{
-                  background: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#f0fdf4' : '#fff1f2',
-                  borderRadius: '12px',
-                  padding: '1rem',
-                  border: `1px solid ${(seasonSummary.summary?.netProfit || 0) >= 0 ? '#bbf7d0' : '#fecdd3'}`
-                }}>
-                  <div style={{
-                    fontSize: '0.8rem',
-                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#166534' : '#9f1239',
-                    fontWeight: 600
-                  }}>
-                    LỢI NHUẬN RÒNG & HIỆU QUẢ VỐN
+                <div className="season-stat-box">
+                  <div className="season-stat-label">Tiền lời / lỗ vụ mùa</div>
+                  <div className={`season-stat-val ${(seasonSummary.summary?.netProfit || 0) >= 0 ? 'text-green' : 'text-red'}`}>
+                    {(seasonSummary.summary?.netProfit || 0) >= 0 ? '+' : ''}{formatMoney(seasonSummary.summary?.netProfit)}
                   </div>
-                  <div style={{
-                    fontSize: '1.4rem',
-                    fontWeight: 800,
-                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#15803d' : '#e11d48',
-                    margin: '4px 0'
-                  }}>
-                    {formatMoney(seasonSummary.summary?.netProfit)}
-                  </div>
-                  <div style={{
-                    fontSize: '0.75rem',
-                    color: (seasonSummary.summary?.netProfit || 0) >= 0 ? '#14532d' : '#881337',
-                    fontWeight: 600
-                  }}>
-                    Tỷ suất hoàn vốn ROI: {seasonSummary.summary?.roiPercentage || 0}%
+                  <div className="season-stat-sub">
+                    {(seasonSummary.summary?.netProfit || 0) >= 0 ? (
+                      <span className="badge-kpi-status badge-status-profit">🌾 Có lãi (Tỷ suất ROI: {seasonSummary.summary?.roiPercentage || 0}%)</span>
+                    ) : (
+                      <span className="badge-kpi-status badge-status-investing">🌱 Đang đầu tư vụ mùa</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -596,297 +566,295 @@ export default function ReportsPage() {
           {/* THANH TIÊU ĐỀ KHU VỰC THẺ TÀI CHÍNH */}
           <div className="kpi-header-row">
             <div className="kpi-header-title">
-              <IconCalculator size={17} strokeWidth={2.4} />
-              <span>TỔNG QUAN HIỆU QUẢ KINH TẾ</span>
-            </div>
-          </div>
-
-          {/* DASHBOARD TÀI CHÍNH (KPI CARDS) */}
-          <div className="reports-kpi-grid">
-            {/* THẺ 1: TỔNG CHI PHÍ ĐẦU TƯ */}
-            <div className="kpi-card bg-red-light">
-              <div
-                className="kpi-top-row"
-                onClick={() => handleOpenCardDetail('EXPENSE')}
-                title="Bấm để xem chi tiết cách tính chi phí đầu tư"
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="kpi-label">TỔNG CHI PHÍ ĐẦU TƯ</span>
-                <div className="kpi-top-actions">
-                  <button
-                    type="button"
-                    className="btn-text-breakdown"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenCardDetail('EXPENSE');
-                    }}
-                    title="Xem chi tiết các khoản chi phí đầu tư"
-                  >
-                    <IconInfo size={13} strokeWidth={2.2} />
-                    <span>Chi tiết</span>
-                  </button>
-                  <div className="kpi-icon-wrap text-red">
-                    <IconCircleDollar size={18} strokeWidth={2} />
-                  </div>
-                </div>
+              <div className="kpi-title-icon-badge">
+                <IconCalculator size={18} strokeWidth={2.4} />
               </div>
-              <span className="kpi-value text-red">
-                {formatMoney(totalExpense)}
-              </span>
-              <div className="kpi-subtext">
-                Vật tư: {formatMoney(financials?.totalMaterialCost)} | Nhân công:{' '}
-                {formatMoney(financials?.totalLaborCost)}
+              <div>
+                <h2>TỔNG QUAN HIỆU QUẢ KINH TẾ</h2>
+                <p className="kpi-header-subtitle">Số liệu tổng hợp tiền chi, tiền thu và tiền lãi thực tế</p>
               </div>
             </div>
-
-            {/* THẺ 2: TỔNG DOANH THU THU HOẠCH */}
-            <div className="kpi-card bg-blue-light kpi-card-harvest-highlight">
-              <div
-                className="kpi-top-row"
-                onClick={() => handleOpenCardDetail('REVENUE')}
-                title="Bấm để xem chi tiết cách tính doanh thu thu hoạch"
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="kpi-label">TỔNG DOANH THU THU HOẠCH</span>
-                <div className="kpi-top-actions">
-                  <button
-                    type="button"
-                    className="btn-text-breakdown"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenCardDetail('REVENUE');
-                    }}
-                    title="Xem chi tiết các đợt bán nông sản"
-                  >
-                    <IconInfo size={13} strokeWidth={2.2} />
-                    <span>Chi tiết</span>
-                  </button>
-                  <div className="kpi-icon-wrap text-blue">
-                    <IconLineChart size={18} strokeWidth={2} />
-                  </div>
-                </div>
-              </div>
-              <span className="kpi-value text-blue">
-                {formatMoney(totalRevenue)}
-              </span>
-              <div className="kpi-subtext">
-                Sản lượng thu hoạch: {(financials?.totalHarvestQty || 0).toLocaleString()} kg
-              </div>
+            <div className="kpi-header-actions">
               <button
                 type="button"
                 className="btn-kpi-harvest-action"
                 onClick={() => setIsHarvestModalOpen(true)}
-                title="Bấm để mở bảng ghi nhận thu hoạch và tính tiền bán nhanh chóng"
+                title="Bấm để ghi nhận nhanh sản lượng vừa hái và tiền bán nông sản"
               >
-                <IconSprout size={15} strokeWidth={2.2} />
-                <span>+ Ghi Nhận Thu Hoạch Ngay</span>
+                <IconSprout size={16} strokeWidth={2.2} />
+                <span>+ Ghi nhận thu hoạch</span>
               </button>
             </div>
+          </div>
 
-            {/* THẺ 3: LỢI NHUẬN RÒNG */}
-            <div className="kpi-card bg-green-light">
-              <div
-                className="kpi-top-row"
-                onClick={() => handleOpenCardDetail('PROFIT')}
-                title="Bấm để xem chi tiết cách tính lợi nhuận ròng và ROI"
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="kpi-label">LỢI NHUẬN RÒNG (NET PROFIT)</span>
-                <div className="kpi-top-actions">
-                  <button
-                    type="button"
-                    className="btn-text-breakdown"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenCardDetail('PROFIT');
-                    }}
-                    title="Xem chi tiết công thức tính tiền lãi thực tế"
-                  >
-                    <IconInfo size={13} strokeWidth={2.2} />
-                    <span>Chi tiết</span>
-                  </button>
-                  <div className="kpi-icon-wrap text-green">
-                    <IconCalculator size={18} strokeWidth={2} />
-                  </div>
+          {/* DASHBOARD TÀI CHÍNH (KPI CARDS - THIẾT KẾ ĐƠN GIẢN, NỀN TRẮNG THANH LỊCH, KHÔNG MÀU MÈ) */}
+          <div className="reports-kpi-grid">
+            {/* THẺ 1: TỔNG CHI PHÍ ĐẦU TƯ */}
+            <div
+              className="kpi-card"
+              onClick={() => handleOpenCardDetail('EXPENSE')}
+              title="Bấm để xem chi tiết các khoản chi phí đầu tư"
+            >
+              <div className="kpi-top-row">
+                <span className="kpi-label">Tổng tiền đã chi</span>
+                <div className="kpi-icon-wrap kpi-icon-expense">
+                  <IconCircleDollar size={18} strokeWidth={2.2} />
                 </div>
               </div>
-              <span className={`kpi-value ${netProfit >= 0 ? 'text-green' : 'text-red'}`}>
-                {formatMoney(netProfit)}
-              </span>
-              <div className="kpi-subtext">
-                Tỷ suất lợi nhuận (ROI): {financials?.roiPercentage || 0}%
+              <div className="kpi-value text-red">
+                {formatMoney(totalExpense)}
+              </div>
+              <div className="kpi-footer-row">
+                <div className="kpi-subtext">
+                  <div>Vật tư: <strong>{formatMoney(financials?.totalMaterialCost)}</strong></div>
+                  <div>Công: <strong>{formatMoney(financials?.totalLaborCost)}</strong></div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-card-detail-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCardDetail('EXPENSE');
+                  }}
+                  title="Xem chi tiết các khoản tiền đã chi"
+                >
+                  <span>Chi tiết</span>
+                  <IconInfo size={12} strokeWidth={2.2} />
+                </button>
+              </div>
+            </div>
+
+            {/* THẺ 2: TỔNG DOANH THU THU HOẠCH */}
+            <div
+              className="kpi-card"
+              onClick={() => handleOpenCardDetail('REVENUE')}
+              title="Bấm để xem chi tiết tiền bán nông sản"
+            >
+              <div className="kpi-top-row">
+                <span className="kpi-label">Tiền bán nông sản</span>
+                <div className="kpi-icon-wrap kpi-icon-revenue">
+                  <IconLineChart size={18} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className="kpi-value text-blue">
+                {formatMoney(totalRevenue)}
+              </div>
+              <div className="kpi-footer-row">
+                <div className="kpi-subtext">
+                  <div>Đã hái: <strong>{(financials?.totalHarvestQty || 0).toLocaleString()} kg</strong></div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>Nông sản xuất bán</div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-card-detail-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCardDetail('REVENUE');
+                  }}
+                  title="Xem chi tiết các đợt bán nông sản"
+                >
+                  <span>Chi tiết</span>
+                  <IconInfo size={12} strokeWidth={2.2} />
+                </button>
+              </div>
+            </div>
+
+            {/* THẺ 3: LỢI NHUẬN RÒNG (TIỀN LỜI / LỖ THỰC TẾ) */}
+            <div
+              className="kpi-card"
+              onClick={() => handleOpenCardDetail('PROFIT')}
+              title="Bấm để xem công thức tính tiền lời thực tế"
+            >
+              <div className="kpi-top-row">
+                <span className="kpi-label">Tiền lời / lỗ thực tế</span>
+                <div className="kpi-icon-wrap kpi-icon-profit">
+                  <IconCalculator size={18} strokeWidth={2.2} />
+                </div>
+              </div>
+              <div className={`kpi-value ${netProfit >= 0 ? 'text-green' : 'text-red'}`}>
+                {netProfit >= 0 ? '+' : ''}{formatMoney(netProfit)}
+              </div>
+              <div className="kpi-footer-row">
+                <div className="kpi-subtext">
+                  {netProfit < 0 ? (
+                    <span className="badge-kpi-status badge-status-investing">🌱 Đang đầu tư vụ</span>
+                  ) : netProfit > 0 ? (
+                    <span className="badge-kpi-status badge-status-profit">🌾 Có lãi ({financials?.roiPercentage || 0}%)</span>
+                  ) : (
+                    <span style={{ color: '#94a3b8' }}>Chưa có thu chi</span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="btn-card-detail-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCardDetail('PROFIT');
+                  }}
+                  title="Xem chi tiết công thức tính tiền lời"
+                >
+                  <span>Chi tiết</span>
+                  <IconInfo size={12} strokeWidth={2.2} />
+                </button>
               </div>
             </div>
 
             {/* THẺ 4: TỔNG LƯỢT GHI NHẬT KÝ */}
-            <div className="kpi-card bg-purple-light">
-              <div
-                className="kpi-top-row"
-                onClick={() => handleOpenCardDetail('LOGS')}
-                title="Bấm để xem chi tiết các lượt chăm sóc & thu hoạch"
-                style={{ cursor: 'pointer' }}
-              >
-                <span className="kpi-label">TỔNG LƯỢT GHI NHẬT KÝ</span>
-                <div className="kpi-top-actions">
-                  <button
-                    type="button"
-                    className="btn-text-breakdown"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenCardDetail('LOGS');
-                    }}
-                    title="Xem chi tiết phân loại chăm sóc và thu hoạch"
-                  >
-                    <IconInfo size={13} strokeWidth={2.2} />
-                    <span>Chi tiết</span>
-                  </button>
-                  <div className="kpi-icon-wrap text-purple">
-                    <IconClipboardList size={18} strokeWidth={2} />
-                  </div>
+            <div
+              className="kpi-card"
+              onClick={() => handleOpenCardDetail('LOGS')}
+              title="Bấm để xem chi tiết các lượt chăm sóc & thu hoạch"
+            >
+              <div className="kpi-top-row">
+                <span className="kpi-label">Số lần ghi nhật ký</span>
+                <div className="kpi-icon-wrap kpi-icon-logs">
+                  <IconClipboardList size={18} strokeWidth={2.2} />
                 </div>
               </div>
-              <span className="kpi-value text-purple">{logsCount}</span>
-              <div className="kpi-subtext">
-                Chăm sóc: <strong>{financials?.careLogsCount || 0}</strong> lần | Thu hoạch:{' '}
-                <strong>{financials?.harvestLogsCount || 0}</strong> đợt
+              <div className="kpi-value text-slate">
+                {logsCount} <small style={{ fontSize: '1rem', fontWeight: 600, color: '#64748b' }}>lần</small>
+              </div>
+              <div className="kpi-footer-row">
+                <div className="kpi-subtext">
+                  <div>Chăm sóc: <strong>{financials?.careLogsCount || 0}</strong> lần</div>
+                  <div>Thu hoạch: <strong>{financials?.harvestLogsCount || 0}</strong> đợt</div>
+                </div>
+                <button
+                  type="button"
+                  className="btn-card-detail-link"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenCardDetail('LOGS');
+                  }}
+                  title="Xem chi tiết các lượt nhật ký"
+                >
+                  <span>Chi tiết</span>
+                  <IconInfo size={12} strokeWidth={2.2} />
+                </button>
               </div>
             </div>
           </div>
 
-          {/* PHÂN HỆ KINH TẾ CÂY DÀI NGÀY: KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) & MÃ SỐ VÙNG TRỒNG (PUC) */}
+          {/* PHÂN HỆ KINH TẾ CÂY DÀI NGÀY: VỐN ĐẦU TƯ BAN ĐẦU & THU HỒI VỐN */}
           {capexAnalysis && (
-            <div className="capex-report-section" style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              padding: '1.5rem',
-              marginBottom: '1.75rem',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
+            <div className="capex-report-section">
+              <div className="capex-header-row">
                 <div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '3px 10px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '6px' }}>
+                  <div className="capex-pill-tag">
                     <IconShield size={14} strokeWidth={2.4} />
-                    <span>Đặc thù kinh tế cây lâu năm (Perennial Crops)</span>
+                    <span>Dành cho cây trồng lâu năm (Cà phê, Sầu riêng, Bơ...)</span>
                   </div>
-                  <h3 style={{ margin: '0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <IconCircleDollar size={22} strokeWidth={2.4} style={{ color: '#107C10' }} />
-                    <span>Phân Tích Khấu Hao Kiến Thiết Cơ Bản (CapEx) & Thu Hồi Vốn Nông Hộ</span>
+                  <h3 className="capex-header-title">
+                    <IconCircleDollar size={22} strokeWidth={2.4} style={{ color: 'var(--ms-green, #107C10)' }} />
+                    <span>Vốn đầu tư ban đầu & Tiến độ thu hồi vốn</span>
                   </h3>
-                  <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: '0.85rem' }}>
-                    Cây dài ngày (Cà phê, Sầu riêng, Bơ, Mắc ca...) mất 3–5 năm đầu đầu tư vốn mà chưa có trái. Bảng phân bổ giúp tính đúng lãi thực tế và thời gian hoàn vốn.
+                  <p className="capex-header-desc">
+                    Cây lâu năm cần đầu tư vốn lớn những năm đầu (cây giống, làm đất, hệ thống tưới). Bảng tính giúp chia đều chi phí qua các năm khai thác để tính đúng tiền lãi thực tế của từng vụ mùa.
                   </p>
                 </div>
               </div>
 
-              {/* 4 Thẻ chỉ số CapEx */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>TỔNG VỐN ĐẦU TƯ BAN ĐẦU (CAPEX)</div>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: '4px 0' }}>
+              {/* 4 Thẻ chỉ số CapEx: Nền trắng thanh lịch, số liệu to rõ */}
+              <div className="capex-cards-grid">
+                <div className="capex-stat-card">
+                  <div className="capex-stat-label">Tổng vốn đầu tư ban đầu</div>
+                  <div className="capex-stat-value text-dark">
                     {formatMoney(capexAnalysis.totalCapEx)}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  <div className="capex-stat-desc">
                     Giống cây ghép, đào hố, béc tưới ngầm, phân lót 4 năm đầu
                   </div>
                 </div>
 
-                <div style={{ background: '#fefce8', padding: '1rem', borderRadius: '10px', border: '1px solid #fef08a' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#854d0e', fontWeight: 600 }}>MỨC TRÍCH KHẤU HAO / NĂM</div>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#a16207', margin: '4px 0' }}>
+                <div className="capex-stat-card">
+                  <div className="capex-stat-label">Phân bổ vốn / năm</div>
+                  <div className="capex-stat-value text-amber">
                     {formatMoney(capexAnalysis.totalAnnualDepreciation)}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#854d0e' }}>
-                    Phân bổ đều qua chu kỳ khai thác kinh doanh (15–20 năm)
+                  <div className="capex-stat-desc">
+                    Phân bổ đều qua chu kỳ khai thác (15–20 năm)
                   </div>
                 </div>
 
-                <div style={{ background: '#f0fdf4', padding: '1rem', borderRadius: '10px', border: '1px solid #bbf7d0' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#166534', fontWeight: 600 }}>LÃI RÒNG THỰC TẾ (SAU KHẤU HAO)</div>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#15803d', margin: '4px 0' }}>
+                <div className="capex-stat-card">
+                  <div className="capex-stat-label">Lãi thực tế (sau trừ vốn năm)</div>
+                  <div className={`capex-stat-value ${capexAnalysis.profitAfterDepreciation >= 0 ? 'text-green' : 'text-red'}`}>
                     {formatMoney(capexAnalysis.profitAfterDepreciation)}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#166534' }}>
-                    = Lợi nhuận vận hành ({formatMoney(capexAnalysis.operatingProfit)}) − Khấu hao CapEx
+                  <div className="capex-stat-desc">
+                    = Lợi nhuận vụ mùa ({formatMoney(capexAnalysis.operatingProfit)}) − Phân bổ vốn năm
                   </div>
                 </div>
 
-                <div style={{ background: '#eff6ff', padding: '1rem', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
-                  <div style={{ fontSize: '0.78rem', color: '#1e40af', fontWeight: 600 }}>THỜI GIAN HOÀN VỐN DỰ KIẾN</div>
-                  <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1d4ed8', margin: '4px 0' }}>
-                    {capexAnalysis.payback.years ? `${capexAnalysis.payback.years} năm` : 'Đang thu hồi'}
+                <div className="capex-stat-card">
+                  <div className="capex-stat-label">Thời gian hoàn vốn dự kiến</div>
+                  <div className="capex-stat-value text-blue">
+                    {capexAnalysis.payback.years ? `${capexAnalysis.payback.years} năm` : 'Đang thu hồi vốn'}
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#1e40af' }}>
+                  <div className="capex-stat-desc">
                     {capexAnalysis.payback.status}
                   </div>
                 </div>
               </div>
 
+              {/* Hướng dẫn cuộn ngang trên mobile */}
+              <div className="mobile-table-scroll-hint">
+                <span>👉 Vuốt ngang bảng để xem đầy đủ cột</span>
+              </div>
+
               {/* Bảng chi tiết từng lô đất, mã PUC và tiến độ khấu hao */}
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <div className="reports-table-scroll-wrap">
+                <table className="capex-plots-table">
                   <thead>
-                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textAlign: 'left', color: '#475569' }}>
-                      <th style={{ padding: '10px 12px' }}>Tên Lô Đất & Diện Tích</th>
-                      <th style={{ padding: '10px 12px' }}>Cây Trồng & Mã Vùng Trồng (PUC)</th>
-                      <th style={{ padding: '10px 12px' }}>Vốn Ban Đầu (CapEx)</th>
-                      <th style={{ padding: '10px 12px' }}>Khấu Hao / Năm</th>
-                      <th style={{ padding: '10px 12px' }}>Đã Khấu Hao</th>
-                      <th style={{ padding: '10px 12px' }}>Giá Trị Còn Lại</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Thao Tác</th>
+                    <tr>
+                      <th>Tên Lô Đất & Diện Tích</th>
+                      <th>Cây Trồng & Mã Vùng Trồng (PUC)</th>
+                      <th>Vốn Ban Đầu</th>
+                      <th>Khấu Hao / Năm</th>
+                      <th>Tiến Độ Khấu Hao</th>
+                      <th>Giá Trị Còn Lại</th>
+                      <th style={{ textAlign: 'center' }}>Thao Tác</th>
                     </tr>
                   </thead>
                   <tbody>
                     {capexAnalysis.plotDetails.map(({ plot, capex }, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '12px' }}>
-                          <strong style={{ color: '#0f172a' }}>{plot.name}</strong>
-                          <div style={{ color: '#64748b', fontSize: '0.78rem' }}>{plot.area} ha ({Math.round(plot.area * 10000)} m²)</div>
+                      <tr key={idx}>
+                        <td>
+                          <strong>{plot.name}</strong>
+                          <div className="table-sub-dim">{plot.area} ha ({Math.round(plot.area * 10000)} m²)</div>
                         </td>
-                        <td style={{ padding: '12px' }}>
-                          <span style={{ fontWeight: 600, color: '#047857' }}>{capex.meta.cropType}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
-                            <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284c7', background: '#e0f2fe', padding: '1px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>
+                        <td>
+                          <span className="crop-type-name">{capex.meta.cropType}</span>
+                          <div className="puc-tag-wrap">
+                            <span className="puc-code-tag">
                               PUC: {capex.meta.pucCode}
                             </span>
-                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>({capex.meta.exportMarket?.split(' ')[0] || 'GACC'})</span>
+                            <span className="puc-market-tag">({capex.meta.exportMarket?.split(' ')[0] || 'GACC'})</span>
                           </div>
                         </td>
-                        <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                        <td style={{ fontWeight: 600, color: '#0f172a' }}>
                           {formatMoney(capex.initialCost)}
                         </td>
-                        <td style={{ padding: '12px', color: '#a16207' }}>
+                        <td style={{ color: '#b45309', fontWeight: 600 }}>
                           {formatMoney(capex.annualDepreciation)}/năm
-                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>({capex.depYears} năm)</div>
+                          <div className="table-sub-dim">({capex.depYears} năm)</div>
                         </td>
-                        <td style={{ padding: '12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <div style={{ width: '60px', height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
-                              <div style={{ width: `${capex.depreciationPercent}%`, height: '100%', background: '#10b981' }} />
+                        <td>
+                          <div className="dep-progress-box">
+                            <div className="dep-progress-bar">
+                              <div className="dep-progress-fill" style={{ width: `${capex.depreciationPercent}%` }} />
                             </div>
-                            <span style={{ fontWeight: 700, color: '#15803d', fontSize: '0.78rem' }}>{capex.depreciationPercent}%</span>
+                            <span className="dep-percent-text">{capex.depreciationPercent}%</span>
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Năm {capex.yearsActive}/{capex.depYears}</div>
+                          <div className="table-sub-dim">Năm {capex.yearsActive}/{capex.depYears}</div>
                         </td>
-                        <td style={{ padding: '12px', fontWeight: 700, color: '#047857' }}>
+                        <td style={{ fontWeight: 700, color: 'var(--ms-green, #107C10)' }}>
                           {formatMoney(capex.remainingValue)}
                         </td>
-                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center' }}>
                           <button
                             type="button"
-                            style={{
-                              background: '#ecfdf5',
-                              border: '1px solid #10b981',
-                              color: '#047857',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
+                            className="btn-puc-certificate"
                             onClick={() => setSelectedPucPlot(plot)}
                             title="Xem Giấy xác nhận & Kiểm định mã số vùng trồng xuất khẩu"
                           >
