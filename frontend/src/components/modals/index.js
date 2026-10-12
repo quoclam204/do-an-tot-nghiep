@@ -4,3 +4,4 @@ export { default as CostBreakdownModal } from './CostBreakdownModal';
 export { default as QuickHarvestModal } from './QuickHarvestModal';
 export { default as FinancialExplanationModal } from './FinancialExplanationModal';
 export { default as PucCertificateModal } from './PucCertificateModal';
+export { default as SeasonDetailModal } from './SeasonDetailModal';

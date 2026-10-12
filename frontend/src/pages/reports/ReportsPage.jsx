@@ -13,8 +13,9 @@ import {
   IconPrinter,
   IconShield,
   IconExternalLink,
+  IconInfo,
 } from '../../components/icons';
-import { PucCertificateModal } from '../../components/modals';
+import { PucCertificateModal, FinancialExplanationModal, QuickHarvestModal } from '../../components/modals';
 import {
   calculatePlotCapex,
   calculatePaybackPeriod,
@@ -79,6 +80,16 @@ export default function ReportsPage() {
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Modal Giải trình chi tiết tài chính & Thu hoạch nhanh
+  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+  const [explainTab, setExplainTab] = useState('ALL');
+  const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
+
+  const handleOpenCardDetail = (tab = 'ALL') => {
+    setExplainTab(tab);
+    setIsExplainModalOpen(true);
+  };
 
   // Export dropdown
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -582,61 +593,163 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {/* KPI CARDS */}
+          {/* THANH TIÊU ĐỀ KHU VỰC THẺ TÀI CHÍNH */}
+          <div className="kpi-header-row">
+            <div className="kpi-header-title">
+              <IconCalculator size={17} strokeWidth={2.4} />
+              <span>TỔNG QUAN HIỆU QUẢ KINH TẾ</span>
+            </div>
+          </div>
+
+          {/* DASHBOARD TÀI CHÍNH (KPI CARDS) */}
           <div className="reports-kpi-grid">
-            <div className="reports-kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-label-text">Tổng chi phí đầu tư</span>
-                <div className="kpi-icon-circle red">
-                  <IconCircleDollar size={20} strokeWidth={2} />
+            {/* THẺ 1: TỔNG CHI PHÍ ĐẦU TƯ */}
+            <div className="kpi-card bg-red-light">
+              <div
+                className="kpi-top-row"
+                onClick={() => handleOpenCardDetail('EXPENSE')}
+                title="Bấm để xem chi tiết cách tính chi phí đầu tư"
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="kpi-label">TỔNG CHI PHÍ ĐẦU TƯ</span>
+                <div className="kpi-top-actions">
+                  <button
+                    type="button"
+                    className="btn-text-breakdown"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCardDetail('EXPENSE');
+                    }}
+                    title="Xem chi tiết các khoản chi phí đầu tư"
+                  >
+                    <IconInfo size={13} strokeWidth={2.2} />
+                    <span>Chi tiết</span>
+                  </button>
+                  <div className="kpi-icon-wrap text-red">
+                    <IconCircleDollar size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </div>
-              <span className="kpi-value-text text-red">
+              <span className="kpi-value text-red">
                 {formatMoney(totalExpense)}
               </span>
-              <span className="kpi-sub-text">
-                Vật tư: {formatMoney(financials?.totalMaterialCost)} | Nhân công: {formatMoney(financials?.totalLaborCost)}
-              </span>
+              <div className="kpi-subtext">
+                Vật tư: {formatMoney(financials?.totalMaterialCost)} | Nhân công:{' '}
+                {formatMoney(financials?.totalLaborCost)}
+              </div>
             </div>
-            <div className="reports-kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-label-text">Tổng doanh thu</span>
-                <div className="kpi-icon-circle blue">
-                  <IconLineChart size={20} strokeWidth={2} />
+
+            {/* THẺ 2: TỔNG DOANH THU THU HOẠCH */}
+            <div className="kpi-card bg-blue-light kpi-card-harvest-highlight">
+              <div
+                className="kpi-top-row"
+                onClick={() => handleOpenCardDetail('REVENUE')}
+                title="Bấm để xem chi tiết cách tính doanh thu thu hoạch"
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="kpi-label">TỔNG DOANH THU THU HOẠCH</span>
+                <div className="kpi-top-actions">
+                  <button
+                    type="button"
+                    className="btn-text-breakdown"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCardDetail('REVENUE');
+                    }}
+                    title="Xem chi tiết các đợt bán nông sản"
+                  >
+                    <IconInfo size={13} strokeWidth={2.2} />
+                    <span>Chi tiết</span>
+                  </button>
+                  <div className="kpi-icon-wrap text-blue">
+                    <IconLineChart size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </div>
-              <span className="kpi-value-text text-blue">
+              <span className="kpi-value text-blue">
                 {formatMoney(totalRevenue)}
               </span>
-              <span className="kpi-sub-text">
-                Sản lượng: {(financials?.totalHarvestQty || 0).toLocaleString()} kg
-              </span>
+              <div className="kpi-subtext">
+                Sản lượng thu hoạch: {(financials?.totalHarvestQty || 0).toLocaleString()} kg
+              </div>
+              <button
+                type="button"
+                className="btn-kpi-harvest-action"
+                onClick={() => setIsHarvestModalOpen(true)}
+                title="Bấm để mở bảng ghi nhận thu hoạch và tính tiền bán nhanh chóng"
+              >
+                <IconSprout size={15} strokeWidth={2.2} />
+                <span>+ Ghi Nhận Thu Hoạch Ngay</span>
+              </button>
             </div>
-            <div className="reports-kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-label-text">Lợi nhuận ròng</span>
-                <div className={`kpi-icon-circle ${netProfit >= 0 ? 'green' : 'red'}`}>
-                  <IconCalculator size={20} strokeWidth={2} />
+
+            {/* THẺ 3: LỢI NHUẬN RÒNG */}
+            <div className="kpi-card bg-green-light">
+              <div
+                className="kpi-top-row"
+                onClick={() => handleOpenCardDetail('PROFIT')}
+                title="Bấm để xem chi tiết cách tính lợi nhuận ròng và ROI"
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="kpi-label">LỢI NHUẬN RÒNG (NET PROFIT)</span>
+                <div className="kpi-top-actions">
+                  <button
+                    type="button"
+                    className="btn-text-breakdown"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCardDetail('PROFIT');
+                    }}
+                    title="Xem chi tiết công thức tính tiền lãi thực tế"
+                  >
+                    <IconInfo size={13} strokeWidth={2.2} />
+                    <span>Chi tiết</span>
+                  </button>
+                  <div className="kpi-icon-wrap text-green">
+                    <IconCalculator size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </div>
-              <span className={`kpi-value-text ${netProfit >= 0 ? 'text-green' : 'text-red'}`}>
+              <span className={`kpi-value ${netProfit >= 0 ? 'text-green' : 'text-red'}`}>
                 {formatMoney(netProfit)}
               </span>
-              <span className="kpi-sub-text">
-                ROI: {financials?.roiPercentage || 0}%
-              </span>
+              <div className="kpi-subtext">
+                Tỷ suất lợi nhuận (ROI): {financials?.roiPercentage || 0}%
+              </div>
             </div>
-            <div className="reports-kpi-card">
-              <div className="kpi-top">
-                <span className="kpi-label-text">Tổng lượt ghi nhật ký</span>
-                <div className="kpi-icon-circle purple">
-                  <IconClipboardList size={20} strokeWidth={2} />
+
+            {/* THẺ 4: TỔNG LƯỢT GHI NHẬT KÝ */}
+            <div className="kpi-card bg-purple-light">
+              <div
+                className="kpi-top-row"
+                onClick={() => handleOpenCardDetail('LOGS')}
+                title="Bấm để xem chi tiết các lượt chăm sóc & thu hoạch"
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="kpi-label">TỔNG LƯỢT GHI NHẬT KÝ</span>
+                <div className="kpi-top-actions">
+                  <button
+                    type="button"
+                    className="btn-text-breakdown"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCardDetail('LOGS');
+                    }}
+                    title="Xem chi tiết phân loại chăm sóc và thu hoạch"
+                  >
+                    <IconInfo size={13} strokeWidth={2.2} />
+                    <span>Chi tiết</span>
+                  </button>
+                  <div className="kpi-icon-wrap text-purple">
+                    <IconClipboardList size={18} strokeWidth={2} />
+                  </div>
                 </div>
               </div>
-              <span className="kpi-value-text text-purple">{logsCount}</span>
-              <span className="kpi-sub-text">
-                Chăm sóc: <strong>{financials?.careLogsCount || 0}</strong> lần | Thu hoạch: <strong>{financials?.harvestLogsCount || 0}</strong> đợt
-              </span>
+              <span className="kpi-value text-purple">{logsCount}</span>
+              <div className="kpi-subtext">
+                Chăm sóc: <strong>{financials?.careLogsCount || 0}</strong> lần | Thu hoạch:{' '}
+                <strong>{financials?.harvestLogsCount || 0}</strong> đợt
+              </div>
             </div>
           </div>
 
@@ -1103,6 +1216,24 @@ export default function ReportsPage() {
           plot={selectedPucPlot}
           farm={selectedFarmObj || farms[0]}
           logs={logs}
+        />
+
+        {/* MODAL GIẢI THÍCH CHI TIẾT CÁCH TÍNH TÀI CHÍNH */}
+        <FinancialExplanationModal
+          isOpen={isExplainModalOpen}
+          onClose={() => setIsExplainModalOpen(false)}
+          financials={financials}
+          logs={filteredLogs || logs}
+          initialTab={explainTab}
+        />
+
+        {/* MODAL GHI NHẬN THU HOẠCH NHANH */}
+        <QuickHarvestModal
+          isOpen={isHarvestModalOpen}
+          onClose={() => setIsHarvestModalOpen(false)}
+          seasons={seasons}
+          defaultCropCycleId={selectedSeason || (seasons[0]?.id || '')}
+          onSuccess={() => loadData()}
         />
       </main>
       <Footer />

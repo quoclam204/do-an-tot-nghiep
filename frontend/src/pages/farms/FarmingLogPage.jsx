@@ -3,14 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import './FarmingLogPage.css';
 import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
 import QuickHarvestModal from '../../components/modals/QuickHarvestModal';
-import FinancialExplanationModal from '../../components/modals/FinancialExplanationModal';
 import CustomTimePicker from '../../components/CustomTimePicker';
 import {
   IconClipboardList,
   IconZap,
   IconFileText,
-  IconCircleDollar,
-  IconLineChart,
   IconCalculator,
   IconFlask,
   IconLeaf,
@@ -50,6 +47,7 @@ import {
 } from '../../utils/offlineSync';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
+import SeasonDetailModal from '../../components/modals/SeasonDetailModal';
 import {
   apiGetCrops,
   apiGetSeasons,
@@ -59,24 +57,10 @@ import {
   apiCreateActivityLog,
   apiUpdateActivityLog,
   apiDeleteActivityLog,
-  apiGetFinancialReport,
   apiSeedLamDong,
   apiGetMyFarms,
   apiGetActivityTypes,
 } from '../../services/api';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LabelList,
-} from 'recharts';
 
 const getTodayDateStr = () => {
   const now = new Date();
@@ -115,30 +99,29 @@ const buildNotes = (cleanNotes, otherCostName) => {
 
 export default function FarmingLogPage() {
   const navigate = useNavigate();
-  const [farms, setFarms] = useState([]);
+  const [farms, setFarms] = useState(() => {
+    const cached = getCachedCatalogs();
+    return (cached && cached.farms && cached.farms.length > 0) ? cached.farms : [];
+  });
   const [plots, setPlots] = useState([]);
   const [selectedFarmId, setSelectedFarmId] = useState('');
   const [crops, setCrops] = useState([]);
-  const [seasons, setSeasons] = useState([]);
+  const [seasons, setSeasons] = useState(() => {
+    const cached = getCachedCatalogs();
+    return (cached && cached.seasons && cached.seasons.length > 0) ? cached.seasons : [];
+  });
   const [materials, setMaterials] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [logs, setLogs] = useState([]);
-  const [financials, setFinancials] = useState(null);
   const [activityTypes, setActivityTypes] = useState([]);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [isSeasonModalOpen, setIsSeasonModalOpen] = useState(false);
   const [breakdownLog, setBreakdownLog] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [isOcrOpen, setIsOcrOpen] = useState(false);
   const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
-  const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
-  const [explainTab, setExplainTab] = useState('ALL');
-
-  const handleOpenCardDetail = (tab = 'ALL') => {
-    setExplainTab(tab);
-    setIsExplainModalOpen(true);
-  };
   const [editingHarvestLog, setEditingHarvestLog] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -182,28 +165,21 @@ export default function FarmingLogPage() {
       setLoading(true);
       const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
 
-      let farmsRes = farms;
-      if (!farmsRes || farmsRes.length === 0) {
-        farmsRes = await apiGetMyFarms().catch(() => []);
-        setFarms(farmsRes || []);
-      }
-
-      const [cropsRes, seasonsRes, materialsRes, logsRes, currentFarmsRes, finRes, typesRes, invRes, plotsRes] = await Promise.all([
+      const [cropsRes, seasonsRes, materialsRes, logsRes, farmsRes, typesRes, invRes, plotsRes] = await Promise.all([
         apiGetCrops().catch(() => []),
         apiGetSeasons(farmToUse || undefined).catch(() => []),
         apiGetMaterials().catch(() => []),
         apiGetActivityLogs(undefined, farmToUse || undefined).catch(() => []),
-        farmsRes && farmsRes.length > 0 ? Promise.resolve(farmsRes) : apiGetMyFarms().catch(() => []),
-        apiGetFinancialReport(undefined, farmToUse || undefined).catch(() => null),
+        apiGetMyFarms().catch(() => []),
         apiGetActivityTypes(farmToUse || undefined).catch(() => []),
         farmToUse ? apiGetInventory(farmToUse).catch(() => []) : apiGetInventory().catch(() => []),
         api.get('/catalog/plots', { params: farmToUse ? { farmId: farmToUse } : {} }).then((r) => r.data).catch(() => []),
       ]);
 
       // Cache danh mục nếu tải thành công
-      if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0) || (invRes && invRes.length > 0)) {
+      if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0) || (invRes && invRes.length > 0) || (farmsRes && farmsRes.length > 0)) {
         cacheCatalogs({
-          farms: currentFarmsRes || farmsRes || [],
+          farms: (farmsRes && farmsRes.length > 0) ? farmsRes : farms,
           crops: cropsRes || [],
           seasons: seasonsRes || [],
           materials: materialsRes || [],
@@ -213,7 +189,7 @@ export default function FarmingLogPage() {
 
       // Đọc từ cache cục bộ nếu đang ngoại tuyến hoặc không lấy được từ server
       const cached = getCachedCatalogs();
-      let finalFarms = (currentFarmsRes && currentFarmsRes.length > 0) ? currentFarmsRes : ((farmsRes && farmsRes.length > 0) ? farmsRes : (cached.farms || []));
+      let finalFarms = (farmsRes && farmsRes.length > 0) ? farmsRes : ((farms && farms.length > 0) ? farms : (cached.farms || []));
       let finalCrops = (cropsRes && cropsRes.length > 0) ? cropsRes : (cached.crops || []);
       let finalSeasons = (seasonsRes && seasonsRes.length > 0) ? seasonsRes : (cached.seasons || []);
       let finalMaterials = (materialsRes && materialsRes.length > 0) ? materialsRes : (cached.materials || []);
@@ -268,9 +244,8 @@ export default function FarmingLogPage() {
       setSeasons(finalSeasons);
       setMaterials(finalMaterials);
       setLogs(finalLogs);
-      if (!farms || farms.length === 0) setFarms(finalFarms);
+      setFarms(finalFarms);
       setPlots(plotsRes || []);
-      setFinancials(finRes);
       setActivityTypes(typesRes || []);
       setInventory(finalInventory);
 
@@ -621,15 +596,6 @@ export default function FarmingLogPage() {
     }));
   };
 
-  // Chọn nhanh mốc giờ định sẵn
-  const handleSelectPresetTime = (presetTime, shift) => {
-    setForm((prev) => ({
-      ...prev,
-      activityTime: presetTime,
-      workShift: shift || prev.workShift,
-    }));
-  };
-
   // Bắt đầu sửa nhật ký
   const handleStartEdit = (log) => {
     // Nếu là nhật ký thu hoạch -> Mở Modal Thu Hoạch Nhanh
@@ -878,14 +844,12 @@ export default function FarmingLogPage() {
         otherCosts: '',
       }));
 
-      // Cập nhật ngầm số liệu tài chính, nhật ký & tồn kho mà không làm chớp/đơ màn hình
+      // Cập nhật ngầm nhật ký & tồn kho mà không làm chớp/đơ màn hình
       Promise.all([
         apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
-        apiGetFinancialReport(undefined, selectedFarmId || undefined).catch(() => null),
         apiGetInventory(selectedFarmId || undefined).catch(() => null),
-      ]).then(([freshLogs, finRes, freshInv]) => {
+      ]).then(([freshLogs, freshInv]) => {
         if (freshLogs) setLogs(freshLogs);
-        if (finRes) setFinancials(finRes);
         if (freshInv) setInventory(freshInv);
       });
     } catch (err) {
@@ -900,18 +864,16 @@ export default function FarmingLogPage() {
 
   // Xóa nhật ký
   const handleDeleteLog = async (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa nhật ký này? Chi phí sẽ được cập nhật lại.')) {
+    if (window.confirm('Bạn có chắc muốn xóa nhật ký này?')) {
       try {
         setLogs((prev) => prev.filter((l) => l.id !== id));
         showToast('Đã xóa nhật ký thành công!');
         await apiDeleteActivityLog(id);
-        const [freshLogs, finRes, freshInv] = await Promise.all([
+        const [freshLogs, freshInv] = await Promise.all([
           apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
-          apiGetFinancialReport(undefined, selectedFarmId || undefined).catch(() => null),
           apiGetInventory(selectedFarmId || undefined).catch(() => null),
         ]);
         if (freshLogs) setLogs(freshLogs);
-        if (finRes) setFinancials(finRes);
         if (freshInv) setInventory(freshInv);
       } catch (err) {
         showToast('Lỗi khi xóa: ' + (err.response?.data?.message || err.message), 'error');
@@ -946,57 +908,6 @@ export default function FarmingLogPage() {
     }
   };
 
-  // Dữ liệu so sánh Thu - Chi trực quan cho nông dân
-  const comparisonData = useMemo(() => {
-    if (!financials) return [];
-    return [
-      {
-        name: 'Doanh Thu',
-        value: Number(financials.totalRevenue || 0),
-        fill: '#107C10', // Xanh chuẩn DalatAgri
-      },
-      {
-        name: 'Tổng Chi Phí',
-        value: Number(financials.totalExpense || 0),
-        fill: '#d97706', // Cam đất nhã nhặn
-      },
-    ];
-  }, [financials]);
-
-  // Dữ liệu phân bổ cơ cấu chi phí thực tế
-  const expenseBreakdown = useMemo(() => {
-    if (!financials) return [];
-    const mat = Number(financials.totalMaterialCost || 0);
-    const lab = Number(financials.totalLaborCost || 0);
-    const oth = Number(financials.totalOtherCosts || 0);
-    const total = mat + lab + oth;
-
-    return [
-      {
-        name: 'Vật tư (Phân, thuốc BVTV)',
-        value: mat,
-        percent: total > 0 ? Math.round((mat / total) * 100) : 0,
-        fill: '#107C10',
-      },
-      {
-        name: 'Nhân công lao động',
-        value: lab,
-        percent: total > 0 ? Math.round((lab / total) * 100) : 0,
-        fill: '#0284c7',
-      },
-      {
-        name: 'Chi phí khác',
-        value: oth,
-        percent: total > 0 ? Math.round((oth / total) * 100) : 0,
-        fill: '#d97706',
-      },
-    ];
-  }, [financials]);
-
-  const activeExpensePie = useMemo(() => {
-    return expenseBreakdown.filter((item) => item.value > 0);
-  }, [expenseBreakdown]);
-
   const displayedLogs = useMemo(() => {
     return logs.filter((log) => {
       if (shiftFilter !== 'ALL' && log.workShift !== shiftFilter) return false;
@@ -1023,7 +934,7 @@ export default function FarmingLogPage() {
 
       {/* HEADER TRANG */}
       <div className="farming-header">
-        <div>
+        <div className="farming-header-info">
           <div className="farming-tag">
             <IconClipboardList size={14} strokeWidth={2.2} />
             <span>SỔ TAY ĐIỆN TỬ NÔNG HỘ</span>
@@ -1033,379 +944,47 @@ export default function FarmingLogPage() {
             Ghi chép phân bón, thuốc BVTV, nhân công thuê, kiểm soát chi phí đầu tư và lợi nhuận vụ mùa nông nghiệp
           </p>
         </div>
-        <div className="farming-header-actions" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {farms.length > 0 && (
-            <select
-              value={selectedFarmId}
-              onChange={(e) => setSelectedFarmId(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1.5px solid #10b981',
-                background: '#fff',
-                fontWeight: '600',
-                color: '#065f46',
-                cursor: 'pointer',
-                fontSize: '0.88rem'
-              }}
-              title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
+        <div className="farming-header-actions">
+          <select
+            className="farm-header-select"
+            value={selectedFarmId}
+            onChange={(e) => setSelectedFarmId(e.target.value)}
+            title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
+          >
+            <option value="">
+              {farms && farms.length > 0 ? `-- Tất cả nông trại (${farms.length}) --` : '-- Tất cả nông trại --'}
+            </option>
+            {farms && farms.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+          <div className="farming-header-btn-group">
+            <button
+              type="button"
+              className="btn-open-harvest-header"
+              onClick={() => setIsHarvestModalOpen(true)}
+              title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
             >
-              <option value="">-- Tất cả nông trại ({farms.length}) --</option>
-              {farms.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
-              ))}
-            </select>
-          )}
-          <button
-            className="btn-open-harvest-header"
-            onClick={() => setIsHarvestModalOpen(true)}
-            title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
-          >
-            <IconScale size={16} strokeWidth={2.2} />
-            <span>Ghi Thu Hoạch</span>
-          </button>
-          <button
-            className="btn-open-ocr"
-            onClick={() => setIsOcrOpen(true)}
-            title="Chụp hoặc tải ảnh hóa đơn để AI tự điền form"
-          >
-            <IconFileText size={16} strokeWidth={2} />
-            <span>Quét Hóa Đơn (OCR)</span>
-          </button>
+              <IconScale size={16} strokeWidth={2.2} />
+              <span>Ghi Thu Hoạch</span>
+            </button>
+            <button
+              type="button"
+              className="btn-open-ocr"
+              onClick={() => setIsOcrOpen(true)}
+              title="Chụp hoặc tải ảnh hóa đơn để AI tự điền form"
+            >
+              <IconFileText size={16} strokeWidth={2} />
+              <span>Quét Hóa Đơn (OCR)</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* BANNER NGOẠI TUYẾN & ĐỒNG BỘ AN TOÀN */}
       <OfflineSyncBanner onSyncSuccess={() => loadData()} />
-
-      {/* THANH TIÊU ĐỀ KHU VỰC THẺ TÀI CHÍNH */}
-      <div className="kpi-header-row">
-        <div className="kpi-header-title">
-          <IconCalculator size={17} strokeWidth={2.4} />
-          <span>TỔNG QUAN HIỆU QUẢ KINH TẾ</span>
-        </div>
-      </div>
-
-      {/* DASHBOARD TÀI CHÍNH (KPI CARDS) */}
-      <div className="kpi-grid">
-        {/* THẺ 1: TỔNG CHI PHÍ ĐẦU TƯ */}
-        <div className="kpi-card bg-red-light">
-          <div
-            className="kpi-top-row"
-            onClick={() => handleOpenCardDetail('EXPENSE')}
-            title="Bấm để xem chi tiết cách tính chi phí đầu tư"
-            style={{ cursor: 'pointer' }}
-          >
-            <span className="kpi-label">TỔNG CHI PHÍ ĐẦU TƯ</span>
-            <div className="kpi-top-actions">
-              <button
-                type="button"
-                className="btn-text-breakdown"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenCardDetail('EXPENSE');
-                }}
-                title="Xem chi tiết các khoản chi phí đầu tư"
-              >
-                <IconInfo size={13} strokeWidth={2.2} />
-                <span>Chi tiết</span>
-              </button>
-              <div className="kpi-icon-wrap text-red">
-                <IconCircleDollar size={18} strokeWidth={2} />
-              </div>
-            </div>
-          </div>
-          <span className="kpi-value text-red">
-            {(financials?.totalExpense || 0).toLocaleString()} <small>đ</small>
-          </span>
-          <div className="kpi-subtext">
-            Phân thuốc: {(financials?.totalMaterialCost || 0).toLocaleString()} đ | Nhân công:{' '}
-            {(financials?.totalLaborCost || 0).toLocaleString()} đ
-          </div>
-        </div>
-
-        {/* THẺ 2: TỔNG DOANH THU THU HOẠCH */}
-        <div className="kpi-card bg-blue-light kpi-card-harvest-highlight">
-          <div
-            className="kpi-top-row"
-            onClick={() => handleOpenCardDetail('REVENUE')}
-            title="Bấm để xem chi tiết cách tính doanh thu thu hoạch"
-            style={{ cursor: 'pointer' }}
-          >
-            <span className="kpi-label">TỔNG DOANH THU THU HOẠCH</span>
-            <div className="kpi-top-actions">
-              <button
-                type="button"
-                className="btn-text-breakdown"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenCardDetail('REVENUE');
-                }}
-                title="Xem chi tiết các đợt bán nông sản"
-              >
-                <IconInfo size={13} strokeWidth={2.2} />
-                <span>Chi tiết</span>
-              </button>
-              <div className="kpi-icon-wrap text-blue">
-                <IconLineChart size={18} strokeWidth={2} />
-              </div>
-            </div>
-          </div>
-          <span className="kpi-value text-blue">
-            {(financials?.totalRevenue || 0).toLocaleString()} <small>đ</small>
-          </span>
-          <div className="kpi-subtext">
-            Sản lượng thu hoạch: {(financials?.totalHarvestQty || 0).toLocaleString()} kg
-          </div>
-          <button
-            type="button"
-            className="btn-kpi-harvest-action"
-            onClick={() => setIsHarvestModalOpen(true)}
-            title="Bấm để mở bảng ghi nhận thu hoạch và tính tiền bán nhanh chóng"
-          >
-            <IconSprout size={15} strokeWidth={2.2} />
-            <span>+ Ghi Nhận Thu Hoạch Ngay</span>
-          </button>
-        </div>
-
-        {/* THẺ 3: LỢI NHUẬN RÒNG */}
-        <div className="kpi-card bg-green-light">
-          <div
-            className="kpi-top-row"
-            onClick={() => handleOpenCardDetail('PROFIT')}
-            title="Bấm để xem chi tiết cách tính lợi nhuận ròng và ROI"
-            style={{ cursor: 'pointer' }}
-          >
-            <span className="kpi-label">LỢI NHUẬN RÒNG (NET PROFIT)</span>
-            <div className="kpi-top-actions">
-              <button
-                type="button"
-                className="btn-text-breakdown"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenCardDetail('PROFIT');
-                }}
-                title="Xem chi tiết công thức tính tiền lãi thực tế"
-              >
-                <IconInfo size={13} strokeWidth={2.2} />
-                <span>Chi tiết</span>
-              </button>
-              <div className="kpi-icon-wrap text-green">
-                <IconCalculator size={18} strokeWidth={2} />
-              </div>
-            </div>
-          </div>
-          <span
-            className={`kpi-value ${(financials?.netProfit || 0) >= 0 ? 'text-green' : 'text-red'
-              }`}
-          >
-            {(financials?.netProfit || 0).toLocaleString()} <small>đ</small>
-          </span>
-          <div className="kpi-subtext">
-            Tỷ suất lợi nhuận (ROI): {financials?.roiPercentage || 0}%
-          </div>
-        </div>
-
-        {/* THẺ 4: TỔNG LƯỢT GHI NHẬT KÝ */}
-        <div className="kpi-card bg-purple-light">
-          <div
-            className="kpi-top-row"
-            onClick={() => handleOpenCardDetail('LOGS')}
-            title="Bấm để xem chi tiết các lượt chăm sóc & thu hoạch"
-            style={{ cursor: 'pointer' }}
-          >
-            <span className="kpi-label">TỔNG LƯỢT GHI NHẬT KÝ</span>
-            <div className="kpi-top-actions">
-              <button
-                type="button"
-                className="btn-text-breakdown"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenCardDetail('LOGS');
-                }}
-                title="Xem chi tiết phân loại chăm sóc và thu hoạch"
-              >
-                <IconInfo size={13} strokeWidth={2.2} />
-                <span>Chi tiết</span>
-              </button>
-              <div className="kpi-icon-wrap text-purple">
-                <IconClipboardList size={18} strokeWidth={2} />
-              </div>
-            </div>
-          </div>
-          <span className="kpi-value text-purple">{financials?.logsCount ?? logs.length}</span>
-          <div className="kpi-subtext">
-            Chăm sóc: <strong>{financials?.careLogsCount ?? logs.filter((l) => l.activityType !== 'THU_HOACH').length}</strong> lần | Thu hoạch: <strong>{financials?.harvestLogsCount ?? logs.filter((l) => l.activityType === 'THU_HOACH').length}</strong> đợt
-          </div>
-        </div>
-      </div>
-
-      {/* BANNER NGHIỆP VỤ CÂY DÀI NGÀY: KHẤU HAO KIẾN THIẾT CƠ BẢN (CAPEX) */}
-      <div style={{
-        background: '#f0fdf4',
-        border: '1px solid #bbf7d0',
-        borderRadius: '10px',
-        padding: '10px 16px',
-        marginBottom: '1.25rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '10px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: '#166534' }}>
-          <span style={{ background: '#dcfce7', padding: '4px 6px', borderRadius: '4px', display: 'flex', color: '#059669' }}>
-            <IconShield size={18} strokeWidth={2.4} />
-          </span>
-          <span>
-            <strong>Đặc thù kinh tế cây dài ngày:</strong> Số liệu trên là chi phí vận hành mùa vụ (OpEx). Để tính đúng điểm hòa vốn thực tế, hãy xem <strong>Khấu hao kiến thiết cơ bản (CapEx)</strong>.
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => handleOpenCardDetail('CAPEX')}
-          style={{
-            background: 'var(--ms-green, #107C10)',
-            color: '#fff',
-            border: '1px solid var(--ms-green, #107C10)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '6px 14px',
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            transition: 'background 0.15s ease',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-          title="Bấm để mở giải trình chi tiết về khấu hao vốn đầu tư 3-5 năm đầu"
-        >
-          <span>Giải trình Khấu hao CapEx</span>
-          <IconExternalLink size={13} strokeWidth={2.4} />
-        </button>
-      </div>
-
-      {/* BIỂU ĐỒ KINH TẾ NÔNG HỘ: ĐƠN GIẢN, TRỰC QUAN */}
-      {financials && financials.totalExpense + financials.totalRevenue > 0 && (
-        <div className="charts-section">
-          {/* Biểu đồ 1: So sánh Thu - Chi */}
-          <div className="chart-card">
-            <div className="chart-card-title">
-              <IconLineChart size={18} strokeWidth={2} />
-              <h4>So Sánh Thu - Chi Thực Tế</h4>
-            </div>
-            <ResponsiveContainer width="100%" height={210}>
-              <BarChart data={comparisonData} margin={{ top: 30, right: 20, left: 10, bottom: 5 }}>
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 13, fill: '#334155', fontWeight: 600 }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                  tickLine={false}
-                />
-                <YAxis
-                  tickFormatter={(val) => {
-                    if (val === 0) return '0 đ';
-                    if (val >= 1000000) return `${(val / 1000000).toFixed(val % 1000000 === 0 ? 0 : 1)} tr`;
-                    if (val >= 1000) return `${(val / 1000).toFixed(0)} k`;
-                    return `${val} đ`;
-                  }}
-                  tick={{ fontSize: 11, fill: '#64748b' }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Tooltip
-                  formatter={(value) => [`${Number(value).toLocaleString()} đ`, 'Số tiền']}
-                  contentStyle={{ borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
-                />
-                <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={80}>
-                  {comparisonData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                  <LabelList
-                    dataKey="value"
-                    content={(props) => {
-                      const { x, y, width, value } = props;
-                      const num = Number(value || 0);
-                      const formatted = num > 0 ? `${num.toLocaleString('vi-VN')} đ` : '0 đ';
-                      return (
-                        <text
-                          x={x + width / 2}
-                          y={y - 8}
-                          fill="#1e293b"
-                          textAnchor="middle"
-                          fontSize="13"
-                          fontWeight="700"
-                        >
-                          {formatted}
-                        </text>
-                      );
-                    }}
-                  />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="chart-summary-line">
-              <span>Lợi nhuận vụ mùa: </span>
-              <strong className={(financials.netProfit || 0) >= 0 ? 'text-green' : 'text-red'}>
-                {(financials.netProfit || 0) >= 0 ? '+' : ''}{(financials.netProfit || 0).toLocaleString()} đ
-              </strong>
-              {(financials.netProfit || 0) < 0 && (
-                <span className="text-muted-sub"> (Đang trong giai đoạn đầu tư vụ mùa)</span>
-              )}
-            </div>
-          </div>
-
-          {/* Biểu đồ 2: Cơ cấu chi phí */}
-          <div className="chart-card">
-            <div className="chart-card-title">
-              <IconCircleDollar size={18} strokeWidth={2} />
-              <h4>Cơ Cấu Chi Phí Đã Chi</h4>
-            </div>
-            {activeExpensePie.length > 0 ? (
-              <>
-                <ResponsiveContainer width="100%" height={140}>
-                  <PieChart>
-                    <Pie
-                      data={activeExpensePie}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={42}
-                      outerRadius={65}
-                      paddingAngle={activeExpensePie.length > 1 ? 3 : 0}
-                      dataKey="value"
-                    >
-                      {activeExpensePie.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => [`${Number(value).toLocaleString()} đ`, 'Chi phí']} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="expense-legend-list">
-                  {expenseBreakdown.map((item) => (
-                    <div key={item.name} className="expense-legend-item">
-                      <div className="legend-left">
-                        <span className="legend-bullet" style={{ backgroundColor: item.fill }} />
-                        <span className="legend-name">{item.name}</span>
-                      </div>
-                      <div className="legend-right">
-                        <strong>{Number(item.value).toLocaleString()} đ</strong>
-                        <span className="legend-pct">({item.percent}%)</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b', fontSize: '0.9rem' }}>
-                Chưa phát sinh chi phí nào.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* NỘI DUNG CHÍNH: FORM NHẬP & BẢNG NHẬT KÝ */}
       <div className="main-content-grid">
@@ -1506,21 +1085,25 @@ export default function FarmingLogPage() {
             {/* Hàng 1: Lô Đất & Mùa Vụ Canh Tác + Loại Hoạt Động Chăm Sóc */}
             <div className="form-row">
               <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ margin: 0 }}>Lô Đất & Mùa Vụ Canh Tác <span className="text-red">*</span></label>
+                <div className="form-label-row">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label>Lô Đất & Mùa Vụ Canh Tác <span className="text-red">*</span></label>
+                    {currentSeason && (
+                      <button
+                        type="button"
+                        className="btn-text-breakdown"
+                        onClick={() => setIsSeasonModalOpen(true)}
+                        title="Bấm để xem chi tiết thông tin mùa vụ, lô đất, cây trồng, nông trại"
+                      >
+                        <IconInfo size={13} strokeWidth={2.2} />
+                        <span>Chi tiết</span>
+                      </button>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
-                    style={{
-                      background: '#ffffff',
-                      color: '#15803d',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '6px',
-                      padding: '3px 9px',
-                      fontSize: '0.8rem',
-                      fontWeight: '600',
-                      cursor: 'pointer'
-                    }}
+                    className="btn-create-season-top"
                     title="Chuyển đến trang Mùa vụ để tạo mùa vụ mới"
                   >
                     + Tạo mùa vụ mới &rarr;
@@ -1563,25 +1146,12 @@ export default function FarmingLogPage() {
                   )}
                 </select>
 
-                {/* Thông báo xanh nhã nhặn, đơn giản & đồng bộ màu sắc DalatAgri */}
+                {/* Thông báo xanh nhã nhặn khi lô đất chưa có mùa vụ */}
                 {selectedUnassignedPlot && (
-                  <div
-                    style={{
-                      background: '#f0fdf4',
-                      border: '1px solid #bbf7d0',
-                      borderRadius: '8px',
-                      padding: '10px 14px',
-                      marginTop: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '10px',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="unassigned-plot-alert">
+                    <div className="unassigned-plot-alert-text">
                       <IconCalendar size={18} style={{ color: '#16a34a', flexShrink: 0 }} />
-                      <span style={{ fontSize: '0.86rem', color: '#166534' }}>
+                      <span>
                         Lô <strong>"{selectedUnassignedPlot.name}"</strong> chưa có mùa vụ canh tác.
                       </span>
                     </div>
@@ -1592,20 +1162,7 @@ export default function FarmingLogPage() {
                           `/seasons?farmId=${selectedUnassignedPlot.farmId || selectedFarmId}&plotId=${selectedUnassignedPlot.id}&create=true`
                         )
                       }
-                      style={{
-                        background: 'var(--ms-green, #107C10)',
-                        color: '#ffffff',
-                        border: '1px solid var(--ms-green, #107C10)',
-                        borderRadius: '6px',
-                        padding: '6px 12px',
-                        fontWeight: '600',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '5px',
-                        whiteSpace: 'nowrap',
-                      }}
+                      className="btn-setup-season"
                     >
                       <IconCalendar size={14} strokeWidth={2.2} />
                       <span>Thiết lập mùa vụ ngay &rarr;</span>
@@ -1614,107 +1171,38 @@ export default function FarmingLogPage() {
                 )}
 
                 {hasNoSeasonsForCurrentFarm && unassignedPlots.length === 0 ? (
-                  <div style={{ marginTop: '7px', fontSize: '0.83rem', color: '#b45309', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div className="season-empty-hint">
                     <IconInfo size={14} />
                     <span>Lô đất / nông trại này chưa có mùa vụ nào.</span>
                     <button
                       type="button"
                       onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#15803d',
-                        fontWeight: '700',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
+                      className="btn-link-simple"
                     >
                       Bấm vào đây để chuyển sang trang Mùa Vụ &rarr;
                     </button>
                   </div>
-                ) : !selectedUnassignedPlot && (
-                  <div style={{ marginTop: '6px', fontSize: '0.8rem', color: '#64748b' }}>
+                ) : !selectedUnassignedPlot && !form.cropCycleId && (
+                  <div className="season-helper-hint">
                     <span>Chưa thấy lô hoặc mùa vụ bạn cần? </span>
                     <button
                       type="button"
                       onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#15803d',
-                        fontWeight: '600',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        padding: 0,
-                      }}
+                      className="btn-link-simple"
                     >
                       Tạo mùa vụ mới cho lô đất tại đây &rarr;
-                    </button>
-                  </div>
-                )}
-                {currentSeason && (
-                  <div style={{ marginTop: '7px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', fontSize: '0.82rem' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
-                      <IconCalendar size={13} style={{ color: '#0284c7' }} />
-                      <span>Mùa vụ: <strong style={{ color: '#0f172a' }}>{currentSeason.name}</strong></span>
-                    </span>
-                    {currentSeason.plot?.name && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
-                        <IconMapPin size={13} style={{ color: '#16a34a' }} />
-                        <span>Lô đất: <strong style={{ color: '#0f172a' }}>{currentSeason.plot.name}</strong></span>
-                      </span>
-                    )}
-                    {currentSeason.crop?.name && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
-                        <IconSprout size={13} style={{ color: '#16a34a' }} />
-                        <span>Cây trồng: <strong style={{ color: '#0f172a' }}>{currentSeason.crop.name}</strong></span>
-                      </span>
-                    )}
-                    {(currentFarm?.name || currentSeason.plot?.farm?.name) && (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '3px 8px', borderRadius: '4px', color: '#334155' }}>
-                        <IconWarehouse size={13} style={{ color: '#d97706' }} />
-                        <span>Nông trại: <strong style={{ color: '#0f172a' }}>{currentFarm?.name || currentSeason.plot?.farm?.name}</strong></span>
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => navigate('/seasons')}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#15803d',
-                        textDecoration: 'underline',
-                        cursor: 'pointer',
-                        fontSize: '0.8rem',
-                        fontWeight: '600',
-                        padding: '2px 4px',
-                        marginLeft: 'auto'
-                      }}
-                      title="Quản lý hoặc đổi tên mùa vụ này"
-                    >
-                      Quản lý tại trang Mùa vụ &rarr;
                     </button>
                   </div>
                 )}
               </div>
 
               <div className="form-group">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <label style={{ margin: 0 }}>Loại Hoạt Động Chăm Sóc</label>
+                <div className="form-label-row">
+                  <label>Loại Hoạt Động Chăm Sóc</label>
                   <button
                     type="button"
                     onClick={() => setIsActivityModalOpen(true)}
-                    style={{
-                      background: '#ecfdf5',
-                      color: '#047857',
-                      border: '1px solid #a7f3d0',
-                      borderRadius: '6px',
-                      padding: '3px 9px',
-                      fontSize: '0.8rem',
-                      fontWeight: '600',
-                      cursor: 'pointer'
-                    }}
+                    className="btn-add-activity-top"
                   >
                     + Thêm / Sửa hoạt động
                   </button>
@@ -1745,8 +1233,8 @@ export default function FarmingLogPage() {
               </div>
             </div>
 
-            {/* Hàng 2: Ngày Thực Hiện & Ca Làm Việc */}
-            <div className="form-row">
+            {/* Hàng 2: Thời Gian Thực Hiện (Ngày, Ca, Giờ) */}
+            <div className="form-row form-row-3col farming-time-row">
               <div className="form-group">
                 <label>Ngày Thực Hiện <span className="text-red">*</span></label>
                 <div className="date-input-wrap">
@@ -1781,10 +1269,7 @@ export default function FarmingLogPage() {
                   <option value="TOI">Ca Tối (18:00 - 21:00)</option>
                 </select>
               </div>
-            </div>
 
-            {/* Hàng 3: Giờ Thực Hiện & Mốc Giờ Phổ Biến */}
-            <div className="form-row">
               <div className="form-group">
                 <label>Giờ Thực Hiện</label>
                 <CustomTimePicker
@@ -1792,64 +1277,6 @@ export default function FarmingLogPage() {
                   onChange={(time24) => setForm({ ...form, activityTime: time24 })}
                   onNowClick={handleTimeNow}
                 />
-              </div>
-
-              <div className="form-group">
-                <label style={{ fontSize: '0.78rem', color: '#64748b' }}>Mốc Giờ Phổ Biến</label>
-                <div className="preset-time-grid">
-                  <button
-                    type="button"
-                    className="btn-preset-time btn-preset-now"
-                    onClick={() => {
-                      const now = new Date();
-                      const t = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-                      handleTimeNow(t, now);
-                    }}
-                    title="Lấy giờ hiện tại ngay bây giờ"
-                  >
-                    <IconClock size={13} strokeWidth={2.2} /> Hiện tại
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset-time"
-                    onClick={() => handleSelectPresetTime('08:00', 'SANG')}
-                    title="08:00 - 8h sáng"
-                  >
-                    <IconSunrise size={13} strokeWidth={2.2} /> 8h sáng
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset-time"
-                    onClick={() => handleSelectPresetTime('09:30', 'SANG')}
-                    title="09:30 - 9h30 sáng"
-                  >
-                    9h30 sáng
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset-time"
-                    onClick={() => handleSelectPresetTime('14:00', 'CHIEU')}
-                    title="14:00 - 2h chiều"
-                  >
-                    <IconSun size={13} strokeWidth={2.2} /> 2h chiều
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset-time"
-                    onClick={() => handleSelectPresetTime('16:30', 'CHIEU')}
-                    title="16:30 - 4h30 chiều"
-                  >
-                    4h30 chiều
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset-time"
-                    onClick={() => handleSelectPresetTime('20:00', 'TOI')}
-                    title="20:00 - 20h tối"
-                  >
-                    <IconMoon size={13} strokeWidth={2.2} /> 20h tối
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -2503,24 +1930,23 @@ export default function FarmingLogPage() {
         editingLog={editingHarvestLog}
         onSuccess={({ message, type }) => {
           showToast(message, type || 'success');
-          // Tự động tải lại nhật ký và chỉ số tài chính mới nhất
-          Promise.all([
-            apiGetActivityLogs(undefined, selectedFarmId).catch(() => null),
-            apiGetFinancialReport(undefined, selectedFarmId).catch(() => null),
-          ]).then(([freshLogs, finRes]) => {
-            if (freshLogs) setLogs(freshLogs);
-            if (finRes) setFinancials(finRes);
-          });
+          // Tự động tải lại nhật ký mới nhất
+          apiGetActivityLogs(undefined, selectedFarmId)
+            .then((freshLogs) => {
+              if (freshLogs) setLogs(freshLogs);
+            })
+            .catch(() => null);
         }}
       />
 
-      {/* MODAL GIẢI THÍCH CHI TIẾT CÁCH TÍNH TÀI CHÍNH */}
-      <FinancialExplanationModal
-        isOpen={isExplainModalOpen}
-        onClose={() => setIsExplainModalOpen(false)}
-        financials={financials}
-        logs={logs}
-        initialTab={explainTab}
+
+      {/* MODAL CHI TIẾT MÙA VỤ & VÙNG CANH TÁC */}
+      <SeasonDetailModal
+        isOpen={isSeasonModalOpen}
+        onClose={() => setIsSeasonModalOpen(false)}
+        season={currentSeason}
+        farm={currentFarm}
+        onNavigateSeasons={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}` : '/seasons')}
       />
     </div>
   );

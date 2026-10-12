@@ -135,6 +135,27 @@
 }
 
 /* ================= KPI GRID ================= */
+/* ── KPI Header Row ── */
+.kpi-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding: 0 2px;
+}
+
+.kpi-header-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ms-gray-700, #334155);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ── KPI Cards (Đồng bộ kiểu thẻ màu nhã nhặn từ Trang Nhật Ký) ── */
 .reports-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -142,96 +163,175 @@
   margin-bottom: 2rem;
 }
 
-.reports-kpi-card {
+@media (max-width: 1024px) {
+  .reports-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .reports-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpi-card {
+  padding: 1.25rem;
+  border: 1px solid;
+  border-radius: 12px;
   background: #ffffff;
-  border: 1.5px solid #e5f3ea;
-  border-radius: 16px;
-  padding: 1.35rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  box-shadow: 0 2px 8px rgba(25, 46, 34, 0.04);
-  transition: all 0.25s;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
-.reports-kpi-card:hover {
+.kpi-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(25, 46, 34, 0.08);
 }
 
-.kpi-top {
+.kpi-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
-.kpi-label-text {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #6b7280;
+.kpi-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.kpi-icon-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+.btn-text-breakdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.btn-text-breakdown:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+.kpi-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.kpi-icon-circle.red {
-  background: #fef2f2;
-  color: #dc2626;
+.bg-red-light {
+  background: #fdf3f2;
+  border-color: #fdd;
 }
 
-.kpi-icon-circle.blue {
-  background: #dbeafe;
-  color: #2563eb;
+.bg-blue-light {
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
-.kpi-icon-circle.green {
-  background: #dcfce7;
-  color: #16a34a;
+.bg-green-light {
+  background: #e8f5e8;
+  border-color: #d4edda;
 }
 
-.kpi-icon-circle.purple {
-  background: #ede9fe;
-  color: #7c3aed;
+.bg-purple-light {
+  background: #f5f0ff;
+  border-color: #e9d5ff;
 }
 
-.kpi-value-text {
-  font-size: 1.65rem;
+.kpi-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 1.55rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
-.kpi-value-text.text-red {
-  color: #dc2626;
+.kpi-value small {
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.kpi-value-text.text-blue {
-  color: #2563eb;
+.text-red {
+  color: #c42b1c;
 }
 
-.kpi-value-text.text-green {
-  color: #16a34a;
+.text-blue {
+  color: #1d6fb8;
 }
 
-.kpi-value-text.text-purple {
-  color: #7c3aed;
+.text-green {
+  color: #107C10;
 }
 
-.kpi-value-text small {
-  font-size: 0.65em;
-  font-weight: 600;
+.text-purple {
+  color: #6e3eae;
 }
 
-.kpi-sub-text {
-  font-size: 0.82rem;
-  color: #6b7280;
+.kpi-subtext {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.kpi-card-harvest-highlight {
+  border-color: #93c5fd;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.kpi-card-harvest-highlight:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+}
+
+.btn-kpi-harvest-action {
+  margin-top: 0.45rem;
+  padding: 0.45rem 0.75rem;
+  background: #107C10;
+  color: #ffffff;
+  border: 1px solid #107C10;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-kpi-harvest-action:hover {
+  background: #0a5e0a;
+  border-color: #0a5e0a;
+  transform: translateY(-1px);
 }
 
 /* ================= CHARTS ================= */
