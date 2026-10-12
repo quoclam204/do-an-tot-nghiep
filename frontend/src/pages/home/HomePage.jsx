@@ -25,6 +25,7 @@ import {
   IconHeadphones,
   IconPhoneCall,
   IconMapPin,
+  IconClock,
 } from '../../components/icons';
 import { useAuth } from '../../context/AuthContext';
 import './HomePage.css';
@@ -374,39 +375,48 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ── KHUNG TRỢ GIÚP & LIÊN HỆ ── */}
-      <section className="elder-support-section">
+      {/* ── KHUNG HỖ TRỢ KỸ THUẬT CHO BÀ CON ── */}
+      <section className="elder-support-section" aria-label="Trung tâm hỗ trợ kỹ thuật">
         <div className="container">
           <div className="support-card">
-            <div className="support-icon-wrap">
-              <IconHeadphones size={40} strokeWidth={2} />
+            <div className="support-icon-wrap" aria-hidden="true">
+              <IconHeadphones size={28} strokeWidth={2.2} />
             </div>
+
             <div className="support-content">
-              <h3 className="support-title">Bạn Cần Hỗ Trợ Kỹ Thuật?</h3>
+              <h3 className="support-title">Cần Hướng Dẫn Hay Hỗ Trợ Kỹ Thuật?</h3>
               <p className="support-desc">
-                Nếu gặp khó khăn khi đăng ký, ghi nhật ký hoặc cần hướng dẫn chi tiết từng bước, đội ngũ DalatAgri luôn sẵn sàng đồng hành hỗ trợ.
+                Nếu bà con gặp khó khăn khi đăng ký, ghi nhật ký mùa vụ hoặc muốn cài ứng dụng lên điện thoại, đội ngũ DalatAgri luôn sẵn lòng hướng dẫn tận tình và miễn phí.
               </p>
-              <div className="support-contact-badges">
-                <span className="contact-badge">
-                  <IconPhoneCall size={15} strokeWidth={2.2} />
-                  <span>Hỗ trợ kỹ thuật: Nền tảng DalatAgri</span>
-                </span>
-                <span className="contact-badge">
-                  <IconMapPin size={15} strokeWidth={2.2} />
-                  <span>Phục vụ bà con nông dân trên toàn quốc</span>
+
+              <div className="support-contact-row">
+                <a href="tel:19006868" className="support-hotline-tag" title="Bấm để gọi tổng đài miễn cước">
+                  <IconPhoneCall size={16} strokeWidth={2.2} />
+                  <span>Tổng đài miễn cước: <strong>1900 6868</strong></span>
+                </a>
+                <span className="support-divider">•</span>
+                <span className="support-time-tag">
+                  <IconClock size={16} strokeWidth={2.2} />
+                  <span>Hỗ trợ: 07:00 – 21:00 (Cả Thứ 7 & CN)</span>
                 </span>
               </div>
             </div>
-            <div className="support-action">
+
+            <div className="support-action-group">
+              <a href="tel:19006868" className="elder-btn support-btn-call" title="Bấm gọi tổng đài hỗ trợ">
+                <IconPhoneCall size={18} strokeWidth={2.2} />
+                <span>Gọi Tổng Đài</span>
+              </a>
+
               {user ? (
                 <Link to="/dashboard" className="elder-btn elder-btn-primary">
                   <span>Vào Ghi Sổ Ngay</span>
-                  <IconArrowRight size={18} strokeWidth={2.4} />
+                  <IconArrowRight size={18} strokeWidth={2.2} />
                 </Link>
               ) : (
                 <Link to="/login" className="elder-btn elder-btn-primary">
                   <span>Bắt Đầu Dùng Ngay</span>
-                  <IconArrowRight size={18} strokeWidth={2.4} />
+                  <IconArrowRight size={18} strokeWidth={2.2} />
                 </Link>
               )}
             </div>
