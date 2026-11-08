@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './QuickHarvestModal.css';
 import {
   IconX,
@@ -227,7 +228,8 @@ export default function QuickHarvestModal({
     }
   };
 
-  return (
+  return createPortal(
+    (
     <div className="harvest-modal-overlay" onClick={onClose}>
       <div
         className="harvest-modal-container"
@@ -500,5 +502,7 @@ export default function QuickHarvestModal({
         </form>
       </div>
     </div>
+    ),
+    document.body,
   );
 }

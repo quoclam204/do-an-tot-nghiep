@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './ReceiptOcrModal.css';
 import {
   IconFileText,
@@ -227,7 +228,8 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
     }
   };
 
-  return (
+  return createPortal(
+    (
     <div className="ocr-modal-backdrop" onClick={onClose}>
       <div className="ocr-modal-content" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
@@ -659,5 +661,7 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
         </div>
       </div>
     </div>
+    ),
+    document.body,
   );
 }
