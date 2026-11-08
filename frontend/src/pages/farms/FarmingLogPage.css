@@ -54,6 +54,12 @@
   border: 1px solid #b91c1c;
 }
 
+.farming-toast.warning {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
 @keyframes toastSlideRight {
   from {
     opacity: 0;

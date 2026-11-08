@@ -95,6 +95,33 @@ const buildNotes = (cleanNotes, otherCostName) => {
   return trimmedNotes;
 };
 
+const normalizeMaterialName = (value) =>
+  String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const materialNamesMatch = (firstName, secondName) => {
+  const first = normalizeMaterialName(firstName);
+  const second = normalizeMaterialName(secondName);
+  if (!first || !second) return false;
+  if (first.includes(second) || second.includes(first)) return true;
+
+  const firstTokens = first.split(' ').filter((token) => token.length > 2);
+  const secondTokens = second.split(' ').filter((token) => token.length > 2);
+  const sharedTokens = firstTokens.filter((token) => secondTokens.includes(token));
+  return sharedTokens.length >= Math.min(2, firstTokens.length, secondTokens.length);
+};
+
+const getInventoryMaterialName = (inventoryItem, materialList) =>
+  inventoryItem?.material?.name ||
+  inventoryItem?.materialName ||
+  materialList.find((material) => material.id === inventoryItem?.materialId)?.name ||
+  '';
+
 
 
 export default function FarmingLogPage() {
@@ -130,7 +157,7 @@ export default function FarmingLogPage() {
     setToast({ show: true, message, type });
     setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
-    }, 3500);
+    }, 6000);
   };
 
   // Chỉnh sửa nhật ký
@@ -505,21 +532,24 @@ export default function FarmingLogPage() {
   // Áp dụng dữ liệu từ quét hóa đơn OCR vào Form
   const handleApplyOcr = (extractedData) => {
     let matchedMatId = '';
-    if (extractedData.materialName) {
-      const foundInv = inventory.find(
-        (inv) =>
-          inv.material?.name?.toLowerCase().includes(extractedData.materialName.toLowerCase()) ||
-          extractedData.materialName.toLowerCase().includes(inv.material?.name?.toLowerCase())
+    const extractedMaterialName = extractedData.materialName?.trim();
+    if (extractedMaterialName) {
+      const findMatchingInventory = (items) => items.find((inv) =>
+        materialNamesMatch(
+          extractedMaterialName,
+          getInventoryMaterialName(inv, materials)
+        )
       );
+      let foundInv = findMatchingInventory(farmInventory);
+
+      // Khi chưa chọn lô/mùa vụ, dữ liệu kho có thể chưa được lọc theo nông trại.
+      // Chỉ dùng fallback này trong cùng danh sách kho người dùng đã được tải.
+      if (!foundInv && !activeFarmId) {
+        foundInv = findMatchingInventory(inventory);
+      }
+
       if (foundInv) {
-        matchedMatId = foundInv.materialId;
-      } else {
-        const found = materials.find(
-          (m) =>
-            m.name.toLowerCase().includes(extractedData.materialName.toLowerCase()) ||
-            extractedData.materialName.toLowerCase().includes(m.name.toLowerCase())
-        );
-        if (found) matchedMatId = found.id;
+        matchedMatId = foundInv.materialId || foundInv.material?.id || '';
       }
     }
 
@@ -545,7 +575,14 @@ export default function FarmingLogPage() {
         : prev.notes,
     }));
 
-    showToast('Đã trích xuất thông tin hóa đơn vào Form thành công!', 'success');
+    if (extractedMaterialName && !matchedMatId && extractedData.activityType !== 'THU_HOACH') {
+      showToast(
+        `Vật tư "${extractedMaterialName}" chưa có trong tồn kho. Hãy nhập vật tư vào kho trước khi lưu nhật ký.`,
+        'warning'
+      );
+    } else {
+      showToast('Đã trích xuất thông tin hóa đơn vào Form thành công!', 'success');
+    }
     // Cuộn mượt xuống Form để nông dân thấy số liệu đã được điền sẵn
     setTimeout(() => {
       const formEl = document.querySelector('.farming-form-card, .farming-form-section, form');
