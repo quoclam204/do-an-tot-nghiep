@@ -4,6 +4,7 @@
  * 1. Google Gemini AI Vision (Độ chính xác cao nhất với hóa đơn tiếng Việt)
  * 2. Tesseract.js (Chạy OCR cục bộ trên trình duyệt qua CDN, không cần API Key)
  */
+import { api } from './api';
 
 // Helper: Tải script Tesseract.js từ CDN nếu chưa có
 export const loadTesseractScript = () => {
@@ -41,108 +42,21 @@ export const fileToBase64 = (file) => {
 };
 
 /**
- * 1. Quét hóa đơn qua Google Gemini AI Vision
+ * Quét hóa đơn qua backend dùng Gemini API key dùng chung.
+ * API key không bao giờ được gửi xuống hoặc lưu trong trình duyệt.
  */
-export const scanWithGemini = async (file, apiKey, onProgress) => {
+export const scanWithGemini = async (file, _apiKey, onProgress) => {
   if (onProgress) onProgress(20, 'Đang mã hóa hình ảnh hóa đơn...');
   const base64Data = await fileToBase64(file);
+  if (onProgress) onProgress(45, 'AI Gemini đang phân tích hóa đơn...');
 
-  if (onProgress) onProgress(45, 'AI Gemini đang phân tích hóa đơn và bóc tách các mặt hàng...');
+  const response = await api.post('/ocr/receipt', {
+    base64Data,
+    mimeType: file.type || 'image/jpeg',
+  });
 
-  const prompt = `Bạn là chuyên gia phân tích hóa đơn vật tư nông nghiệp Việt Nam (phân bón, thuốc BVTV, giống cây, phiếu thu hoạch).
-Hãy phân tích hình ảnh hóa đơn/phiếu này và trả về kết quả định dạng JSON THUẦN TÚY (không bọc trong \`\`\`json hoặc bất kỳ ký tự nào khác ngoài JSON hợp lệ).
-
-Cấu trúc JSON yêu cầu:
-{
-  "activityType": "PHUN_THUOC" | "BON_PHAN" | "THU_HOACH" | "LAM_CO" | "TUOI_NUOC",
-  "materialName": "Tên vật tư chính hoặc tóm tắt các sản phẩm chính",
-  "quantity": số_lượng_tổng_các_món (số),
-  "unit": "Chai" | "Gói" | "Bao 50kg" | "Bao" | "kg" | "Lít",
-  "unitPrice": đơn_giá_nếu_có (số),
-  "totalCost": tổng_tiền_thanh_toán_của_hóa_đơn_VNĐ (số nguyên, bỏ dấu chấm phẩy),
-  "harvestQuantity": 0,
-  "harvestUnitPrice": 0,
-  "isHiredLabor": false,
-  "laborWorkers": 0,
-  "laborWagePerDay": 0,
-  "otherCosts": 0,
-  "items": [
-    {
-      "name": "Tên sản phẩm",
-      "unit": "Đơn vị tính",
-      "quantity": số_lượng,
-      "unitPrice": đơn_giá,
-      "total": thành_tiền
-    }
-  ],
-  "rawTextSummary": "Tóm tắt ngắn gọn các sản phẩm và số tiền"
-}
-
-Quy tắc phân loại activityType:
-- Nếu hóa đơn có các mặt hàng như thuốc trừ sâu, trừ bệnh, diệt rầy, bọ trĩ, xịt lá, nấm, thuốc trừ cỏ -> activityType = "PHUN_THUOC"
-- Nếu hóa đơn là phân NPK, đạm, lân, kali, phân hữu cơ, vôi -> activityType = "BON_PHAN"
-- Nếu là phiếu cân lúa, cà phê, sầu riêng, rau củ thu hoạch -> activityType = "THU_HOACH"
-- Lấy chính xác Tổng tiền (Tổng thanh toán / Cần thanh toán / Thành tiền).`;
-
-  // Thử các model Gemini phổ biến (ưu tiên 2.0-flash, 1.5-flash)
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
-  let lastError = null;
-
-  for (const model of models) {
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType: file.type || 'image/jpeg',
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2048,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      if (onProgress) onProgress(85, 'Đang chuẩn hóa kết quả nhận diện...');
-      const data = await response.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-      // Làm sạch text để parse JSON
-      const cleanJsonStr = rawText
-        .replace(/```json/gi, '')
-        .replace(/```/g, '')
-        .trim();
-
-      const parsed = JSON.parse(cleanJsonStr);
-      if (onProgress) onProgress(100, 'Bóc tách hóa đơn hoàn tất!');
-      return {
-        ...parsed,
-        source: 'Gemini AI Vision',
-      };
-    } catch (err) {
-      lastError = err;
-      console.warn(`Lỗi với model ${model}:`, err.message);
-    }
-  }
-
-  throw lastError || new Error('Không thể phân tích hóa đơn bằng Gemini AI.');
+  if (onProgress) onProgress(100, 'Bóc tách hóa đơn hoàn tất!');
+  return response.data;
 };
 
 /**

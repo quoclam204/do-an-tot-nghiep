@@ -8,9 +8,10 @@ import { AuthModule } from './auth/auth.module';
 import { FarmsModule } from './farms/farms.module';
 import { ActivityTypesModule } from './activity-types/activity-types.module';
 import { SalesModule } from './sales/sales.module';
+import { OcrModule } from './ocr/ocr.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, CatalogModule, AuthModule, FarmsModule, ActivityTypesModule, SalesModule],
+  imports: [PrismaModule, UsersModule, CatalogModule, AuthModule, FarmsModule, ActivityTypesModule, SalesModule, OcrModule],
   controllers: [AppController],
   providers: [AppService],
 })

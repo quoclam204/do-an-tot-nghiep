@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import './ReceiptOcrModal.css';
 import {
@@ -12,9 +12,7 @@ import {
   IconZap,
   IconAlertCircle,
   IconCircleDollar,
-  IconInfo,
   IconCheck,
-  IconSettings,
 } from '../icons';
 import {
   scanWithGemini,
@@ -102,33 +100,10 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
   const [scanError, setScanError] = useState(null);
 
   // Chế độ nhận dạng
-  const [engine, setEngine] = useState('auto'); // 'auto' | 'gemini' | 'tesseract'
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [showKeyConfig, setShowKeyConfig] = useState(false);
+  const [engine, setEngine] = useState('gemini'); // 'gemini' | 'tesseract'
   const [showRawText, setShowRawText] = useState(false);
 
-  // Khởi tạo API key từ localStorage hoặc env
-  useEffect(() => {
-    const savedKey = localStorage.getItem('dalat_gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY || '';
-    setGeminiApiKey(savedKey);
-    if (savedKey) {
-      setEngine('gemini');
-    }
-  }, []);
-
   if (!isOpen) return null;
-
-  const handleSaveApiKey = (newKey) => {
-    setGeminiApiKey(newKey);
-    if (newKey) {
-      localStorage.setItem('dalat_gemini_api_key', newKey.trim());
-      setEngine('gemini');
-    } else {
-      localStorage.removeItem('dalat_gemini_api_key');
-      setEngine('tesseract');
-    }
-    setShowKeyConfig(false);
-  };
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -158,21 +133,13 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
     setResult(null);
 
     try {
-      let activeEngine = engine;
-      if (engine === 'auto') {
-        activeEngine = geminiApiKey ? 'gemini' : 'tesseract';
-      }
+      const activeEngine = engine;
 
       let extractedData = null;
 
       // 1. Quét bằng Gemini nếu có API key
       if (activeEngine === 'gemini') {
-        if (!geminiApiKey) {
-          setShowKeyConfig(true);
-          throw new Error('Vui lòng nhập Google Gemini API Key để kích hoạt AI Vision, hoặc chuyển sang chế độ OCR Tesseract bên dưới.');
-        }
-
-        extractedData = await scanWithGemini(selectedFile, geminiApiKey.trim(), (pct, status) => {
+        extractedData = await scanWithGemini(selectedFile, '', (pct, status) => {
           setScanProgress(pct);
           setScanStatus(status);
         });
@@ -242,7 +209,7 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h3>Số Hóa Hóa Đơn Bằng AI & OCR</h3>
                 <span className="ocr-engine-pill" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  {engine === 'gemini' || (engine === 'auto' && geminiApiKey) ? (
+                  {engine === 'gemini' ? (
                     <>
                       <IconZap size={13} strokeWidth={2.4} />
                       <span>Gemini AI</span>
@@ -264,19 +231,6 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
-              className={`ocr-btn-config ${showKeyConfig ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                setShowKeyConfig(!showKeyConfig);
-              }}
-              title="Cài đặt khóa AI Gemini (Nhận dạng chuẩn xác 100%)"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
-            >
-              <IconSettings size={14} strokeWidth={2.2} />
-              <span>Cấu hình AI</span>
-            </button>
-            <button
-              type="button"
               className="ocr-btn-close"
               onClick={(e) => {
                 e.preventDefault();
@@ -288,50 +242,6 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
             </button>
           </div>
         </div>
-
-        {/* Thanh cấu hình Gemini API Key */}
-        {showKeyConfig && (
-          <div className="ocr-config-banner">
-            <div className="ocr-config-content">
-              <span className="ocr-config-title">Google Gemini API Key (Miễn phí từ Google AI Studio):</span>
-              <div className="ocr-config-input-wrap">
-                <input
-                  type="password"
-                  placeholder="Dán API Key (bắt đầu bằng AIzaSy...)"
-                  value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
-                  className="ocr-key-input"
-                />
-                <button
-                  type="button"
-                  className="ocr-btn-save-key"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleSaveApiKey(geminiApiKey);
-                  }}
-                >
-                  Lưu
-                </button>
-                {geminiApiKey && (
-                  <button
-                    type="button"
-                    className="ocr-btn-clear-key"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSaveApiKey('');
-                    }}
-                  >
-                    Xóa
-                  </button>
-                )}
-              </div>
-            </div>
-            <p className="ocr-config-hint" style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-              <IconInfo size={15} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: '2px', color: '#047857' }} />
-              <em>API Key được lưu an toàn trong trình duyệt của bạn. Nhận dạng được cả hóa đơn viết tay, hóa đơn bán lẻ nhiều mặt hàng. Nếu không có key, hệ thống sẽ tự động dùng bộ máy OCR Tesseract nội bộ.</em>
-            </p>
-          </div>
-        )}
 
         <div className="ocr-modal-body">
           {/* Cột trái: Upload & Xem trước ảnh */}
@@ -373,16 +283,16 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
                   <span className="ocr-engine-label">Phương thức:</span>
                   <button
                     type="button"
-                    className={`ocr-mode-btn ${engine === 'gemini' || (engine === 'auto' && geminiApiKey) ? 'active' : ''}`}
+                    className={`ocr-mode-btn ${engine === 'gemini' ? 'active' : ''}`}
                     onClick={() => setEngine('gemini')}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                   >
                     <IconZap size={14} strokeWidth={2.2} />
-                    <span>Gemini Vision {geminiApiKey ? '(Sẵn sàng)' : '(Cần Key)'}</span>
+                    <span>Gemini Vision (Máy chủ)</span>
                   </button>
                   <button
                     type="button"
-                    className={`ocr-mode-btn ${engine === 'tesseract' || (engine === 'auto' && !geminiApiKey) ? 'active' : ''}`}
+                    className={`ocr-mode-btn ${engine === 'tesseract' ? 'active' : ''}`}
                     onClick={() => setEngine('tesseract')}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                   >
