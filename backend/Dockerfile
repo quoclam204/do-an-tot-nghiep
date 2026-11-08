@@ -47,4 +47,4 @@ EXPOSE 3000
 
 # Áp dụng các migration đã version hóa rồi khởi động NestJS.
 # Không dùng `db push` khi startup vì có thể kiểm tra/thay đổi schema ở mỗi lần restart.
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
