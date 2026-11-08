@@ -13,82 +13,12 @@ import {
   IconAlertCircle,
   IconCircleDollar,
   IconCheck,
+  IconTrash,
 } from '../icons';
 import {
   scanWithGemini,
   scanWithTesseract,
 } from '../../services/ocrService';
-
-// Dữ liệu mẫu hóa đơn thực tế nông nghiệp để demo nhanh hoặc test
-const SAMPLE_RECEIPTS = [
-  {
-    id: 'sample-1',
-    title: 'Hóa đơn Đại lý VTNN (Phân NPK & Hữu cơ)',
-    previewImg: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80',
-    extracted: {
-      activityType: 'BON_PHAN',
-      materialName: 'Phân NPK 20-20-15 Đầu Trâu',
-      quantity: 10,
-      unit: 'Bao 50kg',
-      unitPrice: 850000,
-      totalCost: 8500000,
-      isHiredLabor: true,
-      laborWorkers: 2,
-      laborWagePerDay: 350000,
-      otherCosts: 200000,
-      notes: 'Bón thúc đợt 2 đón mưa cho vườn Cà phê & Sầu riêng xen canh.',
-      items: [
-        { name: 'Phân NPK 20-20-15 Đầu Trâu', unit: 'Bao 50kg', quantity: 10, unitPrice: 850000, total: 8500000 }
-      ],
-      source: 'Mẫu có sẵn',
-    },
-  },
-  {
-    id: 'sample-2',
-    title: 'Hóa đơn Thuốc BVTV Trừ Nấm Bệnh (Cây ăn trái)',
-    previewImg: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=600&q=80',
-    extracted: {
-      activityType: 'PHUN_THUOC',
-      materialName: 'Thuốc trừ nấm xì mủ Ridomil Gold',
-      quantity: 5,
-      unit: 'Gói 1kg',
-      unitPrice: 320000,
-      totalCost: 1600000,
-      isHiredLabor: true,
-      laborWorkers: 1,
-      laborWagePerDay: 400000,
-      otherCosts: 50000,
-      notes: 'Quét gốc trị xì mủ thân sầu riêng Ri6 sau đợt mưa dầm.',
-      items: [
-        { name: 'Thuốc trừ nấm xì mủ Ridomil Gold', unit: 'Gói 1kg', quantity: 5, unitPrice: 320000, total: 1600000 }
-      ],
-      source: 'Mẫu có sẵn',
-    },
-  },
-  {
-    id: 'sample-3',
-    title: 'Phiếu thu hoạch & Cân nông sản (Cà phê)',
-    previewImg: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?auto=format&fit=crop&w=600&q=80',
-    extracted: {
-      activityType: 'THU_HOACH',
-      materialName: 'Cà phê quả tươi',
-      quantity: 1,
-      unit: 'Tấn',
-      unitPrice: 0,
-      totalCost: 0,
-      isHiredLabor: true,
-      laborWorkers: 4,
-      laborWagePerDay: 350000,
-      harvestQuantity: 2800,
-      harvestUnitPrice: 25000,
-      notes: 'Thu hoạch cà phê đợt 1, hái chín chọn lọc > 85%.',
-      items: [
-        { name: 'Cà phê nhân xô / tươi', unit: 'kg', quantity: 2800, unitPrice: 25000, total: 70000000 }
-      ],
-      source: 'Mẫu có sẵn',
-    },
-  },
-];
 
 export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -115,11 +45,17 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
     }
   };
 
-  const handleSelectSample = (sample) => {
+  const handleClearData = () => {
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedFile(null);
-    setPreviewUrl(sample.previewImg);
+    setPreviewUrl(null);
+    setScanProgress(0);
+    setScanStatus('');
+    setResult(null);
     setScanError(null);
-    setResult(sample.extracted);
+    setShowRawText(false);
   };
 
   // Bắt đầu quét thực tế từ file ảnh
@@ -324,22 +260,17 @@ export default function ReceiptOcrModal({ isOpen, onClose, onApplyData }) {
               )}
             </div>
 
-            {/* Danh sách hóa đơn mẫu để test nhanh */}
-            <div className="ocr-sample-section">
-              <span className="ocr-sample-label">Hoặc thử với mẫu hóa đơn có sẵn:</span>
-              <div className="ocr-sample-list">
-                {SAMPLE_RECEIPTS.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className="ocr-sample-card"
-                    onClick={() => handleSelectSample(s)}
-                  >
-                    <span className="ocr-sample-title">{s.title}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <button
+              type="button"
+              className="ocr-btn-clear"
+              onClick={handleClearData}
+              disabled={isScanning || (!selectedFile && !previewUrl && !result && !scanError)}
+              title="Xóa ảnh và kết quả OCR"
+              aria-label="Xóa ảnh và kết quả OCR"
+            >
+              <IconTrash size={15} strokeWidth={2.2} />
+              <span>Xóa</span>
+            </button>
           </div>
 
           {/* Cột phải: Kết quả trích xuất OCR */}

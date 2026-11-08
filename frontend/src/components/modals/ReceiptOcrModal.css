@@ -68,16 +68,22 @@
 
 .ocr-result-header {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 9px;
   color: #1e804d;
-  margin-bottom: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.ocr-result-header > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
 }
 
 .ocr-result-header h4 {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
+  line-height: 18px;
   color: #133321;
 }
 
@@ -239,14 +245,23 @@
 }
 
 .ocr-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: var(--ms-green, #107C10);
   color: white;
   border: 1px solid var(--ms-green, #107C10);
   padding: 0.65rem 1rem;
   border-radius: 8px;
   font-weight: 600;
+  line-height: 1;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
+}
+
+.ocr-btn-primary svg {
+  flex: 0 0 auto;
 }
 
 .ocr-btn-primary:hover {
@@ -609,6 +624,33 @@
 .ocr-btn-secondary:hover {
   background: #e2e8f0;
   color: #1e293b;
+}
+
+.ocr-btn-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fff7f7;
+  color: #b91c1c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.ocr-btn-clear:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.ocr-btn-clear:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .ocr-laser-status {
