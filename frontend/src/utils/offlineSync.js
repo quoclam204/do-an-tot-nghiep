@@ -1,6 +1,7 @@
 /**
  * offlineSync.js
  * Quản lý ghi nhận dữ liệu ngoại tuyến (Offline-First) và Đồng bộ an toàn (Safe Sync) cho DalatAgri.
+ * Sử dụng IndexedDB cục bộ (DalatAgriLocalDB) để lưu trữ an toàn, khắc phục giới hạn 5MB của localStorage.
  * Đặc biệt thiết kế cho nông hộ canh tác tại rẫy xa, đồi núi, nhà kính mạng yếu hoặc mất kết nối 4G/WiFi.
  */
 
@@ -16,6 +17,15 @@ import {
   apiGetMaterials,
   apiGetInventory,
 } from '../services/api';
+import {
+  STORES,
+  idbGet,
+  idbGetAll,
+  idbPut,
+  idbPutMany,
+  idbDelete,
+  idbClear,
+} from './indexedDB';
 
 export const OFFLINE_QUEUE_KEY = 'dalatagri_offline_sync_queue_v2';
 export const CACHED_CATALOGS_KEY = 'dalatagri_cached_catalogs_v2';
@@ -26,7 +36,65 @@ export const checkIsOnline = () => {
   return typeof navigator !== 'undefined' ? navigator.onLine : true;
 };
 
-// ── 2. Quản lý hàng đợi (Queue) lưu trữ cục bộ an toàn ───────────────
+// ── Tự động đồng bộ và nạp dữ liệu từ IndexedDB (Hydration & Migration) ─
+let isHydrated = false;
+export const hydrateFromIndexedDB = async () => {
+  if (typeof window === 'undefined' || isHydrated) return;
+  try {
+    // 1. Nạp Hàng đợi đồng bộ từ IndexedDB
+    const dbQueue = await idbGetAll(STORES.SYNC_QUEUE);
+    if (dbQueue && dbQueue.length > 0) {
+      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(dbQueue));
+    } else {
+      // Migrate dữ liệu cũ từ localStorage sang IndexedDB nếu có
+      const legacyRaw = localStorage.getItem(OFFLINE_QUEUE_KEY);
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          await idbPutMany(STORES.SYNC_QUEUE, parsed);
+        }
+      }
+    }
+
+    // 2. Nạp Optimistic Logs từ IndexedDB
+    const dbLogs = await idbGetAll(STORES.OPTIMISTIC_LOGS);
+    if (dbLogs && dbLogs.length > 0) {
+      localStorage.setItem(OPTIMISTIC_LOGS_KEY, JSON.stringify(dbLogs));
+    } else {
+      const legacyRaw = localStorage.getItem(OPTIMISTIC_LOGS_KEY);
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          await idbPutMany(STORES.OPTIMISTIC_LOGS, parsed);
+        }
+      }
+    }
+
+    // 3. Nạp Danh mục tham chiếu từ IndexedDB
+    const dbCatalogs = await idbGet(STORES.CATALOGS, 'main_catalogs');
+    if (dbCatalogs && dbCatalogs.data) {
+      localStorage.setItem(CACHED_CATALOGS_KEY, JSON.stringify(dbCatalogs.data));
+    } else {
+      const legacyRaw = localStorage.getItem(CACHED_CATALOGS_KEY);
+      if (legacyRaw) {
+        const parsed = JSON.parse(legacyRaw);
+        await idbPut(STORES.CATALOGS, { key: 'main_catalogs', data: parsed, updatedAt: new Date().toISOString() });
+      }
+    }
+
+    isHydrated = true;
+    console.log('📦 [DalatAgri OfflineSync] Đã nạp thành công dữ liệu từ cơ sở dữ liệu cục bộ IndexedDB.');
+  } catch (err) {
+    console.warn('[DalatAgri OfflineSync] Hydration IndexedDB warning:', err);
+  }
+};
+
+// Kích hoạt hydrate ngay khi file được import
+if (typeof window !== 'undefined') {
+  hydrateFromIndexedDB();
+}
+
+// ── 2. Quản lý hàng đợi (Queue) lưu trữ cục bộ an toàn bằng IndexedDB ───
 export const getOfflineQueue = () => {
   try {
     const raw = localStorage.getItem(OFFLINE_QUEUE_KEY);
@@ -37,9 +105,28 @@ export const getOfflineQueue = () => {
   }
 };
 
+export const getOfflineQueueAsync = async () => {
+  try {
+    const items = await idbGetAll(STORES.SYNC_QUEUE);
+    if (items && items.length > 0) return items;
+    return getOfflineQueue();
+  } catch {
+    return getOfflineQueue();
+  }
+};
+
 export const saveOfflineQueue = (queue) => {
   try {
+    // 1. Lưu vào RAM/Cache để các component render đồng bộ không bị giật lag
     localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+
+    // 2. Lưu vĩnh viễn vào IndexedDB (Object Store: syncQueue)
+    idbClear(STORES.SYNC_QUEUE).then(() => {
+      if (Array.isArray(queue) && queue.length > 0) {
+        idbPutMany(STORES.SYNC_QUEUE, queue);
+      }
+    }).catch((err) => console.warn('[IndexedDB SyncQueue] Lỗi ghi:', err));
+
     // Phát sự kiện để các component khác tự update badge
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('dalatagri:queue_changed', { detail: { count: queue.length } }));
@@ -84,13 +171,14 @@ export const addToOfflineQueue = ({ type = 'CREATE_LOG', payload, preview = {} }
 export const removeFromOfflineQueue = (queueId) => {
   const queue = getOfflineQueue().filter((item) => item.id !== queueId);
   saveOfflineQueue(queue);
+  idbDelete(STORES.SYNC_QUEUE, queueId).catch(() => {});
 };
 
 export const getPendingCount = () => {
   return getOfflineQueue().filter((item) => item.status === 'PENDING' || item.status === 'FAILED').length;
 };
 
-// ── 3. Lưu trữ & Trích xuất Optimistic Logs (Xem trước tức thì) ────────
+// ── 3. Lưu trữ & Trích xuất Optimistic Logs (IndexedDB Object Store) ─────
 export const getOptimisticLogs = () => {
   try {
     const raw = localStorage.getItem(OPTIMISTIC_LOGS_KEY);
@@ -103,6 +191,11 @@ export const getOptimisticLogs = () => {
 export const saveOptimisticLogs = (logs) => {
   try {
     localStorage.setItem(OPTIMISTIC_LOGS_KEY, JSON.stringify(logs));
+    idbClear(STORES.OPTIMISTIC_LOGS).then(() => {
+      if (Array.isArray(logs) && logs.length > 0) {
+        idbPutMany(STORES.OPTIMISTIC_LOGS, logs);
+      }
+    }).catch(() => {});
   } catch (err) {
     console.error('Lỗi lưu optimistic logs:', err);
   }
@@ -142,10 +235,10 @@ export const addOptimisticLog = (queueItem) => {
 export const removeOptimisticLog = (id) => {
   const existing = getOptimisticLogs().filter((l) => l.id !== id);
   saveOptimisticLogs(existing);
+  idbDelete(STORES.OPTIMISTIC_LOGS, id).catch(() => {});
 };
 
-// ── 4. Cache danh mục tham chiếu (Crops, Seasons, Materials, Farms) ────
-// Giúp nông dân mở form và chọn dropdown ngay cả khi không có mạng
+// ── 4. Cache danh mục tham chiếu bằng IndexedDB (Crops, Seasons, Materials, Farms)
 export const cacheCatalogs = (catalogs) => {
   if (!catalogs) return;
   try {
@@ -156,6 +249,11 @@ export const cacheCatalogs = (catalogs) => {
       updatedAt: new Date().toISOString(),
     };
     localStorage.setItem(CACHED_CATALOGS_KEY, JSON.stringify(updated));
+    idbPut(STORES.CATALOGS, {
+      key: 'main_catalogs',
+      data: updated,
+      updatedAt: new Date().toISOString(),
+    }).catch((err) => console.warn('[IndexedDB Catalogs] Lỗi lưu cache:', err));
   } catch (err) {
     console.error('Lỗi cache danh mục:', err);
   }

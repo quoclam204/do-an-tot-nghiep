@@ -1,0 +1,553 @@
+{
+  "info": {
+    "_postman_id": "c1f7b8a4-92d1-4e78-9e62-dalatagri2026",
+    "name": "DalatAgri - Hệ Thống Quản Lý Nhật Ký Canh Tác Cây Dài Ngày & Chi Phí Nông Nghiệp",
+    "description": "Bộ sưu tập API kiểm thử hoàn chỉnh cho Đồ án Tốt nghiệp DalatAgri (NestJS + PostgreSQL + React PWA). Bao gồm đầy đủ các module: Xác thực & Bảo mật RBAC, Nông hộ & Lô trồng, Cây dài ngày & Chu kỳ sinh trưởng, Vụ mùa canh tác, Nhật ký canh tác & Hạch toán nhân công/vật tư, Quản lý kho tồn kho tự động trừ/hoàn, Báo cáo tài chính và Dữ liệu mẫu Lâm Đồng.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "farmId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plotId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cropId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "seasonId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "materialId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "activityLogId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01. Xác Thực & Bảo Mật (Authentication)",
+      "item": [
+        {
+          "name": "Đăng ký tài khoản Nông dân (Register)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"farmer_test@dalatagri.vn\",\n  \"password\": \"Farmer@123456\",\n  \"fullName\": \"Trần Văn Nông (Nông hộ Đà Lạt)\",\n  \"phone\": \"0912345678\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/register", "host": ["{{baseUrl}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "Đăng nhập hệ thống (Login) - Tự động lưu Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.accessToken) {",
+                  "    pm.collectionVariables.set('token', res.accessToken);",
+                  "    console.log('Đã lưu accessToken vào Collection Variable');",
+                  "}",
+                  "if (res.refreshToken) {",
+                  "    pm.collectionVariables.set('refreshToken', res.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nguyenlequoclam@gmail.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "Làm mới Token (Refresh Token)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/refresh", "host": ["{{baseUrl}}"], "path": ["auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Đăng xuất tài khoản (Logout)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/logout", "host": ["{{baseUrl}}"], "path": ["auth", "logout"] }
+          }
+        },
+        {
+          "name": "Yêu cầu Quên mật khẩu (Forgot Password)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nguyenlequoclam@gmail.com\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["auth", "forgot-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Quản Lý Người Dùng & Phân Quyền (Users & RBAC)",
+      "item": [
+        {
+          "name": "Xem thông tin cá nhân (Get Profile)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Cập nhật thông tin cá nhân (Update Profile)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Lê Quốc Lâm (Chủ trang trại)\",\n  \"phone\": \"0909888999\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users/me", "host": ["{{baseUrl}}"], "path": ["users", "me"] }
+          }
+        },
+        {
+          "name": "Admin: Thống kê người dùng (Statistics)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/statistics", "host": ["{{baseUrl}}"], "path": ["users", "statistics"] }
+          }
+        },
+        {
+          "name": "Admin: Danh sách tài khoản chờ duyệt",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users/pending-approvals", "host": ["{{baseUrl}}"], "path": ["users", "pending-approvals"] }
+          }
+        },
+        {
+          "name": "Admin: Lấy tất cả người dùng (All Users)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Nông Hộ & Lô Trồng (Farms & Plots)",
+      "item": [
+        {
+          "name": "Danh sách nông hộ của tôi (Get My Farms)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('farmId', res[0].id);",
+                  "    if (res[0].plots && res[0].plots.length > 0) {",
+                  "        pm.collectionVariables.set('plotId', res[0].plots[0].id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/farms", "host": ["{{baseUrl}}"], "path": ["farms"] }
+          }
+        },
+        {
+          "name": "Tạo nông hộ mới (Create Farm)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Nông trại Cà phê & Sầu riêng Cầu Đất\",\n  \"location\": \"Xã Trạm Hành, TP. Đà Lạt, Tỉnh Lâm Đồng\",\n  \"totalArea\": 3.5\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/farms", "host": ["{{baseUrl}}"], "path": ["farms"] }
+          }
+        },
+        {
+          "name": "Chi tiết 1 nông hộ (Get Farm By ID)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/farms/{{farmId}}", "host": ["{{baseUrl}}"], "path": ["farms", "{{farmId}}"] }
+          }
+        },
+        {
+          "name": "Tạo Lô trồng mới (Create Plot)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Lô A1 - Sầu riêng Ri6 ghép\",\n  \"area\": 1.2\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/farms/{{farmId}}/plots", "host": ["{{baseUrl}}"], "path": ["farms", "{{farmId}}", "plots"] }
+          }
+        },
+        {
+          "name": "Danh sách Lô trồng của Nông hộ",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/farms/{{farmId}}/plots", "host": ["{{baseUrl}}"], "path": ["farms", "{{farmId}}", "plots"] }
+          }
+        },
+        {
+          "name": "Danh sách nông dân trong nông hộ (Farm Members)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/farms/{{farmId}}/members", "host": ["{{baseUrl}}"], "path": ["farms", "{{farmId}}", "members"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Cây Dài Ngày & Chu Kỳ Sinh Trưởng (Crops & Growth Cycles)",
+      "item": [
+        {
+          "name": "Danh sách giống cây trồng (Get Crops)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('cropId', res[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/crops", "host": ["{{baseUrl}}"], "path": ["catalog", "crops"] }
+          }
+        },
+        {
+          "name": "Tạo giống cây dài ngày mới (Create Crop)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cà phê Arabica Bourbon\",\n  \"type\": \"Cây công nghiệp lâu năm\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/crops", "host": ["{{baseUrl}}"], "path": ["catalog", "crops"] }
+          }
+        },
+        {
+          "name": "Danh sách Chu kỳ sinh trưởng mẫu (Growth Cycles)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/growth-cycles", "host": ["{{baseUrl}}"], "path": ["catalog", "growth-cycles"] }
+          }
+        },
+        {
+          "name": "Tạo Chu kỳ sinh trưởng nhiều năm (Create Growth Cycle)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropId\": \"{{cropId}}\",\n  \"name\": \"Chu kỳ kinh doanh Sầu riêng Ri6 (Năm thứ 5 trở đi)\",\n  \"yearsToFlower\": 4.5,\n  \"yearsToHarvest\": 5.0,\n  \"description\": \"Quy trình tạo mầm hoa, nuôi trái sầu riêng Ri6 cơm vàng hạt lép đạt chuẩn VietGAP\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/growth-cycles", "host": ["{{baseUrl}}"], "path": ["catalog", "growth-cycles"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Vụ Mùa Canh Tác (Crop Cycles / Seasons)",
+      "item": [
+        {
+          "name": "Danh sách Vụ mùa (Get Seasons)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('seasonId', res[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/seasons?farmId={{farmId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "seasons"], "query": [{ "key": "farmId", "value": "{{farmId}}" }] }
+          }
+        },
+        {
+          "name": "Khởi tạo Vụ mùa canh tác mới (Create Season)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vụ Sầu riêng Niên vụ 2026 - 2027\",\n  \"plotId\": \"{{plotId}}\",\n  \"cropId\": \"{{cropId}}\",\n  \"startDate\": \"2026-01-01\",\n  \"expectedEndDate\": \"2026-12-31\",\n  \"status\": \"ACTIVE\",\n  \"isIntercropped\": false\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/seasons", "host": ["{{baseUrl}}"], "path": ["catalog", "seasons"] }
+          }
+        },
+        {
+          "name": "Chi tiết Vụ mùa & Tóm tắt tài chính (Financial Summary)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/seasons/{{seasonId}}/financial-summary", "host": ["{{baseUrl}}"], "path": ["catalog", "seasons", "{{seasonId}}", "financial-summary"] }
+          }
+        },
+        {
+          "name": "Thống kê lượng vật tư tiêu thụ của vụ mùa",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/seasons/{{seasonId}}/material-consumption", "host": ["{{baseUrl}}"], "path": ["catalog", "seasons", "{{seasonId}}", "material-consumption"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Nhật Ký Canh Tác (Activity Logs & Hạch Toán)",
+      "item": [
+        {
+          "name": "Danh sách nhật ký canh tác (Get Logs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('activityLogId', res[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/activity-logs?cropCycleId={{seasonId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "activity-logs"], "query": [{ "key": "cropCycleId", "value": "{{seasonId}}" }] }
+          }
+        },
+        {
+          "name": "Ghi nhật ký: Bón phân + Thuê nhân công + Trừ kho tự động",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropCycleId\": \"{{seasonId}}\",\n  \"activityType\": \"BON_PHAN\",\n  \"activityDate\": \"2026-10-26\",\n  \"activityTime\": \"08:30\",\n  \"workShift\": \"SANG\",\n  \"isHiredLabor\": true,\n  \"laborWorkers\": 3,\n  \"laborWagePerDay\": 250000,\n  \"otherCosts\": 50000,\n  \"notes\": \"Bón đón đọt lần 1 kết hợp tưới ẩm gốc\",\n  \"materials\": [\n    {\n      \"materialId\": \"{{materialId}}\",\n      \"quantityUsed\": 50,\n      \"cost\": 850000\n    }\n  ]\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/activity-logs", "host": ["{{baseUrl}}"], "path": ["catalog", "activity-logs"] }
+          }
+        },
+        {
+          "name": "Ghi nhật ký: Thu hoạch & Doanh thu nông sản",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropCycleId\": \"{{seasonId}}\",\n  \"activityType\": \"THU_HOACH\",\n  \"activityDate\": \"2026-10-26\",\n  \"activityTime\": \"07:00\",\n  \"workShift\": \"SANG\",\n  \"isHiredLabor\": true,\n  \"laborWorkers\": 5,\n  \"laborWagePerDay\": 300000,\n  \"harvestQuantity\": 1500,\n  \"unitPrice\": 85000,\n  \"revenue\": 127500000,\n  \"notes\": \"Thu hoạch sầu riêng đợt 1 cơm vàng loại 1 cắt già xuất khẩu\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/activity-logs", "host": ["{{baseUrl}}"], "path": ["catalog", "activity-logs"] }
+          }
+        },
+        {
+          "name": "Cập nhật nhật ký canh tác (Update Log)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Đã bổ sung tưới rửa lá sau bón phân\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/activity-logs/{{activityLogId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "activity-logs", "{{activityLogId}}"] }
+          }
+        },
+        {
+          "name": "Xóa nhật ký (Tự động hoàn trả tồn kho)",
+          "request": {
+            "method": "DELETE",
+            "url": { "raw": "{{baseUrl}}/catalog/activity-logs/{{activityLogId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "activity-logs", "{{activityLogId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Vật Tư & Quản Lý Tồn Kho (Materials & Inventory)",
+      "item": [
+        {
+          "name": "Danh mục vật tư nông nghiệp (Get Materials)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (Array.isArray(res) && res.length > 0) {",
+                  "    pm.collectionVariables.set('materialId', res[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/materials", "host": ["{{baseUrl}}"], "path": ["catalog", "materials"] }
+          }
+        },
+        {
+          "name": "Tạo vật tư mới (Create Material)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Phân Kali Sulphate K2SO4 Haifa\",\n  \"type\": \"PHAN_BON\",\n  \"unit\": \"kg\",\n  \"defaultPrice\": 24000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/materials", "host": ["{{baseUrl}}"], "path": ["catalog", "materials"] }
+          }
+        },
+        {
+          "name": "Xem lịch sử biến động giá vật tư (Material History)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/material-history/{{materialId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "material-history", "{{materialId}}"] }
+          }
+        },
+        {
+          "name": "Xem tồn kho của nông hộ (Get Inventory)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/inventory?farmId={{farmId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "inventory"], "query": [{ "key": "farmId", "value": "{{farmId}}" }] }
+          }
+        },
+        {
+          "name": "Nhập kho vật tư mới (Stock In / Create Inventory)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"farmId\": \"{{farmId}}\",\n  \"materialId\": \"{{materialId}}\",\n  \"quantity\": 200,\n  \"totalCost\": 3400000\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/catalog/inventory", "host": ["{{baseUrl}}"], "path": ["catalog", "inventory"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Báo Cáo Tài Chính & Dashboard (Reports & Analytics)",
+      "item": [
+        {
+          "name": "Báo cáo kinh tế tổng hợp (Financial Report KPI)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/financial-report?farmId={{farmId}}", "host": ["{{baseUrl}}"], "path": ["catalog", "financial-report"], "query": [{ "key": "farmId", "value": "{{farmId}}" }] }
+          }
+        },
+        {
+          "name": "Admin: Giám sát toàn bộ nông trại hệ thống",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/admin/farms", "host": ["{{baseUrl}}"], "path": ["catalog", "admin", "farms"] }
+          }
+        },
+        {
+          "name": "Admin: Giám sát toàn bộ nhật ký canh tác hệ thống",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/catalog/admin/activity-logs?limit=50", "host": ["{{baseUrl}}"], "path": ["catalog", "admin", "activity-logs"], "query": [{ "key": "limit", "value": "50" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Khởi Tạo Dữ Liệu Mẫu Lâm Đồng (Seed Data)",
+      "item": [
+        {
+          "name": "Nạp dữ liệu mẫu cây dài ngày & vật tư Lâm Đồng (Seed Lam Dong)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/catalog/seed-lamdong", "host": ["{{baseUrl}}"], "path": ["catalog", "seed-lamdong"] }
+          }
+        }
+      ]
+    }
+  ]
+}
