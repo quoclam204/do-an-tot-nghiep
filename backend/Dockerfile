@@ -45,5 +45,6 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3000
 
-# Chạy migrate và khởi động NestJS
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/src/main.js"]
+# Áp dụng các migration đã version hóa rồi khởi động NestJS.
+# Không dùng `db push` khi startup vì có thể kiểm tra/thay đổi schema ở mỗi lần restart.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
