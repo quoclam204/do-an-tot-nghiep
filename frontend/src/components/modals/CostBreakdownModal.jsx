@@ -2,7 +2,7 @@ import React from 'react';
 import './CostBreakdownModal.css';
 import { IconX, IconCalendar, IconMapPin } from '../icons';
 
-export default function CostBreakdownModal({ isOpen, onClose, log, formatActivityName }) {
+export default function CostBreakdownModal({ isOpen, onClose, log, formatActivityName, onEdit }) {
   if (!isOpen || !log) return null;
 
   const extractOtherCostName = (notes) => {
@@ -123,6 +123,18 @@ export default function CostBreakdownModal({ isOpen, onClose, log, formatActivit
 
         {/* NÚT ĐÓNG */}
         <div className="simple-modal-footer">
+          {onEdit && (
+            <button
+              type="button"
+              className="btn-simple-edit"
+              onClick={() => {
+                onClose();
+                onEdit(log);
+              }}
+            >
+              Sửa nhật ký
+            </button>
+          )}
           <button type="button" className="btn-simple-close" onClick={onClose}>
             Đóng
           </button>

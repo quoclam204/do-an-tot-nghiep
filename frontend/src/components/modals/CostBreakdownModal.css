@@ -18,6 +18,7 @@
   border-radius: 10px;
   width: 100%;
   max-width: 520px;
+  max-height: calc(100vh - 2rem);
   border: 1px solid #cbd5e1;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -74,12 +75,30 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-y: auto;
 }
 
 .simple-breakdown-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
+  table-layout: fixed;
+}
+
+.simple-breakdown-table th:first-child,
+.simple-breakdown-table td:first-child {
+  width: 36%;
+}
+
+.simple-breakdown-table th:nth-child(2),
+.simple-breakdown-table td:nth-child(2) {
+  width: 42%;
+  overflow-wrap: anywhere;
+}
+
+.simple-breakdown-table th:last-child,
+.simple-breakdown-table td:last-child {
+  width: 22%;
 }
 
 .simple-breakdown-table th {
@@ -176,6 +195,22 @@
 
 .btn-simple-close:hover {
   background: var(--ms-green-dark, #0a5e0a);
+}
+
+.btn-simple-edit {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.btn-simple-edit:hover {
+  background: #bae6fd;
 }
 
 @media (max-width: 640px) {

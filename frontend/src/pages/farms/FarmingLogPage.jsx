@@ -44,6 +44,7 @@ import {
   buildDefaultInventory,
   resolveCropCycleForSync,
   DEFAULT_OFFLINE_MATERIALS,
+  hydrateFromIndexedDB,
 } from '../../utils/offlineSync';
 import ActivityTypesModal from '../../components/modals/ActivityTypesModal';
 import CostBreakdownModal from '../../components/modals/CostBreakdownModal';
@@ -122,6 +123,48 @@ const getInventoryMaterialName = (inventoryItem, materialList) =>
   materialList.find((material) => material.id === inventoryItem?.materialId)?.name ||
   '';
 
+const mergeActivityLogs = (...sources) => {
+  const merged = [];
+  const seen = new Set();
+
+  sources.flat().forEach((log) => {
+    if (!log?.id || seen.has(log.id)) return;
+    seen.add(log.id);
+    merged.push(log);
+  });
+
+  return merged;
+};
+
+const loadActivityLogsWithRetry = async (farmId) => {
+  let lastError = null;
+
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      const result = await apiGetActivityLogs(undefined, farmId || undefined);
+      const logs = Array.isArray(result) ? result : (Array.isArray(result?.data) ? result.data : []);
+      if (logs.length > 0) return logs;
+      // Khi trang vừa mở, API có thể trả rỗng trong lúc phiên/danh mục
+      // đang hoàn tất. Thử lại trước khi kết luận lịch sử thật sự rỗng.
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+        continue;
+      }
+      return logs;
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+      }
+    }
+  }
+
+  if (lastError) {
+    console.warn('Không tải được lịch sử nhật ký:', lastError.response?.data || lastError.message);
+  }
+  return null;
+};
+
 
 
 export default function FarmingLogPage() {
@@ -190,18 +233,21 @@ export default function FarmingLogPage() {
   const loadData = async (targetFarmId) => {
     try {
       setLoading(true);
+      // IndexedDB hydration chạy bất đồng bộ khi module offline được import.
+      // Chờ hoàn tất để không ghi đè nhật ký ngoại tuyến bằng danh sách rỗng.
+      await hydrateFromIndexedDB();
       const farmToUse = targetFarmId !== undefined ? targetFarmId : selectedFarmId;
 
-      const [cropsRes, seasonsRes, materialsRes, logsRes, farmsRes, typesRes, invRes, plotsRes] = await Promise.all([
+      const [cropsRes, seasonsRes, materialsRes, farmsRes, typesRes, invRes, plotsRes] = await Promise.all([
         apiGetCrops().catch(() => []),
         apiGetSeasons(farmToUse || undefined).catch(() => []),
         apiGetMaterials().catch(() => []),
-        apiGetActivityLogs(undefined, farmToUse || undefined).catch(() => []),
         apiGetMyFarms().catch(() => []),
         apiGetActivityTypes(farmToUse || undefined).catch(() => []),
         farmToUse ? apiGetInventory(farmToUse).catch(() => []) : apiGetInventory().catch(() => []),
         api.get('/catalog/plots', { params: farmToUse ? { farmId: farmToUse } : {} }).then((r) => r.data).catch(() => []),
       ]);
+      const logsRes = await loadActivityLogsWithRetry(farmToUse);
 
       // Cache danh mục nếu tải thành công
       if ((cropsRes && cropsRes.length > 0) || (seasonsRes && seasonsRes.length > 0) || (invRes && invRes.length > 0) || (farmsRes && farmsRes.length > 0)) {
@@ -265,12 +311,20 @@ export default function FarmingLogPage() {
 
       // Ghép các bản ghi offline chờ đồng bộ vào danh sách hiển thị
       const optLogs = getOptimisticLogs();
-      const finalLogs = [...optLogs, ...(logsRes || [])];
+      // Nếu API tạm thời lỗi, giữ lại danh sách đang hiển thị thay vì biến thành
+      // trạng thái "không có nhật ký". Các log offline vẫn được ưu tiên ghép vào.
+      // Một lần tải lại có thể thất bại tạm thời trong lúc các danh mục khác
+      // vẫn tải thành công. Không được dùng kết quả lỗi để xóa lịch sử đang có.
+      setLogs((currentLogs) => {
+        if (logsRes === null || (logsRes.length === 0 && currentLogs.length > 0)) {
+          return mergeActivityLogs(optLogs, currentLogs);
+        }
+        return mergeActivityLogs(optLogs, logsRes);
+      });
 
       setCrops(finalCrops);
       setSeasons(finalSeasons);
       setMaterials(finalMaterials);
-      setLogs(finalLogs);
       setFarms(finalFarms);
       setPlots(plotsRes || []);
       setActivityTypes(typesRes || []);
@@ -325,7 +379,7 @@ export default function FarmingLogPage() {
       setMaterials(fallbackMats);
       setFarms(fallbackFarms);
       setInventory(fallbackInv);
-      setLogs(getOptimisticLogs());
+      setLogs((currentLogs) => mergeActivityLogs(getOptimisticLogs(), currentLogs));
     } finally {
       setLoading(false);
     }
@@ -341,6 +395,28 @@ export default function FarmingLogPage() {
     window.addEventListener('dalatagri:sync_completed', handleSyncDone);
     return () => {
       window.removeEventListener('dalatagri:sync_completed', handleSyncDone);
+    };
+  }, [selectedFarmId]);
+
+  // Tải lịch sử độc lập với các danh mục khác. Nếu một danh mục lỗi lúc mở
+  // trang, lịch sử vẫn phải được hiển thị và không phụ thuộc vào thao tác lưu.
+  useEffect(() => {
+    let cancelled = false;
+    loadActivityLogsWithRetry(selectedFarmId)
+      .then((freshLogs) => {
+        if (cancelled || !freshLogs) return;
+        setLogs((currentLogs) => freshLogs.length > 0
+          ? mergeActivityLogs(getOptimisticLogs(), freshLogs)
+          : mergeActivityLogs(getOptimisticLogs(), currentLogs));
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.warn('Không tải được lịch sử nhật ký độc lập:', error);
+        }
+      });
+
+    return () => {
+      cancelled = true;
     };
   }, [selectedFarmId]);
 
@@ -642,11 +718,35 @@ export default function FarmingLogPage() {
       return;
     }
 
+    const cropCycleId = log.cropCycleId || log.cropCycle?.id || '';
+    const logCropCycle = log.cropCycle;
+
+    // Nhật ký đã có quan hệ mùa vụ nhưng danh sách mùa vụ có thể chưa kịp
+    // tải hoặc API mùa vụ trả về bộ lọc khác. Bổ sung quan hệ từ chính log
+    // để select không bị rơi về "-- Chọn Lô / Mùa vụ --".
+    if (cropCycleId && logCropCycle) {
+      setSeasons((previousSeasons) => {
+        if (previousSeasons.some((season) => season.id === cropCycleId)) {
+          return previousSeasons;
+        }
+
+        return [
+          {
+            ...logCropCycle,
+            id: cropCycleId,
+            plotId: logCropCycle.plotId || logCropCycle.plot?.id,
+            cropId: logCropCycle.cropId || logCropCycle.crop?.id,
+          },
+          ...previousSeasons,
+        ];
+      });
+    }
+
     setEditingLogId(log.id);
     const mat = log.materials?.[0];
     const { name: parsedCostName, cleanNotes } = extractOtherCostName(log.notes);
     setForm({
-      cropCycleId: log.cropCycleId,
+      cropCycleId,
       activityType: log.activityType,
       activityDate: log.activityDate ? log.activityDate.slice(0, 10) : getTodayDateStr(),
       activityTime: log.activityTime || '08:30',
@@ -886,7 +986,9 @@ export default function FarmingLogPage() {
         apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
         apiGetInventory(selectedFarmId || undefined).catch(() => null),
       ]).then(([freshLogs, freshInv]) => {
-        if (freshLogs) setLogs(freshLogs);
+        if (freshLogs) {
+          setLogs((previousLogs) => mergeActivityLogs(getOptimisticLogs(), previousLogs, freshLogs));
+        }
         if (freshInv) setInventory(freshInv);
       });
     } catch (err) {
@@ -910,7 +1012,9 @@ export default function FarmingLogPage() {
           apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
           apiGetInventory(selectedFarmId || undefined).catch(() => null),
         ]);
-        if (freshLogs) setLogs(freshLogs);
+        if (freshLogs) {
+          setLogs((previousLogs) => mergeActivityLogs(getOptimisticLogs(), previousLogs, freshLogs));
+        }
         if (freshInv) setInventory(freshInv);
       } catch (err) {
         showToast('Lỗi khi xóa: ' + (err.response?.data?.message || err.message), 'error');
@@ -1953,6 +2057,7 @@ export default function FarmingLogPage() {
         onClose={() => setBreakdownLog(null)}
         log={breakdownLog}
         formatActivityName={formatActivityName}
+        onEdit={handleStartEdit}
       />
 
       {/* MODAL GHI NHẬN THU HOẠCH NHANH */}
@@ -1970,7 +2075,9 @@ export default function FarmingLogPage() {
           // Tự động tải lại nhật ký mới nhất
           apiGetActivityLogs(undefined, selectedFarmId)
             .then((freshLogs) => {
-              if (freshLogs) setLogs(freshLogs);
+              if (freshLogs) {
+                setLogs([...getOptimisticLogs(), ...freshLogs]);
+              }
             })
             .catch(() => null);
         }}
