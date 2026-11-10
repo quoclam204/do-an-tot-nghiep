@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
 import {
   IconWarehouse,
   IconPlus,
@@ -311,64 +312,46 @@ export default function InventoryPage() {
         )}
 
         {/* Page Header */}
-        <div className="page-top-bar">
-          <div>
-            <h1 className="page-title">
-              <IconWarehouse className="title-icon" /> Quản lý Tồn kho Vật tư
-            </h1>
-            <p className="page-subtitle">
-              Kiểm soát xuất nhập tồn phân bón, thuốc BVTV và vật tư theo từng nông hộ
-            </p>
-          </div>
-          <div className="header-actions">
+        <PageHeader
+          icon={IconWarehouse}
+          title="Quản lý Tồn kho Vật tư"
+          description="Kiểm soát xuất nhập tồn phân bón, thuốc BVTV và vật tư theo từng nông hộ"
+          actions={
             <button className="btn btn-primary" onClick={handleOpenAdd}>
               <IconPlus size={18} /> Nhập kho mới
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* KPI Cards */}
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon bg-blue">
-              <IconWarehouse size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Tổng mặt hàng tồn</div>
-              <div className="stat-value">{stats.totalItems}</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-green">
-              <IconDollarSign size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Tổng giá trị tồn kho</div>
-              <div className="stat-value">{stats.totalValue.toLocaleString('vi-VN')} đ</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-orange">
-              <IconAlertCircle size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Cảnh báo sắp hết (≤ 5)</div>
-              <div className="stat-value text-orange">{stats.lowStockCount}</div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-red">
-              <IconX size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Đã hết hàng (0)</div>
-              <div className="stat-value text-red">{stats.outOfStockCount}</div>
-            </div>
-          </div>
-        </div>
+        <KpiGrid style={{ marginBottom: '1.5rem' }}>
+          <KpiCard
+            label="TỔNG MẶT HÀNG TỒN"
+            value={stats.totalItems}
+            icon={IconWarehouse}
+            variant="blue"
+          />
+          <KpiCard
+            label="TỔNG GIÁ TRỊ TỒN KHO"
+            value={stats.totalValue.toLocaleString('vi-VN')}
+            unit="đ"
+            icon={IconDollarSign}
+            variant="green"
+            highlight={true}
+          />
+          <KpiCard
+            label="CẢNH BÁO SẮP HẾT (≤ 5)"
+            value={stats.lowStockCount}
+            icon={IconAlertCircle}
+            variant="amber"
+          />
+          <KpiCard
+            label="ĐÃ HẾT HÀNG (0)"
+            value={stats.outOfStockCount}
+            icon={IconX}
+            variant="red"
+          />
+        </KpiGrid>
 
         {/* Tabs */}
         <div className="inventory-tabs">

@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════════════
+   PageHeader.css — DalatAgri Design System (Highland Ledger)
+   Structured Flatness · Elder-Friendly Hierarchy · Clear Actions
+   ═══════════════════════════════════════════════════════════ */
+
+.dalat-page-header {
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border-light, #e8e8e8);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
+  position: relative;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dalat-page-header-main {
+  flex: 1 1 360px;
+  min-width: 0;
+}
+
+/* ── Pill Tag / Kicker Badge ── */
+.dalat-page-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ms-green-light, #eaf6ee);
+  color: var(--ms-green, #137a3a);
+  border: 1px solid var(--ms-green-mid, #c9e8d2);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  line-height: 1.2;
+}
+
+.dalat-page-header-badge svg {
+  flex-shrink: 0;
+}
+
+/* ── Title & Heading ── */
+.dalat-page-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.35rem;
+}
+
+.dalat-page-header-icon {
+  color: var(--ms-green, #137a3a);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.dalat-page-header-title {
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-h, #172033);
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* ── Subtitle / Description ── */
+.dalat-page-header-desc {
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-muted, #64748b);
+  max-width: 680px;
+  margin: 0;
+}
+
+/* ── Actions on Right ── */
+.dalat-page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* ── Sub-content (Stats / Filter bar inline) ── */
+.dalat-page-header-extra {
+  width: 100%;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--ms-gray-100, #f5f5f5);
+}
+
+@media (max-width: 768px) {
+  .dalat-page-header {
+    padding: 1rem 1.15rem;
+    gap: 1rem;
+  }
+
+  .dalat-page-header-title {
+    font-size: 1.15rem;
+  }
+
+  .dalat-page-header-desc {
+    font-size: 0.82rem;
+  }
+
+  .dalat-page-header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

@@ -46,6 +46,35 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
+  /* ── Sổ Điền Dã Tây Nguyên: Semantic Status Tokens ── */
+  --status-success: #15803d;
+  --status-success-bg: #f0fdf4;
+  --status-success-border: #bbf7d0;
+
+  --status-danger: #dc2626;
+  --status-danger-bg: #fef2f2;
+  --status-danger-border: #fecaca;
+
+  --status-warning: #b45309;
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+
+  --status-info: #1d6fb8;
+  --status-info-bg: #eff6ff;
+  --status-info-border: #bae6fd;
+
+  --status-harvest: #6e3eae;
+  --status-harvest-bg: #faf7ff;
+  --status-harvest-border: #e9d5ff;
+
+  --status-earth: #854d0e;
+  --status-earth-bg: #fefce8;
+  --status-earth-border: #fef08a;
+
+  --status-indigo: #4338ca;
+  --status-indigo-bg: #eef2ff;
+  --status-indigo-border: #c7d2fe;
+
   /* ── Typography ── */
   --sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --heading: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -178,7 +207,19 @@ table {
   width: 100%;
 }
 
-/* ── Scrollbar (Microsoft style) ── */
+/* ── Themed Browser Surfaces: Selection & Caret ── */
+::selection {
+  background: var(--ms-green-mid);
+  color: var(--ms-green-dark);
+}
+
+input,
+select,
+textarea {
+  caret-color: var(--ms-green);
+}
+
+/* ── Scrollbar (Microsoft style with Pine hover) ── */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -194,10 +235,67 @@ table {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ms-gray-400);
+  background: var(--ms-green-mid);
 }
 
 /* ── Focus ring ── */
+*:focus-visible {
+  outline: 2px solid var(--ms-green);
+  outline-offset: 2px;
+}
+
+/* ── Sổ Điền Dã: Standard Highland Activity Badges ── */
+.badge-activity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  line-height: 1.25;
+}
+
+.badge-bon_phan {
+  background: var(--status-success-bg);
+  color: var(--status-success);
+  border-color: var(--status-success-border);
+}
+
+.badge-phun_thuoc {
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
+  border-color: var(--status-warning-border);
+}
+
+.badge-tuoi_nuoc {
+  background: var(--status-info-bg);
+  color: var(--status-info);
+  border-color: var(--status-info-border);
+}
+
+.badge-thu_hoach {
+  background: var(--status-harvest-bg);
+  color: var(--status-harvest);
+  border-color: var(--status-harvest-border);
+  font-weight: 800;
+}
+
+.badge-cat_tia {
+  background: var(--status-indigo-bg);
+  color: var(--status-indigo);
+  border-color: var(--status-indigo-border);
+}
+
+.badge-lam_co,
+.badge-lam_dat {
+  background: var(--status-earth-bg);
+  color: var(--status-earth);
+  border-color: var(--status-earth-border);
+}
 *:focus-visible {
   outline: 2px solid var(--ms-green);
   outline-offset: 2px;

@@ -133,11 +133,11 @@
 
 /* ─── Hero Right Card ─── */
 .elder-hero-highlight-card {
-  background: var(--ms-gray-50);
-  border: 1px solid var(--ms-gray-200);
-  border-left: 3px solid var(--ms-green);
+  background: #ffffff;
+  border: 1px solid var(--ms-green-mid);
   padding: 24px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .card-header-simple {
@@ -250,14 +250,35 @@
   padding: 24px;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   position: relative;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }
 
 .elder-card:hover {
+  transform: translateY(-2px);
   border-color: var(--ms-green);
-  box-shadow: 0 4px 16px rgba(16, 124, 16, 0.1);
+  box-shadow: 0 4px 16px rgba(19, 122, 58, 0.08);
+}
+
+.card-journal:hover {
+  border-color: #fde68a;
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.08);
+}
+
+.card-farm:hover {
+  border-color: #bae6fd;
+  box-shadow: 0 4px 16px rgba(29, 111, 184, 0.08);
+}
+
+.card-crop:hover {
+  border-color: var(--ms-green-mid);
+  box-shadow: 0 4px 16px rgba(19, 122, 58, 0.08);
+}
+
+.card-money:hover {
+  border-color: #e9d5ff;
+  box-shadow: 0 4px 16px rgba(110, 62, 174, 0.08);
 }
 
 .elder-card .card-top {
@@ -279,8 +300,8 @@
 }
 
 .card-journal .elder-card-icon {
-  background: #fef8ec;
-  color: #8a6a00;
+  background: #fffbeb;
+  color: #b45309;
 }
 
 .card-farm .elder-card-icon {
@@ -294,7 +315,7 @@
 }
 
 .card-money .elder-card-icon {
-  background: #f5f0ff;
+  background: #faf7ff;
   color: #6e3eae;
 }
 
@@ -306,6 +327,30 @@
   background: var(--ms-gray-100);
   color: var(--ms-gray-600);
   border: 1px solid var(--ms-gray-200);
+}
+
+.card-journal .card-badge {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.card-farm .card-badge {
+  background: #eff6ff;
+  color: #1d6fb8;
+  border-color: #bae6fd;
+}
+
+.card-crop .card-badge {
+  background: var(--ms-green-light);
+  color: var(--ms-green);
+  border-color: var(--ms-green-mid);
+}
+
+.card-money .card-badge {
+  background: #faf7ff;
+  color: #6e3eae;
+  border-color: #e9d5ff;
 }
 
 .elder-card-title {
@@ -571,13 +616,12 @@
 .support-card {
   background: #ffffff;
   border: 1px solid var(--ms-green-mid);
-  border-left: 5px solid var(--ms-green);
   border-radius: var(--radius-md);
   padding: 24px 28px;
   display: flex;
   align-items: center;
   gap: 24px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 

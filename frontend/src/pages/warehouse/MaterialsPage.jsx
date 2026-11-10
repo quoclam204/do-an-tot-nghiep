@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
 import {
   IconFlask,
   IconPlus,
@@ -323,68 +324,50 @@ export default function MaterialsPage() {
       <main className="materials-main-content">
         <div className="container">
           {/* HERO BANNER */}
-          <div className="materials-hero-banner">
-            <div className="materials-hero-text">
-              <div className="materials-pill-tag">
-                <IconFlask size={16} strokeWidth={2.2} />
-                <span>QUẢN LÝ VẬT TƯ NÔNG NGHIỆP</span>
-              </div>
-              <h1>Danh mục vật tư, phân bón & thuốc BVTV</h1>
-              <p className="materials-hero-desc">
-                Quản lý đầy đủ các loại phân bón, thuốc bảo vệ thực vật, giống cây
-                và vật tư khác phục vụ cho hoạt động canh tác nông nghiệp.
-              </p>
-            </div>
-            <div className="materials-hero-actions">
+          <PageHeader
+            badge={{ icon: IconFlask, label: 'QUẢN LÝ VẬT TƯ NÔNG NGHIỆP' }}
+            title="Danh mục vật tư, phân bón & thuốc BVTV"
+            description="Quản lý đầy đủ các loại phân bón, thuốc bảo vệ thực vật, giống cây và vật tư khác phục vụ cho hoạt động canh tác nông nghiệp."
+            actions={
               <button className="btn-add-material" onClick={openAddModal}>
                 <IconPlus size={18} strokeWidth={2.5} />
                 <span>Thêm vật tư mới</span>
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* KPI STATS */}
-          <div className="materials-stats-grid">
-            <div className="materials-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Tổng vật tư</span>
-                <div className="stat-card-icon green">
-                  <IconWarehouse size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.total}</span>
-              <span className="stat-card-sub">Loại vật tư trong hệ thống</span>
-            </div>
-            <div className="materials-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Phân bón</span>
-                <div className="stat-card-icon orange">
-                  <IconSprout size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.phanBon}</span>
-              <span className="stat-card-sub">Phân hữu cơ, NPK, DAP, Urê...</span>
-            </div>
-            <div className="materials-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Thuốc BVTV</span>
-                <div className="stat-card-icon purple">
-                  <IconFlask size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.thuocBvtv}</span>
-              <span className="stat-card-sub">Thuốc trừ sâu, diệt cỏ, nấm...</span>
-            </div>
-            <div className="materials-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Loại khác</span>
-                <div className="stat-card-icon blue">
-                  <IconLeaf size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.other}</span>
-              <span className="stat-card-sub">Giống, công cụ, vật tư khác</span>
-            </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <KpiGrid>
+              <KpiCard
+                label="Tổng vật tư"
+                value={stats.total}
+                icon={IconWarehouse}
+                variant="green"
+                subtext="Loại vật tư trong hệ thống"
+              />
+              <KpiCard
+                label="Phân bón"
+                value={stats.phanBon}
+                icon={IconSprout}
+                variant="amber"
+                subtext="Phân hữu cơ, NPK, DAP, Urê..."
+              />
+              <KpiCard
+                label="Thuốc BVTV"
+                value={stats.thuocBvtv}
+                icon={IconFlask}
+                variant="purple"
+                subtext="Thuốc trừ sâu, diệt cỏ, nấm..."
+              />
+              <KpiCard
+                label="Loại khác"
+                value={stats.other}
+                icon={IconLeaf}
+                variant="blue"
+                subtext="Giống, công cụ, vật tư khác"
+              />
+            </KpiGrid>
           </div>
 
           {/* FILTER BAR */}

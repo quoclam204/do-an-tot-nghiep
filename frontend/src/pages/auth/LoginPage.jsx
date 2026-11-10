@@ -39,7 +39,11 @@ function LoginPage() {
             login(res.accessToken, res.user);
             navigate('/');
         } catch (err) {
-            setError(err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại');
+            if (!err.response) {
+                setError('Không thể kết nối đến máy chủ Backend (localhost:3000). Vui lòng kiểm tra server Backend đã được bật chưa.');
+            } else {
+                setError(err.response?.data?.message || 'Đã có lỗi xảy ra, vui lòng thử lại');
+            }
         } finally {
             setLoading(false);
         }

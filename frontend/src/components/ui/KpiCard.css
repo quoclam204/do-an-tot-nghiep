@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════
+   KpiCard.css — DalatAgri Design System (Highland Ledger)
+   The Big Numeral Rule · Semantic Status Colors · Tactile Feel
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── KPI Grid Container ── */
+.dalat-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── KPI Card Base ── */
+.dalat-kpi-card {
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--border-light, #e8e8e8);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.dalat-kpi-card.is-clickable {
+  cursor: pointer;
+}
+
+.dalat-kpi-card.is-clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md, 0 4px 14px rgba(15, 23, 42, 0.07));
+}
+
+.dalat-kpi-card.is-clickable:active {
+  transform: scale(0.985);
+}
+
+/* ── Top Row: Label & Icon ── */
+.dalat-kpi-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.dalat-kpi-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #64748b);
+  line-height: 1.3;
+}
+
+.dalat-kpi-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.dalat-kpi-card.is-clickable:hover .dalat-kpi-icon-wrap {
+  transform: scale(1.08);
+}
+
+/* ── Middle: Big Numeral ── */
+.dalat-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.dalat-kpi-value {
+  font-size: clamp(1.5rem, 2.4vw, 1.85rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum' 1, 'cv05' 1;
+  color: var(--text-h, #172033);
+}
+
+.dalat-kpi-unit {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  margin-left: 2px;
+}
+
+/* ── Subtext & Footer ── */
+.dalat-kpi-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 0.2rem;
+}
+
+.dalat-kpi-subtext {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--text-muted, #64748b);
+}
+
+.dalat-kpi-action {
+  flex-shrink: 0;
+}
+
+/* ── Semantic Variants ── */
+/* Green: Highland Pine Green */
+.dalat-kpi-card.variant-green {
+  border-color: #c9e8d2;
+  background: #f7fbf8;
+}
+.dalat-kpi-card.variant-green .dalat-kpi-icon-wrap {
+  background: #eaf6ee;
+  color: #137a3a;
+}
+.dalat-kpi-card.variant-green .dalat-kpi-value {
+  color: #137a3a;
+}
+
+/* Red: Field Alert / Total Expense */
+.dalat-kpi-card.variant-red {
+  border-color: #fecaca;
+  background: #fffafa;
+}
+.dalat-kpi-card.variant-red .dalat-kpi-icon-wrap {
+  background: #fdf3f2;
+  color: #dc2626;
+}
+.dalat-kpi-card.variant-red .dalat-kpi-value {
+  color: #dc2626;
+}
+
+/* Blue: Irrigation / Labor / Sales */
+.dalat-kpi-card.variant-blue {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+.dalat-kpi-card.variant-blue .dalat-kpi-icon-wrap {
+  background: #eff6ff;
+  color: #1d6fb8;
+}
+.dalat-kpi-card.variant-blue .dalat-kpi-value {
+  color: #1d6fb8;
+}
+
+/* Purple: Harvest Berry */
+.dalat-kpi-card.variant-purple {
+  border-color: #e9d5ff;
+  background: #faf7ff;
+}
+.dalat-kpi-card.variant-purple .dalat-kpi-icon-wrap {
+  background: #f5f0ff;
+  color: #6e3eae;
+}
+.dalat-kpi-card.variant-purple .dalat-kpi-value {
+  color: #6e3eae;
+}
+
+/* Amber: Caution / PHI */
+.dalat-kpi-card.variant-amber {
+  border-color: #fde68a;
+  background: #fffdf5;
+}
+.dalat-kpi-card.variant-amber .dalat-kpi-icon-wrap {
+  background: #fef3c7;
+  color: #b45309;
+}
+.dalat-kpi-card.variant-amber .dalat-kpi-value {
+  color: #b45309;
+}
+
+/* Neutral: Clean white card */
+.dalat-kpi-card.variant-neutral {
+  border-color: var(--border-light, #e8e8e8);
+  background: #ffffff;
+}
+.dalat-kpi-card.variant-neutral .dalat-kpi-icon-wrap {
+  background: #f1f5f9;
+  color: #475569;
+}
+.dalat-kpi-card.variant-neutral .dalat-kpi-value {
+  color: var(--text-h, #172033);
+}
+
+/* Highlight badge for special cards */
+.dalat-kpi-card.is-highlight {
+  border-width: 1.5px;
+  box-shadow: 0 2px 8px rgba(110, 62, 174, 0.08);
+}

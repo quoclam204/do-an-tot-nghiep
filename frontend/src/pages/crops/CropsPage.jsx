@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './CropsPage.css';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PageHeader } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import {
   IconSprout,
@@ -705,58 +706,51 @@ export default function CropsPage() {
 
       <main className="crops-main-content container">
         {/* ================= HERO & HEADER BANNER ================= */}
-        <section className="crops-hero-banner">
-          <div className="crops-hero-text">
-            <div className="crops-pill-tag">
-              <IconLeaf size={15} strokeWidth={2.2} />
-              <span>ỨNG DỤNG QUẢN LÝ NÔNG NGHIỆP THÔNG MINH</span>
+        <PageHeader
+          badge={{ icon: IconLeaf, label: 'ỨNG DỤNG QUẢN LÝ NÔNG NGHIỆP THÔNG MINH' }}
+          title="Quản Lý Cây Trồng & Chu Kỳ Sinh Trưởng"
+          description="Số hóa quy trình phát triển, đặc tính canh tác (mật độ, sâu bệnh, thu hoạch) và theo dõi từng giai đoạn sinh trưởng của từng loại cây trồng (Cà phê, Sầu riêng, Mắc ca, Bơ, Hồ tiêu, Cây ăn trái...) phục vụ cho nông hộ ở mọi vùng miền."
+          actions={
+            <div className="crops-hero-actions-box">
+              <button className="crops-btn-primary" onClick={() => handleOpenForm()}>
+                <IconPlus size={18} strokeWidth={2.4} />
+                <span>Thêm Cây Trồng Mới</span>
+              </button>
             </div>
-            <h1>Quản Lý Cây Trồng & Chu Kỳ Sinh Trưởng</h1>
-            <p className="crops-hero-desc">
-              Số hóa quy trình phát triển, đặc tính canh tác (mật độ, sâu bệnh, thu hoạch) và theo dõi từng giai đoạn sinh trưởng của từng loại cây trồng
-              (Cà phê, Sầu riêng, Mắc ca, Bơ, Hồ tiêu, Cây ăn trái...) phục vụ cho nông hộ ở mọi vùng miền.
-            </p>
-
-            <div className="crops-quick-stats">
-              <div className="stat-card">
-                <div className="stat-icon-wrap icon-green">
-                  <IconSprout size={20} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <div className="stat-value">{crops.length}</div>
-                  <div className="stat-label">Giống cây trồng</div>
-                </div>
+          }
+        >
+          <div className="crops-quick-stats">
+            <div className="stat-card">
+              <div className="stat-icon-wrap icon-green">
+                <IconSprout size={20} strokeWidth={2.2} />
               </div>
-
-              <div className="stat-card">
-                <div className="stat-icon-wrap icon-gold">
-                  <IconCalendar size={20} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <div className="stat-value">{seasons.length}</div>
-                  <div className="stat-label">Mùa vụ đang áp dụng</div>
-                </div>
+              <div>
+                <div className="stat-value">{crops.length}</div>
+                <div className="stat-label">Giống cây trồng</div>
               </div>
+            </div>
 
-              <div className="stat-card">
-                <div className="stat-icon-wrap icon-blue">
-                  <IconLayers size={20} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <div className="stat-value">Đa dạng</div>
-                  <div className="stat-label">Đặc thù theo vùng miền</div>
-                </div>
+            <div className="stat-card">
+              <div className="stat-icon-wrap icon-gold">
+                <IconCalendar size={20} strokeWidth={2.2} />
+              </div>
+              <div>
+                <div className="stat-value">{seasons.length}</div>
+                <div className="stat-label">Mùa vụ đang áp dụng</div>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrap icon-blue">
+                <IconLayers size={20} strokeWidth={2.2} />
+              </div>
+              <div>
+                <div className="stat-value">Đa dạng</div>
+                <div className="stat-label">Đặc thù theo vùng miền</div>
               </div>
             </div>
           </div>
-
-          <div className="crops-hero-actions-box">
-            <button className="crops-btn-primary" onClick={() => handleOpenForm()}>
-              <IconPlus size={18} strokeWidth={2.4} />
-              <span>Thêm Cây Trồng Mới</span>
-            </button>
-          </div>
-        </section>
+        </PageHeader>
 
         {/* ================= THANH TÌM KIẾM & BỘ LỌC ================= */}
         <section className="crops-controls-bar">

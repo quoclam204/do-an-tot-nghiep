@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { apiGetMyFarms, apiCreateFarm, apiUpdateFarm, apiDeleteFarm } from "../../services/api";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import { PageHeader } from "../../components/ui";
 import {
   IconWarehouse,
   IconPlus,
@@ -308,58 +309,49 @@ export default function FarmsPage() {
 
       <main className="farms-main-content container">
         {/* ================= HERO BANNER ================= */}
-        <section className="farms-hero-banner">
-          <div className="farms-hero-text">
-            <div className="farms-pill-tag">
-              <IconWarehouse size={15} strokeWidth={2.2} />
-              <span>QUẢN LÝ NÔNG HỘ & TRANG TRẠI</span>
-            </div>
-            <h1>Danh Sách Nông Hộ & Lô Đất Canh Tác</h1>
-            <p className="farms-hero-desc">
-              Khai báo các trang trại, phân chia từng lô/vườn chuyên canh (Cà phê, Sầu riêng, Mắc ca)
-              để chuẩn bị ghi nhật ký công việc, quản lý vật tư và theo dõi hiệu quả kinh tế theo vụ mùa.
-            </p>
-
-            <div className="farms-quick-stats">
-              <div className="stat-card">
-                <div className="stat-icon-wrap">
-                  <IconWarehouse size={20} strokeWidth={2} />
-                </div>
-                <div>
-                  <span className="stat-number">{farms.length}</span>
-                  <span className="stat-label">Trang trại / Nông hộ</span>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon-wrap">
-                  <IconRuler size={20} strokeWidth={2} />
-                </div>
-                <div>
-                  <span className="stat-number">{totalAreaAllFarms.toFixed(1)} <small>ha</small></span>
-                  <span className="stat-label">Tổng diện tích canh tác</span>
-                </div>
-              </div>
-
-              <div className="stat-card">
-                <div className="stat-icon-wrap">
-                  <IconSprout size={20} strokeWidth={2} />
-                </div>
-                <div>
-                  <span className="stat-number">{totalPlotsCount}</span>
-                  <span className="stat-label">Lô trồng đã tạo</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="farms-hero-actions">
+        <PageHeader
+          badge={{ icon: IconWarehouse, label: "QUẢN LÝ NÔNG HỘ & TRANG TRẠI" }}
+          title="Danh Sách Nông Hộ & Lô Đất Canh Tác"
+          description="Khai báo các trang trại, phân chia từng lô/vườn chuyên canh (Cà phê, Sầu riêng, Mắc ca) để chuẩn bị ghi nhật ký công việc, quản lý vật tư và theo dõi hiệu quả kinh tế theo vụ mùa."
+          actions={
             <button className="farms-btn-primary" onClick={handleOpenAdd}>
               <IconPlus size={18} strokeWidth={2.4} />
               <span>Thêm Nông Hộ Mới</span>
             </button>
+          }
+        >
+          <div className="farms-quick-stats">
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <IconWarehouse size={20} strokeWidth={2} />
+              </div>
+              <div>
+                <span className="stat-number">{farms.length}</span>
+                <span className="stat-label">Trang trại / Nông hộ</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <IconRuler size={20} strokeWidth={2} />
+              </div>
+              <div>
+                <span className="stat-number">{totalAreaAllFarms.toFixed(1)} <small>ha</small></span>
+                <span className="stat-label">Tổng diện tích canh tác</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrap">
+                <IconSprout size={20} strokeWidth={2} />
+              </div>
+              <div>
+                <span className="stat-number">{totalPlotsCount}</span>
+                <span className="stat-label">Lô trồng đã tạo</span>
+              </div>
+            </div>
           </div>
-        </section>
+        </PageHeader>
 
         {/* ================= CONTROLS BAR ================= */}
         <section className="farms-controls-bar">

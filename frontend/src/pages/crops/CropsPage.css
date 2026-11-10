@@ -14,58 +14,7 @@
   padding-bottom: 2rem;
 }
 
-/* ================= HERO BANNER ================= */
-/* ================= HERO BANNER (MICROSOFT STYLE - SYNCED WITH FARMS PAGE) ================= */
-.crops-hero-banner {
-  background: #ffffff;
-  padding: 1.25rem 1.5rem;
-  color: var(--ms-gray-900);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.25rem;
-  border: 1px solid var(--ms-gray-200);
-  border-left: 3px solid var(--ms-green);
-  margin-bottom: 1.25rem;
-}
-
-.crops-hero-banner::after {
-  display: none;
-}
-
-.crops-pill-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--ms-green-light);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--ms-green);
-  margin-bottom: 0.4rem;
-  border: 1px solid var(--ms-green-mid);
-  text-transform: uppercase;
-}
-
-.crops-hero-text h1 {
-  font-size: clamp(17px, 2vw, 22px);
-  font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 0.25rem 0;
-  color: var(--ms-gray-900);
-  letter-spacing: -0.2px;
-}
-
-.crops-hero-desc {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--ms-gray-500);
-  max-width: 600px;
-  margin: 0 0 0.85rem 0;
-}
-
+/* ================= HERO BANNER & STATS (REPLACED BY SHARED PageHeader) ================= */
 .crops-quick-stats {
   display: flex;
   gap: 0.6rem;

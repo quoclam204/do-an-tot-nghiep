@@ -14,57 +14,7 @@
   padding-bottom: 2rem;
 }
 
-/* ================= HERO BANNER (CLEAN & COMPACT STYLE) ================= */
-.materials-hero-banner {
-  background: #ffffff;
-  padding: 1.25rem 1.5rem;
-  color: var(--ms-gray-900);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.25rem;
-  border: 1px solid var(--ms-gray-200);
-  border-left: 3px solid var(--ms-green);
-  margin-bottom: 1.25rem;
-}
-
-.materials-hero-banner::after {
-  display: none;
-}
-
-.materials-pill-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: var(--ms-green-light);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--ms-green);
-  margin-bottom: 0.4rem;
-  border: 1px solid var(--ms-green-mid);
-  text-transform: uppercase;
-}
-
-.materials-hero-text h1 {
-  font-size: clamp(17px, 2vw, 22px);
-  font-weight: 700;
-  line-height: 1.25;
-  margin: 0 0 0.25rem 0;
-  color: var(--ms-gray-900);
-  letter-spacing: -0.2px;
-}
-
-.materials-hero-desc {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  color: var(--ms-gray-500);
-  max-width: 600px;
-  margin: 0;
-}
-
+/* ================= HERO ACTIONS (USED IN PageHeader) ================= */
 .materials-hero-actions {
   display: flex;
   gap: 0.5rem;
@@ -92,86 +42,6 @@
 .btn-add-material:hover {
   background: var(--ms-green-dark);
   border-color: var(--ms-green-dark);
-}
-
-/* ================= KPI STATS ================= */
-.materials-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.materials-stat-card {
-  background: #ffffff;
-  border: 1.5px solid #e5f3ea;
-  border-radius: 16px;
-  padding: 1.25rem 1.35rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  box-shadow: 0 2px 8px rgba(25, 46, 34, 0.04);
-  transition: all 0.25s;
-}
-
-.materials-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(25, 46, 34, 0.08);
-}
-
-.stat-card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-card-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #6b7280;
-}
-
-.stat-card-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stat-card-icon.green {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.stat-card-icon.blue {
-  background: #dbeafe;
-  color: #2563eb;
-}
-
-.stat-card-icon.orange {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.stat-card-icon.purple {
-  background: #ede9fe;
-  color: #7c3aed;
-}
-
-.stat-card-value {
-  font-size: 1.65rem;
-  font-weight: 800;
-  color: #133321;
-  line-height: 1.1;
-}
-
-.stat-card-sub {
-  font-size: 0.82rem;
-  color: #6b7280;
 }
 
 /* ================= FILTER BAR ================= */

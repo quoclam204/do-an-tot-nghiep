@@ -1,0 +1,295 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-10T13:00:00.000Z",
+  "title": "Design System: DalatAgri",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Highland Pine Green",
+        "canonical": "#137a3a",
+        "tonalRamp": ["#083519", "#0d5c2b", "#137a3a", "#1a9a4b", "#34c76f", "#86efac", "#c9e8d2", "#eaf6ee"]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Deep Pine Shade",
+        "canonical": "#0d5c2b",
+        "tonalRamp": ["#052310", "#083519", "#0d5c2b", "#137a3a", "#1a9a4b", "#4ade80", "#c9e8d2", "#eaf6ee"]
+      },
+      "primary-light": {
+        "role": "primary",
+        "displayName": "Pine Mist Tint",
+        "canonical": "#eaf6ee",
+        "tonalRamp": ["#083519", "#0d5c2b", "#137a3a", "#34c76f", "#86efac", "#c9e8d2", "#eaf6ee", "#f3faf5"]
+      },
+      "primary-mid": {
+        "role": "primary",
+        "displayName": "Pine Leaf Border",
+        "canonical": "#c9e8d2",
+        "tonalRamp": ["#083519", "#0d5c2b", "#137a3a", "#1a9a4b", "#86efac", "#c9e8d2", "#eaf6ee", "#f3faf5"]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Paper Canvas",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#1a1a1a", "#3d3d3d", "#767676", "#ababab", "#d1d1d1", "#e8e8e8", "#f5f5f5", "#ffffff"]
+      },
+      "neutral-surface": {
+        "role": "neutral",
+        "displayName": "Mist Surface",
+        "canonical": "#fafafa",
+        "tonalRamp": ["#1a1a1a", "#2a2a2a", "#5a5a5a", "#ababab", "#d1d1d1", "#e8e8e8", "#f5f5f5", "#fafafa"]
+      },
+      "neutral-text": {
+        "role": "neutral",
+        "displayName": "Bark Charcoal",
+        "canonical": "#334155",
+        "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"]
+      },
+      "neutral-heading": {
+        "role": "neutral",
+        "displayName": "Slate Ink",
+        "canonical": "#172033",
+        "tonalRamp": ["#0b101b", "#111827", "#172033", "#1f2937", "#374151", "#4b5563", "#9ca3af", "#f3f4f6"]
+      },
+      "neutral-muted": {
+        "role": "neutral",
+        "displayName": "Soil Dust",
+        "canonical": "#64748b",
+        "tonalRamp": ["#0f172a", "#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1", "#f1f5f9"]
+      },
+      "neutral-border": {
+        "role": "neutral",
+        "displayName": "Slate Wire",
+        "canonical": "#d1d1d1",
+        "tonalRamp": ["#2a2a2a", "#5a5a5a", "#767676", "#ababab", "#d1d1d1", "#e8e8e8", "#f5f5f5", "#fafafa"]
+      },
+      "neutral-border-light": {
+        "role": "neutral",
+        "displayName": "Dry Ridge Border",
+        "canonical": "#e8e8e8",
+        "tonalRamp": ["#2a2a2a", "#5a5a5a", "#767676", "#ababab", "#d1d1d1", "#e8e8e8", "#f5f5f5", "#ffffff"]
+      },
+      "status-success": {
+        "role": "status",
+        "displayName": "Field Success",
+        "canonical": "#15803d",
+        "tonalRamp": ["#052e16", "#14532d", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#bbf7d0", "#f0fdf4"]
+      },
+      "status-danger": {
+        "role": "status",
+        "displayName": "Field Alert Red",
+        "canonical": "#dc2626",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#b91c1c", "#dc2626", "#ef4444", "#f87171", "#fecaca", "#fef2f2"]
+      },
+      "status-warning": {
+        "role": "status",
+        "displayName": "Sun Herb Amber",
+        "canonical": "#b45309",
+        "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fde68a", "#fef3c7"]
+      },
+      "status-info": {
+        "role": "status",
+        "displayName": "Irrigation Stream",
+        "canonical": "#1d6fb8",
+        "tonalRamp": ["#082f49", "#0369a1", "#0284c7", "#1d6fb8", "#38bdf8", "#7dd3fc", "#bae6fd", "#eff6ff"]
+      },
+      "status-harvest": {
+        "role": "status",
+        "displayName": "Harvest Berry",
+        "canonical": "#6e3eae",
+        "tonalRamp": ["#2e1065", "#4c1d95", "#581c87", "#6e3eae", "#7e22ce", "#a855f7", "#e9d5ff", "#f5f0ff"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Tiêu đề lớn đầu trang chủ và chào đón nông hộ."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Tiêu đề trang chức năng chính và phân khu nghiệp vụ."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Tiêu đề thẻ, khối biểu mẫu và tiêu đề hộp thoại modal."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Văn bản nội dung, hướng dẫn và dòng ghi chép nhật ký."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Huy hiệu phân loại hoạt động, nhãn thẻ KPI và nút bấm."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px rgba(15, 23, 42, 0.05)",
+        "purpose": "Độ nổi nhẹ cho thẻ KPI và nút bấm hành động phụ."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 14px rgba(15, 23, 42, 0.07)",
+        "purpose": "Bóng nổi khi hover thẻ mùa vụ và menu dropdown."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 32px rgba(15, 23, 42, 0.12)",
+        "purpose": "Bóng nổi sâu cho cửa sổ bật lên (Modal) và chứng chỉ vùng trồng."
+      },
+      {
+        "name": "toast-shadow",
+        "value": "0 6px 24px rgba(0, 0, 0, 0.18)",
+        "purpose": "Bóng nổi khẩn cấp cho thanh thông báo kết quả lưu nhật ký."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Độ nảy mượt mà cho hover thẻ và tương tác nút bấm."
+      },
+      {
+        "name": "tactile-tap",
+        "value": "scale(0.975)",
+        "purpose": "Phản hồi cơ học nảy dứt khoát khi chạm bấm nút trên màn hình cảm ứng."
+      },
+      {
+        "name": "fade-enter",
+        "value": "pageSmoothFade 0.2s ease-out forwards",
+        "purpose": "Chuyển trang êm ái giữ nguyên vị trí thanh điều hướng cố định."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nút hành động chính kích hoạt lưu nhật ký hoặc tạo mới mùa vụ.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z\"/></svg><span>LƯU DÒNG NHẬT KÝ</span></button>",
+      "css": ".ds-btn-primary { background: #137a3a; color: #ffffff; border: 1px solid #137a3a; border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; transition: background 0.15s, border-color 0.15s, transform 0.15s; } .ds-btn-primary:hover { background: #0d5c2b; border-color: #0d5c2b; } .ds-btn-primary:active { transform: scale(0.975); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Nút hành động thứ cấp cho hủy bỏ, đóng modal hoặc xem danh sách vườn.",
+      "html": "<button class=\"ds-btn-secondary\"><span>Xem Danh Sách Vườn</span></button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #334155; border: 1px solid #d1d1d1; border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; transition: background 0.15s, border-color 0.15s, transform 0.15s; } .ds-btn-secondary:hover { background: #f5f5f5; border-color: #ababab; color: #172033; } .ds-btn-secondary:active { transform: scale(0.975); }"
+    },
+    {
+      "name": "Quick Today Button",
+      "kind": "button",
+      "refersTo": "button-quick-action",
+      "description": "Nút chọn nhanh ngày hiện tại chỉ với một chạm, tiện lợi cho nông dân ngoài đồng.",
+      "html": "<button class=\"ds-btn-today\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 14 14\"/></svg><span>Hôm Nay</span></button>",
+      "css": ".ds-btn-today { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; border-radius: 6px; padding: 0 12px; height: 40px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s ease; } .ds-btn-today:hover { background: #dcfce7; border-color: #86efac; color: #15803d; } .ds-btn-today:active { transform: scale(0.975); }"
+    },
+    {
+      "name": "Activity Badge",
+      "kind": "chip",
+      "refersTo": "badge-activity",
+      "description": "Huy hiệu phân loại các hoạt động nông nghiệp chuẩn hóa.",
+      "html": "<span class=\"ds-badge-fertilizer\">BÓN PHÂN</span> <span class=\"ds-badge-spray\">PHUN THUỐC</span> <span class=\"ds-badge-harvest\">THU HOẠCH</span>",
+      "css": ".ds-badge-fertilizer { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #eaf6ee; color: #137a3a; text-transform: uppercase; } .ds-badge-spray { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #fef8ec; color: #8a6a00; text-transform: uppercase; } .ds-badge-harvest { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: #f5f0ff; color: #6e3eae; text-transform: uppercase; }"
+    },
+    {
+      "name": "KPI Stat Card",
+      "kind": "card",
+      "refersTo": "kpi-card",
+      "description": "Thẻ tóm tắt chỉ số chi phí, doanh thu hoặc sản lượng thu hoạch.",
+      "html": "<div class=\"ds-kpi-card\"><div class=\"ds-kpi-top\"><span class=\"ds-kpi-label\">TỔNG ĐẦU TƯ VỤ</span><div class=\"ds-kpi-icon\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#137a3a\" stroke-width=\"2\"><path d=\"M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6\"/></svg></div></div><div class=\"ds-kpi-val\">12.500.000 <small>đ</small></div><div class=\"ds-kpi-sub\">Bao gồm phân thuốc & nhân công</div></div>",
+      "css": ".ds-kpi-card { background: #ffffff; border: 1px solid #e8e8e8; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 6px; transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1); } .ds-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07); } .ds-kpi-top { display: flex; justify-content: space-between; align-items: center; } .ds-kpi-label { font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase; } .ds-kpi-icon { width: 32px; height: 32px; border-radius: 6px; background: #eaf6ee; display: flex; align-items: center; justify-content: center; } .ds-kpi-val { font-size: 24px; font-weight: 700; color: #172033; line-height: 1.2; } .ds-kpi-val small { font-size: 14px; font-weight: 500; color: #64748b; } .ds-kpi-sub { font-size: 12px; color: #64748b; }"
+    },
+    {
+      "name": "Page Header",
+      "kind": "header",
+      "refersTo": "page-header",
+      "description": "Tiêu đề trang chuẩn hóa thay thế các hero banner phân mảnh, hỗ trợ badge, icon, actions và children.",
+      "html": "<div class=\"ds-page-header\"><div class=\"ds-page-header-info\"><h1 class=\"ds-page-header-title\">Quản Lý Mùa Vụ Canh Tác</h1><p class=\"ds-page-header-sub\">Theo dõi tiến độ, chi phí và sản lượng mùa vụ</p></div><div class=\"ds-page-header-actions\"><button class=\"ds-btn-primary\">+ Thêm Vụ Mới</button></div></div>",
+      "css": ".ds-page-header { background: #ffffff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; } .ds-page-header-title { font-size: 20px; font-weight: 700; color: #172033; margin: 0 0 4px 0; } .ds-page-header-sub { font-size: 14px; color: #64748b; margin: 0; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Trường nhập dữ liệu nhật ký canh tác với chiều cao tối thiểu 40px đạt chuẩn thao tác ngón tay.",
+      "html": "<input type=\"text\" class=\"ds-input\" placeholder=\"Nhập tên hoạt động hoặc ghi chú...\" value=\"Bón lót phân NPK Đầu Trâu đợt 1\" />",
+      "css": ".ds-input { width: 100%; height: 40px; box-sizing: border-box; padding: 8px 12px; border: 1px solid #d1d1d1; border-radius: 6px; font-size: 14px; font-family: inherit; color: #172033; background: #ffffff; outline: none; transition: border-color 0.15s, box-shadow 0.15s; } .ds-input:focus { border-color: #137a3a; box-shadow: 0 0 0 2px rgba(19, 122, 58, 0.15); }"
+    },
+    {
+      "name": "Offline Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Huy hiệu cảnh báo trạng thái mạng trên thanh điều hướng, giúp bà con an tâm dữ liệu đang được lưu ngoại tuyến.",
+      "html": "<span class=\"ds-status-pill\"><svg width=\"13\" height=\"13\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\"><line x1=\"1\" y1=\"1\" x2=\"23\" y2=\"23\"/><path d=\"M16.72 11.06A10.94 10.94 0 0 1 19 12.55\"/><path d=\"M5 12.55a10.94 10.94 0 0 1 5.17-2.39\"/></svg><span>Ngoại tuyến (Lưu rẫy)</span></span>",
+      "css": ".ds-status-pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid #fcd34d; background: #fffbeb; color: #b45309; line-height: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sổ Điền Dã Tây Nguyên (The Highland Field Ledger)",
+    "overview": "Hệ thống thiết kế DalatAgri được xây dựng dựa trên hình tượng cuốn sổ tay điền dã đóng gáy xoắn chống nước, đồng hành cùng người nông dân và cán bộ hợp tác xã trên những triền đồi đất đỏ bazan Lâm Đồng. Triết lý thẩm mỹ tối thượng là sự thực dụng tuyệt đối, tương phản rõ ràng và xúc giác tin cậy. Mỗi thành phần giao diện được tạo ra không phải để trang trí trong phòng lạnh, mà để phục vụ người nông dân vừa rời tay cuốc, tay vòi xịt thuốc, có thể mở điện thoại ghi chép một cách dứt khoát chỉ trong 1-2 phút ngay dưới ánh nắng chói chang.",
+    "keyCharacteristics": [
+      "Thực dụng ngoài thực địa (Field-First): Màu sắc, độ tương phản và cỡ chữ được hiệu chuẩn để đọc rõ dưới ánh sáng ban ngày tự nhiên và màn hình điện thoại giá rẻ.",
+      "Bản lớn, một chạm tin cậy (Bold & Tactile): Vùng tương tác tối thiểu 40px, phản hồi nhún nhẹ dứt khoát khi bấm, giảm thiểu tối đa thao tác nhập bàn phím ảo bằng các nút chọn nhanh.",
+      "Trật tự & Ngăn nắp điền dã: Bố cục dạng thẻ (card) phân ranh giới bằng viền mảnh sắc nét thay vì bóng mờ phân tán, giữ cho bảng sổ sách luôn gọn gàng như cuốn sổ kế toán hợp tác xã."
+    ],
+    "rules": [
+      {
+        "name": "The Daylight Legibility Rule",
+        "body": "Mọi văn bản hiển thị trên thiết bị di động phải đạt cỡ chữ tối thiểu 16px đối với trường nhập và 14px đối với nhãn đọc. Tỷ lệ tương phản màu văn bản trên màu nền luôn phải vượt ngưỡng 4.5:1 để nông dân đọc rõ ngoài nương rẫy dưới trời nắng gắt.",
+        "section": "colors"
+      },
+      {
+        "name": "The Single Voice Rule",
+        "body": "Màu xanh chủ đạo #137a3a chỉ được chiếm tối đa 15% diện tích thị giác của một màn hình. Sự hiện diện hiếm hoi và tập trung của nó chính là chỉ dấu điều hướng cho bà con nhận biết: Đâu là nút quan trọng nhất cần bấm tiếp theo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Big Numeral Rule",
+        "body": "Các con số thống kê tài chính (tiền lời, tổng chi, sản lượng kg) luôn được hiển thị ở kích cỡ 1.5rem (24px) trở lên với độ đậm 700 hoặc 800, đi kèm đơn vị rõ ràng (đ, kg, bao) đặt bên cạnh hoặc phía dưới, không bao giờ để số liệu dính liền gây nhầm lẫn nghìn với triệu.",
+        "section": "typography"
+      },
+      {
+        "name": "The Border-Before-Shadow Rule",
+        "body": "Cấu trúc của khối giao diện phải được định hình hoàn toàn bằng đường viền sắc nét 1px trước khi nghĩ đến việc thêm bóng đổ. Một giao diện không bóng đổ vẫn phải rõ ràng tuyệt đối ranh giới giữa các khối.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do đảm bảo mọi nút bấm trên thiết bị di động có chiều cao tối thiểu 40px và vùng chạm tối thiểu 44x44px.",
+      "Do luôn cung cấp nút chọn nhanh (ví dụ: nút 'Hôm nay', danh mục cây trồng mẫu) để nông dân không phải nhập liệu tay phức tạp.",
+      "Do hiển thị huy hiệu trạng thái mạng ngoại tuyến và số bản ghi chờ sync ở vị trí dễ nhìn thấy nhất.",
+      "Do dùng ngôn ngữ nông nghiệp Việt Nam chuẩn xác và bình dân ('Lô', 'Vườn', 'Thửa đất', 'Bón phân', 'Cách ly PHI', 'Công thợ').",
+      "Do định dạng toàn bộ số tiền theo chuẩn Việt Nam có dấu phân cách nghìn (150.000 đ, 12.500.000 đ)."
+    ],
+    "donts": [
+      "Don't dùng hiệu ứng kính mờ (glassmorphism / backdrop-filter: blur), bóng đổ mờ nhạt loang lổ gây lóa mắt ngoài trời nắng.",
+      "Don't dùng font chữ thanh mảnh (font-weight dưới 400) hoặc chữ màu xám quá nhạt (dưới tương phản 4.5:1) trên nền trắng.",
+      "Don't bắt người dùng phải có kết nối Internet mới mở được biểu mẫu ghi nhật ký vụ mùa.",
+      "Don't dùng tiếng Anh hoặc thuật ngữ IT chuyên ngành (như 'CRUD', 'Sync Payload', 'CapEx Depreciation' mà phải diễn giải thành 'Vốn kiến thiết cơ bản & Khấu hao').",
+      "Don't lạm dụng bảng màu rực rỡ neon hoặc nhiều hơn một màu chủ đạo tích cực trên cùng một bề mặt thao tác."
+    ]
+  }
+}

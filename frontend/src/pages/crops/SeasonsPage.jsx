@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
 import {
   IconBookOpen,
   IconPlus,
@@ -374,67 +375,50 @@ export default function SeasonsPage() {
       <main className="seasons-main-content">
         <div className="container">
           {/* HERO */}
-          <div className="seasons-hero-banner">
-            <div className="seasons-hero-text">
-              <div className="seasons-pill-tag">
-                <IconCalendar size={16} strokeWidth={2.2} />
-                <span>QUẢN LÝ MÙA VỤ CANH TÁC</span>
-              </div>
-              <h1>Mùa vụ & Chu kỳ canh tác</h1>
-              <p className="seasons-hero-desc">
-                Quản lý lịch xuống giống, thu hoạch và tiến độ canh tác của từng lô đất.
-              </p>
-            </div>
-            <div className="seasons-hero-actions">
+          <PageHeader
+            badge={{ icon: IconCalendar, label: 'QUẢN LÝ MÙA VỤ CANH TÁC' }}
+            title="Mùa vụ & Chu kỳ canh tác"
+            description="Quản lý lịch xuống giống, thu hoạch và tiến độ canh tác của từng lô đất."
+            actions={
               <button className="btn-add-season" onClick={openAddModal}>
                 <IconPlus size={18} strokeWidth={2.5} />
                 <span>Lập mùa vụ mới</span>
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* STATS */}
-          <div className="seasons-stats-grid">
-            <div className="seasons-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Tổng mùa vụ</span>
-                <div className="stat-card-icon green">
-                  <IconCalendar size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.total}</span>
-              <span className="stat-card-sub">Mùa vụ đã thiết lập</span>
-            </div>
-            <div className="seasons-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Đang canh tác</span>
-                <div className="stat-card-icon green">
-                  <IconSprout size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.active}</span>
-              <span className="stat-card-sub">Vụ mùa đang triển khai</span>
-            </div>
-            <div className="seasons-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Đã kết thúc</span>
-                <div className="stat-card-icon blue">
-                  <IconCheckCircle size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.completed}</span>
-              <span className="stat-card-sub">Vụ hoàn thành thu hoạch</span>
-            </div>
-            <div className="seasons-stat-card">
-              <div className="stat-card-top">
-                <span className="stat-card-label">Loại cây trồng</span>
-                <div className="stat-card-icon orange">
-                  <IconLeaf size={20} strokeWidth={2} />
-                </div>
-              </div>
-              <span className="stat-card-value">{stats.uniqueCrops}</span>
-              <span className="stat-card-sub">Giống cây đang canh tác</span>
-            </div>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <KpiGrid>
+              <KpiCard
+                label="Tổng mùa vụ"
+                value={stats.total}
+                icon={IconCalendar}
+                variant="green"
+                subtext="Mùa vụ đã thiết lập"
+              />
+              <KpiCard
+                label="Đang canh tác"
+                value={stats.active}
+                icon={IconSprout}
+                variant="green"
+                subtext="Vụ mùa đang triển khai"
+              />
+              <KpiCard
+                label="Đã kết thúc"
+                value={stats.completed}
+                icon={IconCheckCircle}
+                variant="blue"
+                subtext="Vụ hoàn thành thu hoạch"
+              />
+              <KpiCard
+                label="Loại cây trồng"
+                value={stats.uniqueCrops}
+                icon={IconLeaf}
+                variant="amber"
+                subtext="Giống cây đang canh tác"
+              />
+            </KpiGrid>
           </div>
 
           {/* FILTER */}

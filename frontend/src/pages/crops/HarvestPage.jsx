@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
 import {
   IconPlus,
   IconSearch,
@@ -242,76 +243,55 @@ export default function HarvestPage() {
           </div>
         )}
 
-        {/* Top bar */}
-        <div className="page-top-bar">
-          <div>
-            <h1 className="page-title">
-              <IconScale className="title-icon" /> Quản lý Thu hoạch &amp; Doanh thu
-            </h1>
-            <p className="page-subtitle">
-              Ghi nhận năng suất vụ mùa, giá bán nông sản và doanh thu từng đợt hái
-            </p>
-          </div>
-          <div className="header-actions">
+        {/* Header trang */}
+        <PageHeader
+          icon={IconScale}
+          title="Quản lý Thu hoạch & Doanh thu"
+          description="Ghi nhận năng suất vụ mùa, giá bán nông sản và doanh thu từng đợt hái"
+          actions={
             <button className="btn btn-primary harvest-add-btn" onClick={handleOpenAddModal}>
               <IconPlus size={18} /> Ghi nhận đợt thu hoạch
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* KPI Cards */}
-        <div className="stats-grid harvest-stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon bg-green">
-              <IconDollarSign size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Tổng doanh thu thu hoạch</div>
-              <div className="stat-value text-green">
-                {stats.totalRevenue.toLocaleString('vi-VN')}&nbsp;đ
-              </div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-yellow">
-              <IconScale size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Tổng sản lượng</div>
-              <div className="stat-value">
-                {stats.totalQuantityKg.toLocaleString('vi-VN')}&nbsp;kg
-                {stats.totalQuantityKg >= 1000 && (
-                  <small className="ton-subtext">
-                    ({(stats.totalQuantityKg / 1000).toFixed(2)} tấn)
-                  </small>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-blue">
-              <IconSprout size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Giá bán trung bình</div>
-              <div className="stat-value">
-                {stats.avgPrice.toLocaleString('vi-VN')}&nbsp;đ/kg
-              </div>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon bg-purple">
-              <IconFileText size={24} />
-            </div>
-            <div className="stat-info">
-              <div className="stat-label">Số đợt đã thu hoạch</div>
-              <div className="stat-value">{stats.totalBatches}&nbsp;đợt</div>
-            </div>
-          </div>
-        </div>
+        <KpiGrid className="harvest-stats-grid" style={{ marginBottom: '1.5rem' }}>
+          <KpiCard
+            label="TỔNG DOANH THU THU HOẠCH"
+            value={stats.totalRevenue.toLocaleString('vi-VN')}
+            unit="đ"
+            icon={IconDollarSign}
+            variant="green"
+            highlight={true}
+          />
+          <KpiCard
+            label="TỔNG SẢN LƯỢNG"
+            value={stats.totalQuantityKg.toLocaleString('vi-VN')}
+            unit="kg"
+            icon={IconScale}
+            variant="amber"
+            subtext={
+              stats.totalQuantityKg >= 1000
+                ? `(${(stats.totalQuantityKg / 1000).toFixed(2)} tấn)`
+                : null
+            }
+          />
+          <KpiCard
+            label="GIÁ BÁN TRUNG BÌNH"
+            value={stats.avgPrice.toLocaleString('vi-VN')}
+            unit="đ/kg"
+            icon={IconSprout}
+            variant="blue"
+          />
+          <KpiCard
+            label="SỐ ĐỢT ĐÃ THU HOẠCH"
+            value={stats.totalBatches}
+            unit="đợt"
+            icon={IconFileText}
+            variant="purple"
+          />
+        </KpiGrid>
 
         {/* Filter bar */}
         <div className="harvest-filter-card">

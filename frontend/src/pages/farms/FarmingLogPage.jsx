@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FarmingLogPage.css';
+import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
 import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
 import QuickHarvestModal from '../../components/modals/QuickHarvestModal';
 import CustomTimePicker from '../../components/CustomTimePicker';
@@ -33,6 +34,7 @@ import {
   IconWifiOff,
   IconLightbulb,
   IconExternalLink,
+  IconChevronDown,
 } from '../../components/icons';
 import OfflineSyncBanner from '../../components/OfflineSyncBanner';
 import {
@@ -194,14 +196,30 @@ export default function FarmingLogPage() {
   const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
   const [editingHarvestLog, setEditingHarvestLog] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success', action: null });
+  const [deleteTargetLog, setDeleteTargetLog] = useState(null);
+  const pendingDeleteRef = useRef(null);
+  const toastTimerRef = useRef(null);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: '', type: 'success' });
+  const showToast = (message, type = 'success', action = null) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ show: true, message, type, action });
+    toastTimerRef.current = setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success', action: null });
     }, 6000);
   };
+
+  // Dọn dẹp bộ đếm & tự động cam kết xóa nếu người dùng rời trang
+  useEffect(() => {
+    return () => {
+      if (pendingDeleteRef.current?.commit) {
+        pendingDeleteRef.current.commit();
+      }
+      if (toastTimerRef.current) {
+        clearTimeout(toastTimerRef.current);
+      }
+    };
+  }, []);
 
   // Chỉnh sửa nhật ký
   const [editingLogId, setEditingLogId] = useState(null);
@@ -227,6 +245,17 @@ export default function FarmingLogPage() {
     otherCostName: '',
     otherCosts: '',
   });
+
+  // Progressive Disclosure: Thu gọn các trường chi phí phụ & ghi chú để chống quá tải nhận thức
+  const [showAdvancedCosts, setShowAdvancedCosts] = useState(false);
+
+  const hasAdvancedData = useMemo(() => {
+    return Boolean(
+      form.isHiredLabor ||
+      (form.otherCosts && Number(form.otherCosts) > 0) ||
+      (form.notes && form.notes.trim().length > 0)
+    );
+  }, [form.isHiredLabor, form.otherCosts, form.notes]);
 
 
   // Load tất cả dữ liệu
@@ -761,6 +790,9 @@ export default function FarmingLogPage() {
       otherCostName: parsedCostName,
       otherCosts: log.otherCosts ? String(log.otherCosts) : '',
     });
+    setShowAdvancedCosts(
+      Boolean(log.isHiredLabor || (log.otherCosts && Number(log.otherCosts) > 0) || (cleanNotes && cleanNotes.trim().length > 0))
+    );
     // Cuộn mượt đến form nhập
     window.scrollTo({ top: 380, behavior: 'smooth' });
   };
@@ -768,6 +800,7 @@ export default function FarmingLogPage() {
   // Hủy sửa nhật ký
   const handleCancelEdit = () => {
     setEditingLogId(null);
+    setShowAdvancedCosts(false);
     setForm((prev) => ({
       ...prev,
       notes: '',
@@ -972,6 +1005,7 @@ export default function FarmingLogPage() {
       }
 
       // Reset form tức thì để người dùng không phải chờ
+      setShowAdvancedCosts(false);
       setForm((prev) => ({
         ...prev,
         notes: '',
@@ -1001,28 +1035,6 @@ export default function FarmingLogPage() {
     }
   };
 
-  // Xóa nhật ký
-  const handleDeleteLog = async (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa nhật ký này?')) {
-      try {
-        setLogs((prev) => prev.filter((l) => l.id !== id));
-        showToast('Đã xóa nhật ký thành công!');
-        await apiDeleteActivityLog(id);
-        const [freshLogs, freshInv] = await Promise.all([
-          apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
-          apiGetInventory(selectedFarmId || undefined).catch(() => null),
-        ]);
-        if (freshLogs) {
-          setLogs((previousLogs) => mergeActivityLogs(getOptimisticLogs(), previousLogs, freshLogs));
-        }
-        if (freshInv) setInventory(freshInv);
-      } catch (err) {
-        showToast('Lỗi khi xóa: ' + (err.response?.data?.message || err.message), 'error');
-        await loadData();
-      }
-    }
-  };
-
   // Format tên hoạt động (tìm từ danh mục động trước)
   const formatActivityName = (type) => {
     const custom = activityTypes.find((t) => t.code === type);
@@ -1049,6 +1061,90 @@ export default function FarmingLogPage() {
     }
   };
 
+  // Mở modal xác nhận xóa nhật ký an toàn (thay thế window.confirm hoàn toàn)
+  const handleRequestDelete = (log) => {
+    setDeleteTargetLog(log);
+  };
+
+  // Xác nhận xóa: Áp dụng Optimistic Update ngay lập tức kèm bộ đệm 6 giây Hoàn tác
+  const handleConfirmDelete = (targetLog) => {
+    setDeleteTargetLog(null);
+    if (!targetLog) return;
+
+    // Nếu đang có một thao tác xóa trước đó chưa hoàn tất, tiến hành lưu thực sự trước
+    if (pendingDeleteRef.current?.commit) {
+      pendingDeleteRef.current.commit();
+    }
+
+    const targetId = targetLog.id;
+
+    // 1. Cập nhật lạc quan: Loại bỏ khỏi danh sách hiển thị
+    setLogs((prev) => prev.filter((l) => l.id !== targetId));
+
+    // 2. Hàm thực thi gọi API xóa trên máy chủ
+    const commitDelete = async () => {
+      try {
+        await apiDeleteActivityLog(targetId);
+        const [freshLogs, freshInv] = await Promise.all([
+          apiGetActivityLogs(undefined, selectedFarmId || undefined).catch(() => null),
+          apiGetInventory(selectedFarmId || undefined).catch(() => null),
+        ]);
+        if (freshLogs) {
+          setLogs((previousLogs) => mergeActivityLogs(getOptimisticLogs(), previousLogs, freshLogs));
+        }
+        if (freshInv) setInventory(freshInv);
+      } catch (err) {
+        // Hoàn tác nếu máy chủ báo lỗi
+        setLogs((prev) => {
+          if (prev.some((l) => l.id === targetId)) return prev;
+          return [targetLog, ...prev];
+        });
+        showToast('Lỗi khi xóa trên máy chủ: ' + (err.response?.data?.message || err.message), 'error');
+      } finally {
+        if (pendingDeleteRef.current?.id === targetId) {
+          pendingDeleteRef.current = null;
+        }
+      }
+    };
+
+    // 3. Khởi tạo bộ đếm 6 giây để người dùng có cơ hội bấm Hoàn tác
+    const timer = setTimeout(() => {
+      commitDelete();
+    }, 6000);
+
+    // 4. Lưu đối tượng phục hồi
+    pendingDeleteRef.current = {
+      id: targetId,
+      timer,
+      commit: commitDelete,
+      revert: () => {
+        clearTimeout(timer);
+        setLogs((prev) => {
+          if (prev.some((l) => l.id === targetId)) return prev;
+          return [targetLog, ...prev];
+        });
+        pendingDeleteRef.current = null;
+        showToast('Đã hoàn tác: Khôi phục nhật ký thành công!', 'success');
+      },
+    };
+
+    // 5. Hiển thị Toast thông báo kèm nút Hoàn tác tương tác
+    const activityTitle = formatActivityName(targetLog.activityType);
+    const dateFormatted = new Date(targetLog.activityDate).toLocaleDateString('vi-VN');
+    showToast(
+      `Đã xóa nhật ký "${activityTitle}" (${dateFormatted})`,
+      'success',
+      {
+        label: 'Hoàn tác (6s)',
+        onClick: () => {
+          if (pendingDeleteRef.current?.id === targetId) {
+            pendingDeleteRef.current.revert();
+          }
+        },
+      }
+    );
+  };
+
   const displayedLogs = useMemo(() => {
     return logs.filter((log) => {
       if (shiftFilter !== 'ALL' && log.workShift !== shiftFilter) return false;
@@ -1060,72 +1156,198 @@ export default function FarmingLogPage() {
     });
   }, [logs, shiftFilter, selectedFarmId]);
 
+  // Bộ nhật ký của nông trại đang chọn (tất cả các ca) để tính toán thẻ KPI
+  const farmFilteredLogs = useMemo(() => {
+    if (!selectedFarmId) return logs;
+    return logs.filter((log) => {
+      const logFarmId = log.cropCycle?.plot?.farmId || log.cropCycle?.plot?.farm?.id || log.farmId;
+      return !logFarmId || logFarmId === selectedFarmId;
+    });
+  }, [logs, selectedFarmId]);
+
+  // Tổng hợp chỉ số kinh tế vụ mùa hiển thị tức thì trên thẻ KPI
+  const kpiStats = useMemo(() => {
+    let totalCost = 0;
+    let materialCost = 0;
+    let laborCost = 0;
+    let otherCost = 0;
+    let totalRevenue = 0;
+    let totalHarvestKg = 0;
+
+    (farmFilteredLogs || []).forEach((log) => {
+      const c = Number(log.cost || 0);
+      totalCost += c;
+
+      if (log.materials && Array.isArray(log.materials)) {
+        log.materials.forEach((m) => {
+          materialCost += Number(m.cost || 0);
+        });
+      }
+
+      if (log.laborCost) {
+        laborCost += Number(log.laborCost || 0);
+      } else if (log.isHiredLabor && log.laborWorkers && log.laborWagePerDay) {
+        laborCost += Number(log.laborWorkers) * Number(log.laborWagePerDay);
+      }
+
+      if (log.otherCosts) {
+        otherCost += Number(log.otherCosts || 0);
+      }
+
+      if (log.revenue) {
+        totalRevenue += Number(log.revenue || 0);
+      }
+      if (log.harvestQuantity) {
+        totalHarvestKg += Number(log.harvestQuantity || 0);
+      }
+    });
+
+    return {
+      totalCost,
+      materialCost,
+      laborCost,
+      otherCost,
+      totalRevenue,
+      totalHarvestKg,
+      logCount: farmFilteredLogs.length,
+    };
+  }, [farmFilteredLogs]);
+
   return (
     <div className="farming-log-container">
       {toast.show && (
         <div className={`farming-toast ${toast.type}`}>
-          {toast.type === 'success' ? (
-            <IconCheckCircle size={22} strokeWidth={2.4} />
-          ) : (
-            <IconAlertCircle size={22} strokeWidth={2.4} />
+          <div className="toast-content-group">
+            {toast.type === 'success' ? (
+              <IconCheckCircle size={20} strokeWidth={2.4} />
+            ) : (
+              <IconAlertCircle size={20} strokeWidth={2.4} />
+            )}
+            <span className="toast-text-msg">{toast.message}</span>
+          </div>
+          {toast.action && (
+            <button
+              type="button"
+              className="btn-toast-undo"
+              onClick={toast.action.onClick}
+            >
+              {toast.action.label}
+            </button>
           )}
-          <span>{toast.message}</span>
         </div>
       )}
 
       {/* HEADER TRANG */}
-      <div className="farming-header">
-        <div className="farming-header-info">
-          <div className="farming-tag">
-            <IconClipboardList size={14} strokeWidth={2.2} />
-            <span>SỔ TAY ĐIỆN TỬ NÔNG HỘ</span>
-          </div>
-          <h2>Nhật Ký Canh Tác & Kinh Tế Nông Nghiệp</h2>
-          <p className="farming-subtitle">
-            Ghi chép phân bón, thuốc BVTV, nhân công thuê, kiểm soát chi phí đầu tư và lợi nhuận vụ mùa nông nghiệp
-          </p>
-        </div>
-        <div className="farming-header-actions">
-          <select
-            className="farm-header-select"
-            value={selectedFarmId}
-            onChange={(e) => setSelectedFarmId(e.target.value)}
-            title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
-          >
-            <option value="">
-              {farms && farms.length > 0 ? `-- Tất cả nông trại (${farms.length}) --` : '-- Tất cả nông trại --'}
-            </option>
-            {farms && farms.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
+      <PageHeader
+        icon={IconClipboardList}
+        title="Nhật Ký Canh Tác & Kinh Tế Nông Nghiệp"
+        description="Ghi chép phân bón, thuốc BVTV, nhân công thuê, kiểm soát chi phí đầu tư và lợi nhuận vụ mùa nông nghiệp"
+        actions={
+          <div className="farming-header-actions">
+            <select
+              className="farm-header-select"
+              value={selectedFarmId}
+              onChange={(e) => setSelectedFarmId(e.target.value)}
+              title="Chọn Nông hộ của bạn để xem và ghi nhật ký"
+            >
+              <option value="">
+                {farms && farms.length > 0 ? `-- Tất cả nông trại (${farms.length}) --` : '-- Tất cả nông trại --'}
               </option>
-            ))}
-          </select>
-          <div className="farming-header-btn-group">
-            <button
-              type="button"
-              className="btn-open-harvest-header"
-              onClick={() => setIsHarvestModalOpen(true)}
-              title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
-            >
-              <IconScale size={16} strokeWidth={2.2} />
-              <span>Ghi Thu Hoạch</span>
-            </button>
-            <button
-              type="button"
-              className="btn-open-ocr"
-              onClick={() => setIsOcrOpen(true)}
-              title="Chụp hoặc tải ảnh hóa đơn để AI tự điền form"
-            >
-              <IconFileText size={16} strokeWidth={2} />
-              <span>Quét Hóa Đơn (OCR)</span>
-            </button>
+              {farms && farms.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <div className="farming-header-btn-group">
+              <button
+                type="button"
+                className="btn-open-harvest-header"
+                onClick={() => setIsHarvestModalOpen(true)}
+                title="Ghi nhận sản lượng và doanh thu thu hoạch nhanh chóng"
+              >
+                <IconScale size={16} strokeWidth={2.2} />
+                <span>Ghi Thu Hoạch</span>
+              </button>
+              <button
+                type="button"
+                className="btn-open-ocr"
+                onClick={() => setIsOcrOpen(true)}
+                title="Chụp hoặc tải ảnh hóa đơn để AI tự điền form"
+              >
+                <IconFileText size={16} strokeWidth={2} />
+                <span>Quét Hóa Đơn (OCR)</span>
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* BANNER NGOẠI TUYẾN & ĐỒNG BỘ AN TOÀN */}
       <OfflineSyncBanner onSyncSuccess={() => loadData()} />
+
+      {/* KHỐI CHỈ SỐ KINH TẾ ĐIỀN DÃ: TỔNG KẾT VỤ MÙA */}
+      <div className="farming-kpi-section">
+        <div className="kpi-header-row">
+          <div className="kpi-header-title">
+            <IconCalculator size={16} strokeWidth={2.2} />
+            <span>Chỉ Số Kinh Tế Vụ Mùa {currentFarm?.name ? `(${currentFarm.name})` : '(Toàn Bộ Trang Trại)'}</span>
+          </div>
+          <button
+            type="button"
+            className="btn-card-detail"
+            onClick={() => navigate(selectedFarmId ? `/reports?farmId=${selectedFarmId}` : '/reports')}
+            title="Xem báo cáo tài chính đầy đủ và xuất dữ liệu"
+          >
+            <span>Báo cáo chi tiết</span>
+            <IconExternalLink size={13} strokeWidth={2.2} />
+          </button>
+        </div>
+
+        <KpiGrid>
+          <KpiCard
+            label="TỔNG ĐẦU TƯ CANH TÁC"
+            value={formatVnd(kpiStats.totalCost) || '0'}
+            unit="đ"
+            icon={IconCalculator}
+            variant="red"
+            subtext={
+              kpiStats.logCount > 0
+                ? `${kpiStats.logCount} lượt ghi chép phát sinh chi phí`
+                : 'Chưa phát sinh chi phí trong kỳ'
+            }
+          />
+          <KpiCard
+            label="PHÂN BÓN & THUỐC BVTV"
+            value={formatVnd(kpiStats.materialCost) || '0'}
+            unit="đ"
+            icon={IconFlask}
+            variant="green"
+            subtext="Vật tư xuất kho & bón tiêu hao"
+          />
+          <KpiCard
+            label="CÔNG LAO ĐỘNG THUÊ NGOÀI"
+            value={formatVnd(kpiStats.laborCost) || '0'}
+            unit="đ"
+            icon={IconCheckCircle}
+            variant="blue"
+            subtext="Công thợ làm cỏ, tỉa cành, xịt thuốc"
+          />
+          <KpiCard
+            label="SẢN LƯỢNG & DOANH THU"
+            value={formatVnd(kpiStats.totalRevenue) || '0'}
+            unit="đ"
+            icon={IconScale}
+            variant="purple"
+            highlight={true}
+            subtext={
+              kpiStats.totalHarvestKg > 0
+                ? `Đã thu: ${kpiStats.totalHarvestKg.toLocaleString('vi-VN')} kg nông sản`
+                : 'Chưa có sản lượng thu hoạch'
+            }
+          />
+        </KpiGrid>
+      </div>
 
       {/* NỘI DUNG CHÍNH: FORM NHẬP & BẢNG NHẬT KÝ */}
       <div className="main-content-grid">
@@ -1202,9 +1424,9 @@ export default function FarmingLogPage() {
                 type="button"
                 onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
                 style={{
-                  background: 'var(--ms-green, #107C10)',
+                  background: 'var(--ms-green, #137a3a)',
                   color: '#ffffff',
-                  border: '1px solid var(--ms-green, #107C10)',
+                  border: '1px solid var(--ms-green, #137a3a)',
                   borderRadius: '6px',
                   padding: '6px 12px',
                   fontWeight: '600',
@@ -1421,20 +1643,21 @@ export default function FarmingLogPage() {
               </div>
             </div>
 
-            {/* MỤC VẬT TƯ (Phân, Thuốc BVTV) */}
-            <div className="form-section-box">
-              <span className="section-title">
-                <IconFlask size={16} strokeWidth={2} />
-                <span>Vật Tư Tiêu Hao (Phân bón, Thuốc BVTV)</span>
-              </span>
-              <div className="form-group">
+            {/* MỤC VẬT TƯ (Phân bón, Thuốc BVTV) */}
+            <div className="form-section-clean">
+              <div className="section-clean-header">
+                <IconFlask size={16} strokeWidth={2.2} style={{ color: 'var(--ms-green, #137a3a)' }} />
+                <span className="section-clean-title">Vật Tư Tiêu Hao (Phân bón, Thuốc BVTV)</span>
+                <span className="section-clean-hint">Không bắt buộc nếu chỉ tưới hoặc làm cỏ</span>
+              </div>
+              <div className="form-group" style={{ marginBottom: 0 }}>
                 <label>Chọn Vật Tư Trong Kho</label>
                 <select
                   value={form.materialId}
                   onChange={(e) => handleMaterialChange(e.target.value)}
                   className="form-control"
                 >
-                  <option value="">-- Không sử dụng vật tư / Chỉ dùng nhân công --</option>
+                  <option value="">-- Không sử dụng vật tư / Chỉ dùng công thợ --</option>
                   {availableMaterialOptions.fromInventory.length > 0 && (
                     <optgroup label="📦 Vật tư sẵn có trong kho nông trại">
                       {availableMaterialOptions.fromInventory.map((item) => (
@@ -1478,7 +1701,7 @@ export default function FarmingLogPage() {
               </div>
 
               {form.materialId && (
-                <div className="form-row">
+                <div className="form-row" style={{ marginTop: '0.5rem' }}>
                   <div className="form-group">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                       <label style={{ margin: 0 }}>Số lượng dùng ({selectedMaterial?.unit || 'đơn vị'})</label>
@@ -1542,124 +1765,153 @@ export default function FarmingLogPage() {
               )}
             </div>
 
-            {/* MỤC NHÂN CÔNG: Tự làm hay Thuê ngoài */}
-            <div className="form-section-box">
-              <div className="section-title-toggle">
-                <span className="section-title">
-                  <IconCheckCircle size={16} strokeWidth={2} />
-                  <span>Chi Phí Lao Động / Nhân Công</span>
-                </span>
-                <label className="toggle-switch">
-                  <input
-                    type="checkbox"
-                    checked={form.isHiredLabor}
-                    onChange={(e) => setForm({ ...form, isHiredLabor: e.target.checked })}
+            {/* KHAI BÁO BỔ SUNG (PROGRESSIVE DISCLOSURE): NHÂN CÔNG, CHI PHÍ KHÁC & GHI CHÚ */}
+            <div className="form-advanced-accordion">
+              <button
+                type="button"
+                className={`btn-accordion-toggle ${showAdvancedCosts || hasAdvancedData ? 'is-open' : ''}`}
+                onClick={() => setShowAdvancedCosts((prev) => !prev)}
+                aria-expanded={showAdvancedCosts || hasAdvancedData}
+              >
+                <div className="accordion-title-wrap">
+                  <IconChevronDown
+                    size={16}
+                    strokeWidth={2.4}
+                    className={`accordion-chevron ${showAdvancedCosts || hasAdvancedData ? 'is-rotated' : ''}`}
                   />
-                  <span>Có thuê nhân công ngoài</span>
-                </label>
-              </div>
+                  <span className="accordion-heading">Khai Báo Bổ Sung: Thuê Nhân Công, Chi Phí Khác & Ghi Chú</span>
+                </div>
+                {hasAdvancedData ? (
+                  <span className="accordion-badge badge-active">Đã nhập thông tin chi phí</span>
+                ) : (
+                  <span className="accordion-badge badge-optional">Thêm chi phí nếu có &darr;</span>
+                )}
+              </button>
 
-              {form.isHiredLabor ? (
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Số nhân công thuê</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={form.laborWorkers}
-                      onChange={(e) => setForm({ ...form, laborWorkers: e.target.value })}
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Tiền công / người / ngày (VNĐ)</label>
-                    <div className="currency-input-wrap">
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={formatVnd(form.laborWagePerDay)}
-                        onChange={(e) => {
-                          const raw = e.target.value.replace(/\D/g, '');
-                          setForm((prev) => ({
-                            ...prev,
-                            laborWagePerDay: raw ? Number(raw) : '',
-                          }));
-                        }}
-                        placeholder="0"
-                        className="form-control"
-                      />
-                      <span className="currency-addon">VNĐ</span>
+              {(showAdvancedCosts || hasAdvancedData) && (
+                <div className="accordion-content-panel">
+                  {/* 1. Mục Nhân công */}
+                  <div className="form-sub-section">
+                    <div className="section-title-toggle">
+                      <span className="sub-section-title">
+                        <IconCheckCircle size={15} strokeWidth={2.2} />
+                        <span>Công Thợ / Nhân Công Thuê Ngoài</span>
+                      </span>
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={form.isHiredLabor}
+                          onChange={(e) => setForm({ ...form, isHiredLabor: e.target.checked })}
+                        />
+                        <span>Có thuê công ngoài</span>
+                      </label>
                     </div>
-                    {Number(form.laborWorkers) > 0 && Number(form.laborWagePerDay) > 0 && (
-                      <div className="cost-calc-hint">
-                        <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.laborWorkers} nhân công × {formatVnd(form.laborWagePerDay)} đ = </span>
-                        <strong>{formatVnd(Number(form.laborWorkers) * Number(form.laborWagePerDay))} VNĐ/ngày</strong>
+
+                    {form.isHiredLabor ? (
+                      <div className="form-row" style={{ marginTop: '0.5rem' }}>
+                        <div className="form-group">
+                          <label>Số nhân công thuê</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={form.laborWorkers}
+                            onChange={(e) => setForm({ ...form, laborWorkers: e.target.value })}
+                            className="form-control"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Tiền công / người / ngày (VNĐ)</label>
+                          <div className="currency-input-wrap">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={formatVnd(form.laborWagePerDay)}
+                              onChange={(e) => {
+                                const raw = e.target.value.replace(/\D/g, '');
+                                setForm((prev) => ({
+                                  ...prev,
+                                  laborWagePerDay: raw ? Number(raw) : '',
+                                }));
+                              }}
+                              placeholder="0"
+                              className="form-control"
+                            />
+                            <span className="currency-addon">VNĐ</span>
+                          </div>
+                          {Number(form.laborWorkers) > 0 && Number(form.laborWagePerDay) > 0 && (
+                            <div className="cost-calc-hint">
+                              <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.laborWorkers} nhân công × {formatVnd(form.laborWagePerDay)} đ = </span>
+                              <strong>{formatVnd(Number(form.laborWorkers) * Number(form.laborWagePerDay))} VNĐ</strong>
+                            </div>
+                          )}
+                        </div>
                       </div>
+                    ) : (
+                      <p className="text-muted-sm" style={{ marginTop: '0.25rem' }}>
+                        Gia đình tự làm (Không phát sinh chi phí tiền mặt thuê ngoài).
+                      </p>
                     )}
                   </div>
-                </div>
-              ) : (
-                <p className="text-muted-sm">
-                  Gia đình tự làm (Không phát sinh chi phí tiền mặt thuê ngoài).
-                </p>
-              )}
-            </div>
 
-            {/* MỤC CHI PHÍ PHÁT SINH KHÁC */}
-            <div className="form-section-box">
-              <span className="section-title">
-                <IconZap size={16} strokeWidth={2} />
-                <span>Chi Phí Phát Sinh Khác (Nhiên liệu, điện nước, vận chuyển...)</span>
-              </span>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Tên / Nội Dung Chi Phí</label>
-                  <input
-                    type="text"
-                    value={form.otherCostName}
-                    onChange={(e) => setForm({ ...form, otherCostName: e.target.value })}
-                    placeholder="VD: Xăng dầu máy nổ, Tiền điện tưới, Vận chuyển..."
-                    className="form-control"
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Số Tiền Chi Phí (VNĐ)</label>
-                  <div className="currency-input-wrap">
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={formatVnd(form.otherCosts)}
-                      onChange={(e) => {
-                        const raw = e.target.value.replace(/\D/g, '');
-                        setForm((prev) => ({
-                          ...prev,
-                          otherCosts: raw ? Number(raw) : '',
-                        }));
-                      }}
-                      placeholder="0"
+                  {/* 2. Mục Chi phí phát sinh khác */}
+                  <div className="form-sub-section">
+                    <span className="sub-section-title">
+                      <IconZap size={15} strokeWidth={2.2} />
+                      <span>Chi Phí Vận Hành Khác (Xăng dầu, điện nước, vận chuyển...)</span>
+                    </span>
+                    <div className="form-row" style={{ marginTop: '0.5rem' }}>
+                      <div className="form-group">
+                        <label>Nội dung chi phí</label>
+                        <input
+                          type="text"
+                          value={form.otherCostName}
+                          onChange={(e) => setForm({ ...form, otherCostName: e.target.value })}
+                          placeholder="VD: Xăng máy nổ, Tiền điện tưới..."
+                          className="form-control"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Số tiền (VNĐ)</label>
+                        <div className="currency-input-wrap">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={formatVnd(form.otherCosts)}
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(/\D/g, '');
+                              setForm((prev) => ({
+                                ...prev,
+                                otherCosts: raw ? Number(raw) : '',
+                              }));
+                            }}
+                            placeholder="0"
+                            className="form-control"
+                          />
+                          <span className="currency-addon">VNĐ</span>
+                        </div>
+                        {Number(form.otherCosts) > 0 && (
+                          <div className="cost-calc-hint">
+                            <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.otherCostName ? `${form.otherCostName}: ` : 'Chi phí khác: '}</span>
+                            <strong>{formatVnd(form.otherCosts)} VNĐ</strong>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. Mục Ghi chú chi tiết */}
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Ghi Chú Chi Tiết Hiện Trường</label>
+                    <textarea
+                      rows={2}
+                      value={form.notes}
+                      onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      placeholder="Ghi chú thêm về thời tiết, liều lượng pha, sâu bệnh phát hiện..."
                       className="form-control"
                     />
-                    <span className="currency-addon">VNĐ</span>
                   </div>
-                  {Number(form.otherCosts) > 0 && (
-                    <div className="cost-calc-hint">
-                      <span><IconLightbulb size={13} style={{ display: 'inline', verticalAlign: '-1px', marginRight: '3px', color: '#059669' }} /> {form.otherCostName ? `${form.otherCostName}: ` : 'Chi phí khác: '}</span>
-                      <strong>{formatVnd(form.otherCosts)} VNĐ</strong>
-                    </div>
-                  )}
                 </div>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Ghi Chú Chi Tiết Hiện Trường</label>
-              <textarea
-                rows={2}
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Ghi chú thêm về thời tiết, tình trạng sinh trưởng cây trồng..."
-                className="form-control"
-              />
+              )}
             </div>
 
             {selectedUnassignedPlot ? (
@@ -1672,8 +1924,8 @@ export default function FarmingLogPage() {
                   )
                 }
                 style={{
-                  background: 'var(--ms-green, #107C10)',
-                  borderColor: 'var(--ms-green, #107C10)',
+                  background: 'var(--ms-green, #137a3a)',
+                  borderColor: 'var(--ms-green, #137a3a)',
                   color: '#ffffff',
                 }}
               >
@@ -1686,8 +1938,8 @@ export default function FarmingLogPage() {
                 className="btn-submit-log"
                 onClick={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}&create=true` : '/seasons?create=true')}
                 style={{
-                  background: 'var(--ms-green, #107C10)',
-                  borderColor: 'var(--ms-green, #107C10)',
+                  background: 'var(--ms-green, #137a3a)',
+                  borderColor: 'var(--ms-green, #137a3a)',
                   color: '#ffffff',
                 }}
               >
@@ -1767,7 +2019,16 @@ export default function FarmingLogPage() {
                 </tr>
               </thead>
               <tbody>
-                {displayedLogs.length === 0 ? (
+                {loading && logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-8 text-muted">
+                      <div className="table-loading-container">
+                        <IconRotateCw size={18} className="spin-icon" strokeWidth={2.4} />
+                        <span>Đang đồng bộ dữ liệu nhật ký canh tác...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : displayedLogs.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="text-center py-6 text-muted">
                       {logs.length === 0
@@ -1886,7 +2147,7 @@ export default function FarmingLogPage() {
                           type="button"
                           className="btn-delete-icon"
                           title="Xóa nhật ký này"
-                          onClick={() => handleDeleteLog(log.id)}
+                          onClick={() => handleRequestDelete(log)}
                         >
                           <IconTrash size={15} strokeWidth={2} />
                         </button>
@@ -1900,7 +2161,12 @@ export default function FarmingLogPage() {
 
           {/* GIAO DIỆN DẠNG THẺ CARD TRỰC QUAN CHO ĐIỆN THOẠI (MOBILE) */}
           <div className="mobile-logs-cards-list mobile-cards-only">
-            {displayedLogs.length === 0 ? (
+            {loading && logs.length === 0 ? (
+              <div className="mobile-loading-container">
+                <IconRotateCw size={18} className="spin-icon" strokeWidth={2.4} />
+                <span>Đang đồng bộ dữ liệu nhật ký canh tác...</span>
+              </div>
+            ) : displayedLogs.length === 0 ? (
               <div className="mobile-empty-logs">
                 {logs.length === 0
                   ? 'Chưa có nhật ký nào. Hãy nhập thông tin hoặc bấm nút Quét Hóa Đơn (OCR)!'
@@ -1944,7 +2210,7 @@ export default function FarmingLogPage() {
                       <button
                         type="button"
                         className="btn-mobile-del"
-                        onClick={() => handleDeleteLog(log.id)}
+                        onClick={() => handleRequestDelete(log)}
                         title="Xóa nhật ký"
                       >
                         <IconTrash size={14} strokeWidth={2.2} />
@@ -2092,6 +2358,47 @@ export default function FarmingLogPage() {
         farm={currentFarm}
         onNavigateSeasons={() => navigate(selectedFarmId ? `/seasons?farmId=${selectedFarmId}` : '/seasons')}
       />
+
+      {/* MODAL XÁC NHẬN XÓA NHẬT KÝ (AN TOÀN - HỖ TRỢ HOÀN TÁC TRONG 6 GIÂY) */}
+      {deleteTargetLog && (
+        <div className="modal-backdrop-faded" onClick={() => setDeleteTargetLog(null)}>
+          <div className="confirm-delete-dialog" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+            <div className="confirm-delete-header">
+              <div className="confirm-delete-icon-wrap">
+                <IconTrash size={22} strokeWidth={2.2} />
+              </div>
+              <div className="confirm-delete-text">
+                <h3 className="confirm-delete-title">Xác nhận xóa nhật ký?</h3>
+                <p className="confirm-delete-desc">
+                  Bạn có chắc muốn xóa nhật ký hoạt động{' '}
+                  <strong>{formatActivityName(deleteTargetLog.activityType)}</strong> ngày{' '}
+                  <strong>{new Date(deleteTargetLog.activityDate).toLocaleDateString('vi-VN')}</strong> không?
+                </p>
+                <p className="confirm-delete-tip">
+                  Dữ liệu sẽ được ẩn ngay lập tức và bạn có <strong>6 giây để bấm Hoàn tác</strong> nếu lỡ tay bấm nhầm.
+                </p>
+              </div>
+            </div>
+            <div className="confirm-delete-actions">
+              <button
+                type="button"
+                className="btn-modal-cancel"
+                onClick={() => setDeleteTargetLog(null)}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className="btn-modal-danger"
+                onClick={() => handleConfirmDelete(deleteTargetLog)}
+              >
+                <IconTrash size={15} strokeWidth={2.2} />
+                <span>Xác nhận xóa</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
