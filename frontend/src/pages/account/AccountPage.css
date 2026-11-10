@@ -7,11 +7,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --ms-green: #107C10;
-    --ms-green-dark: #0a5e0a;
-    --ms-green-light: #e8f5e8;
-    --ms-green-mid: #d4edda;
-    --ms-green-hover: #f0f8f0;
+    --ms-green: #137a3a;
+    --ms-green-dark: #0d5c2b;
+    --ms-green-light: #eaf6ee;
+    --ms-green-mid: #c9e8d2;
+    --ms-green-hover: #f3faf5;
 
     --ms-gray-50: #fafafa;
     --ms-gray-100: #f5f5f5;
@@ -21,14 +21,15 @@
     --ms-gray-700: #3d3d3d;
     --ms-gray-900: #1a1a1a;
 
-    --radius-sm: 4px;
+    --radius-sm: 6px;
 }
 
 /* ── Layout ─────────────────────────────────── */
 .account-main {
-    max-width: 1240px;
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
-    padding: 1.5rem 1.25rem 3rem;
+    padding: 1rem clamp(16px, 2.4vw, 36px) 2rem;
     min-height: calc(100vh - 140px);
 }
 

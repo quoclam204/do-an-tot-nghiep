@@ -1,5 +1,5 @@
-.sales-page { min-height: 100vh; padding: 2rem 1rem; background: var(--bg, #f8faf9); }
-.sales-container { max-width: 1200px; margin: 0 auto; }
+.sales-page { min-height: 100vh; padding: 1rem 0 2rem; background: var(--bg, #f8faf9); }
+.sales-container { width: 100%; max-width: none; margin: 0 auto; padding: 0 24px; }
 .sales-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .sales-header h1 { font-size: 1.8rem; color: #1a3a2a; margin: 0; }
 .sales-header .eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: 2px; color: #16a34a; font-weight: 600; margin-bottom: .25rem; }
@@ -10,7 +10,7 @@
 .sales-tabs button.active { color: var(--ms-green); border-bottom-color: var(--ms-green); font-weight: 600; }
 .sales-tabs button:hover { color: var(--ms-green); }
 
-.sales-section { background: white; border-radius: 16px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+.sales-section { background: white; border-radius: 12px; padding: 1rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border-light); }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 .section-header h2 { margin: 0; font-size: 1.2rem; color: #1a3a2a; }
 

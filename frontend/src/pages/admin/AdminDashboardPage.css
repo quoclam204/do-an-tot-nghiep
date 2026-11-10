@@ -9,7 +9,7 @@
   --admin-green: #107C10;
   --admin-green-light: #138B13;
   --admin-green-dim: rgba(16, 124, 16, 0.12);
-  --admin-sidebar-w: 240px;
+  --admin-sidebar-w: 220px;
   --admin-sidebar-collapsed-w: 64px;
   --admin-sidebar-bg: #0f1117;
   --admin-sidebar-border: rgba(255, 255, 255, 0.07);
@@ -20,10 +20,10 @@
   --admin-text: #111827;
   --admin-text-muted: #6b7280;
   --admin-text-light: #9ca3af;
-  --admin-header-h: 72px;
-  --radius: 10px;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+  --admin-header-h: 56px;
+  --radius: 8px;
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.07);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
   --transition: 0.2s ease;
 }

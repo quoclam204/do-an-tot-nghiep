@@ -10,8 +10,8 @@
 
 .harvest-main {
   flex: 1;
-  padding-top: 1.75rem;
-  padding-bottom: 3.5rem;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
 }
 
 /* ── Toast Thông Báo (Chuẩn DalatAgri: Phải trên PC, Giữa trên Mobile) ── */
@@ -870,5 +870,4 @@
     justify-content: center !important;
   }
 }
-
 
