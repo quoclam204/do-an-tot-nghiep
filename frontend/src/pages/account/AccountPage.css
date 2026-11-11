@@ -213,7 +213,6 @@
     align-items: center;
     gap: 1.25rem;
     border: 1px solid var(--ms-gray-200);
-    border-left: 3px solid var(--ms-green);
     border-radius: var(--radius-sm);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -420,7 +419,6 @@
 .farmer-profile-card {
     background: #ffffff;
     border: 1px solid var(--ms-gray-200);
-    border-left: 3px solid var(--ms-green);
     border-radius: var(--radius-sm);
     padding: 1.5rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -754,7 +752,7 @@
     border: 1.5px solid #e5e7eb;
     border-radius: 8px;
     font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--sans);
     color: #111827;
     background: #f9fafb;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -844,14 +842,14 @@
     background: #ffffff;
     border-radius: var(--radius-sm);
     border: 1px solid var(--ms-gray-200);
-    border-left: 3px solid var(--ms-green);
     padding: 1.25rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.2s, transform 0.2s;
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
 
 .farm-card:hover {
-    box-shadow: 0 4px 12px rgba(16, 124, 16, 0.12);
+    border-color: var(--ms-green-mid);
+    box-shadow: 0 4px 12px rgba(19, 122, 58, 0.08);
     transform: translateY(-2px);
 }
 
@@ -973,7 +971,7 @@
     border: 1.5px solid #e5e7eb;
     border-radius: 10px;
     font-size: 0.9rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--sans);
     background: #f9fafb;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -1085,7 +1083,7 @@
     border-radius: 6px;
     border: 1px solid #e5e7eb;
     font-size: 0.8rem;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--sans);
     font-weight: 600;
     cursor: pointer;
     outline: none;
@@ -1163,7 +1161,7 @@
     border-radius: 8px;
     font-size: 0.875rem;
     font-weight: 600;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--sans);
     cursor: pointer;
     transition: background 0.15s;
 }
@@ -1390,7 +1388,7 @@
     }
 
     .sidebar-nav-item.active {
-        border-left: 3px solid var(--ms-green);
+        border: 1px solid var(--ms-green);
         background: var(--ms-green);
         color: #ffffff !important;
     }

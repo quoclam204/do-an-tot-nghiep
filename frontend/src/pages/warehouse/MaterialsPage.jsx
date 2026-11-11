@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
+import { PageHeader, KpiCard, KpiGrid, ConfirmDialog, EmptyState } from '../../components/ui';
 import {
   IconFlask,
   IconPlus,
@@ -160,6 +160,15 @@ export default function MaterialsPage() {
 
   // Xác nhận xóa
   const [deleteConfirmItem, setDeleteConfirmItem] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 4000);
+  };
 
   const handleOpenHistory = async (item) => {
     setSelectedMaterial(item);
@@ -178,11 +187,15 @@ export default function MaterialsPage() {
   const handleConfirmDelete = async () => {
     if (!deleteConfirmItem) return;
     try {
+      setIsDeleting(true);
       await api.delete(`/catalog/materials/${deleteConfirmItem.id}`);
+      showToast(`Đã xóa vật tư "${deleteConfirmItem.name}" khỏi danh mục thành công.`);
       setDeleteConfirmItem(null);
       await loadMaterials();
     } catch (err) {
-      alert('Lỗi xóa vật tư: ' + (err.response?.data?.message || err.message));
+      showToast(err.response?.data?.message || 'Không thể xóa vật tư. Bác vui lòng thử lại.', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -277,13 +290,8 @@ export default function MaterialsPage() {
     let finalUnit = form.unit.trim();
     if (isPackagingFormat(finalUnit)) {
       const cleanUnit = extractCleanUnit(finalUnit, form.type);
-      const confirmClean = window.confirm(
-        `Đơn vị tính "${finalUnit}" dường như là quy cách đóng gói (số lượng).\n\nBạn có muốn tự động đổi thành "${cleanUnit}" để nông dân có thể xuất kho bón lẻ từng ${cleanUnit} không?\n\n• Bấm [OK] để đổi thành "${cleanUnit}"\n• Bấm [Hủy] để giữ nguyên "${finalUnit}"`
-      );
-      if (confirmClean) {
-        finalUnit = cleanUnit;
-        setForm((prev) => ({ ...prev, unit: cleanUnit }));
-      }
+      finalUnit = cleanUnit;
+      showToast(`Đã tự động chuẩn hóa đơn vị tính thành "${cleanUnit}" để tiện xuất kho bón lẻ.`);
     }
 
     try {
@@ -296,30 +304,31 @@ export default function MaterialsPage() {
       };
       if (editingId) {
         await api.patch(`/catalog/materials/${editingId}`, payload);
+        showToast(`Đã cập nhật vật tư "${payload.name}" thành công!`);
       } else {
         await apiCreateMaterial(payload);
+        showToast(`Đã thêm mới vật tư "${payload.name}" vào danh mục!`);
       }
       closeModal();
       await loadMaterials();
     } catch (err) {
-      alert('Lỗi: ' + (err.response?.data?.message || err.message));
+      showToast(err.response?.data?.message || 'Không thể lưu vật tư. Bác vui lòng thử lại.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa vật tư "${name}"?`)) return;
-    try {
-      await api.delete(`/catalog/materials/${id}`);
-      await loadMaterials();
-    } catch (err) {
-      alert('Lỗi xóa: ' + (err.response?.data?.message || err.message));
-    }
-  };
-
   return (
     <div className="materials-page-container">
+      {toast.show && (
+        <div className={`dalat-toast ${toast.type}`} role="status" aria-live="polite">
+          {toast.type === 'success' && <IconCheckCircle size={18} strokeWidth={2.4} />}
+          {toast.type === 'error' && <IconAlertTriangle size={18} strokeWidth={2.4} />}
+          {toast.type === 'warning' && <IconAlertTriangle size={18} strokeWidth={2.4} />}
+          <span>{toast.message}</span>
+        </div>
+      )}
+
       <Header />
       <main className="materials-main-content">
         <div className="container">
@@ -406,15 +415,34 @@ export default function MaterialsPage() {
             </div>
 
             {filteredMaterials.length === 0 ? (
-              <div className="materials-empty">
-                <div className="materials-empty-icon">
-                  <IconFlask size={32} strokeWidth={2} />
-                </div>
-                <h3>Chưa có vật tư nào</h3>
-                <p>
-                  Bấm "Thêm vật tư mới" ở góc trên để thêm phân bón, thuốc bảo vệ thực vật hoặc hạt giống thực tế.
-                </p>
-              </div>
+              materials.length === 0 ? (
+                <EmptyState
+                  icon={IconFlask}
+                  title="Chưa có vật tư nào trong danh mục"
+                  description="Bác hãy thêm phân bón, thuốc bảo vệ thực vật hoặc hạt giống để bắt đầu theo dõi xuất nhập kho và tính toán chi phí canh tác."
+                  primaryAction={{
+                    label: "Thêm vật tư mới",
+                    icon: IconPlus,
+                    onClick: openModal,
+                  }}
+                  type="empty"
+                />
+              ) : (
+                <EmptyState
+                  icon={IconFlask}
+                  title="Không tìm thấy vật tư phù hợp"
+                  description="Không có vật tư nào khớp với từ khóa tìm kiếm hoặc bộ lọc phân loại hiện tại của bác."
+                  primaryAction={{
+                    label: "Đặt lại bộ lọc tìm kiếm",
+                    icon: IconFlask,
+                    onClick: () => {
+                      setSearchTerm('');
+                      setFilterType('');
+                    },
+                  }}
+                  type="filter"
+                />
+              )
             ) : (
               <div className="materials-table-responsive">
                 <table className="materials-table">
@@ -721,59 +749,23 @@ export default function MaterialsPage() {
       )}
 
       {/* MODAL XÁC NHẬN XÓA VẬT TƯ */}
-      {deleteConfirmItem && (
-        <div className="materials-modal-overlay" onClick={() => setDeleteConfirmItem(null)}>
-          <div className="materials-modal" style={{ maxWidth: '480px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '50%',
-              background: '#fee2e2',
-              color: '#dc2626',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '1rem auto 0.75rem'
-            }}>
-              <IconAlertTriangle size={28} strokeWidth={2.2} />
-            </div>
-            <h3 style={{ margin: '0 0 0.5rem' }}>Xác nhận xóa vật tư</h3>
-            <p style={{ color: '#475569', fontSize: '0.95rem', margin: '0 1rem 1rem' }}>
-              Bạn có chắc chắn muốn xóa vật tư <strong>"{deleteConfirmItem.name}"</strong>?
-            </p>
-            <div style={{
-              background: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              borderRadius: '8px',
-              padding: '0.75rem',
-              margin: '0 1.5rem 1.5rem',
-              textAlign: 'left',
-              fontSize: '0.85rem',
-              color: '#065f46',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '8px'
-            }}>
-              <IconShield size={18} strokeWidth={2} style={{ color: '#059669', flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <strong>Bảo toàn dữ liệu lịch sử:</strong> Lịch sử của vật tư này vẫn được hệ thống lưu trữ vĩnh viễn. Các vụ mùa và nhật ký canh tác đã sử dụng vật tư này trước đây sẽ không bị ảnh hưởng hay mất dữ liệu chi phí!
-              </div>
-            </div>
-            <div className="modal-footer" style={{ justifyContent: 'center', gap: '0.75rem' }}>
-              <button type="button" className="btn-modal-cancel" onClick={() => setDeleteConfirmItem(null)}>
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                className="btn-modal-save"
-                style={{ background: '#dc2626' }}
-                onClick={handleConfirmDelete}
-              >
-                Đồng ý xóa
-              </button>
-            </div>
-          </div>
-        </div>
+      <ConfirmDialog
+        isOpen={Boolean(deleteConfirmItem)}
+        title="Xác nhận xóa vật tư"
+        description={
+          deleteConfirmItem ? (
+            <>Bác có chắc chắn muốn xóa vật tư <strong>"{deleteConfirmItem.name}"</strong> khỏi danh mục nông hộ?</>
+          ) : ""
+        }
+        tip="Bảo toàn dữ liệu lịch sử: Lịch sử của vật tư này vẫn được hệ thống lưu trữ vĩnh viễn. Các mùa vụ và nhật ký canh tác đã sử dụng vật tư này trước đây sẽ không bị ảnh hưởng hay mất dữ liệu chi phí."
+        confirmLabel="Xóa vật tư này"
+        cancelLabel="Hủy bỏ, giữ lại"
+        variant="danger"
+        isLoading={isDeleting}
+        confirmIcon={IconTrash}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteConfirmItem(null)}
+      />
       )}
     </div>
   );

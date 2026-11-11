@@ -45,7 +45,6 @@ export default function PageHeader({
   return (
     <header className={`dalat-page-header ${className}`.trim()}>
       <div className="dalat-page-header-main">
-        {renderBadge()}
         <div className="dalat-page-header-title-wrap">
           {TitleIcon && (
             <span className="dalat-page-header-icon" aria-hidden="true">
@@ -53,6 +52,7 @@ export default function PageHeader({
             </span>
           )}
           <h1 className="dalat-page-header-title">{title}</h1>
+          {renderBadge()}
         </div>
         {descText && (
           <p className="dalat-page-header-desc">{descText}</p>

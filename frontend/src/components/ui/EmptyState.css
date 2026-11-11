@@ -1,0 +1,132 @@
+/* ── DalatAgri: Reusable Highland Ledger Empty State ── */
+.dalat-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border-light, #e8e8e8);
+  border-radius: var(--radius-md, 10px);
+  margin: 16px 0;
+}
+
+.dalat-empty-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md, 10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background: var(--surface-raised, #f8fafc);
+  color: var(--text-muted, #64748b);
+  border: 1px solid var(--border-light, #e8e8e8);
+}
+
+.dalat-empty-state.filter .dalat-empty-icon-wrap {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.dalat-empty-state.error .dalat-empty-icon-wrap {
+  background: #fef2f2;
+  color: var(--status-danger, #dc2626);
+  border-color: #fee2e2;
+}
+
+.dalat-empty-title {
+  margin: 0 0 8px 0;
+  font-family: var(--heading, var(--sans));
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-h, #172033);
+  text-wrap: balance;
+}
+
+.dalat-empty-desc {
+  margin: 0 0 20px 0;
+  font-family: var(--sans);
+  font-size: 0.925rem;
+  color: var(--text-muted, #64748b);
+  line-height: 1.55;
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+
+.dalat-empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dalat-empty-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--ms-green, #137a3a);
+  color: #ffffff;
+  font-family: var(--sans);
+  font-size: 0.925rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid transparent;
+  min-height: 44px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dalat-empty-btn-primary:hover {
+  background: var(--ms-green-dark, #0d5c2b);
+}
+
+.dalat-empty-btn-primary:active {
+  transform: scale(0.98);
+}
+
+.dalat-empty-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  color: var(--text, #334155);
+  font-family: var(--sans);
+  font-size: 0.925rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border, #d1d1d1);
+  min-height: 44px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dalat-empty-btn-secondary:hover {
+  background: var(--surface, #fafafa);
+  border-color: #94a3b8;
+}
+
+.dalat-empty-btn-secondary:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 480px) {
+  .dalat-empty-state {
+    padding: 36px 16px;
+  }
+
+  .dalat-empty-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .dalat-empty-btn-primary,
+  .dalat-empty-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

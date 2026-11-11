@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
+import { PageHeader, KpiCard, KpiGrid, ConfirmDialog, EmptyState } from '../../components/ui';
 import {
   IconBookOpen,
   IconPlus,
@@ -11,6 +11,8 @@ import {
   IconTrash,
   IconX,
   IconCheckCircle,
+  IconAlertCircle,
+  IconRotateCw,
   IconSprout,
   IconLeaf,
   IconCalendar,
@@ -69,6 +71,14 @@ export default function SeasonsPage() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+  };
 
   // Báo cáo tài chính & kinh tế vụ mùa
   const [financeModalOpen, setFinanceModalOpen] = useState(false);
@@ -320,7 +330,11 @@ export default function SeasonsPage() {
       const data = await apiGetSeasonFinancialSummary(season.id);
       setSelectedSeasonData(data);
     } catch (err) {
-      alert('Lỗi tải báo cáo kinh tế mùa vụ: ' + (err.response?.data?.message || err.message));
+      showToast(
+        err.response?.data?.message ||
+          'Không thể tải báo cáo kinh tế của mùa vụ này. Bác vui lòng thử lại sau ít phút.',
+        'error'
+      );
       setFinanceModalOpen(false);
     } finally {
       setFinanceLoading(false);
@@ -344,25 +358,44 @@ export default function SeasonsPage() {
 
       if (editingId) {
         await api.patch(`/catalog/seasons/${editingId}`, payload);
+        showToast(`Đã cập nhật thông tin mùa vụ "${form.name}" thành công!`);
       } else {
         await apiCreateSeason(payload);
+        showToast(`Đã tạo mới mùa vụ "${form.name}" thành công!`);
       }
       closeModal();
       await loadData();
     } catch (err) {
-      alert('Lỗi: ' + (err.response?.data?.message || err.message));
+      showToast(
+        err.response?.data?.message ||
+          'Không thể lưu mùa vụ. Bác vui lòng kiểm tra lại thông tin và kết nối mạng.',
+        'error'
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa mùa vụ "${name}"?`)) return;
+  const handleRequestDelete = (season) => {
+    setDeleteTarget(season);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/catalog/seasons/${id}`);
+      setIsDeleting(true);
+      await api.delete(`/catalog/seasons/${deleteTarget.id}`);
+      showToast(`Đã xóa mùa vụ "${deleteTarget.name}" thành công.`);
+      setDeleteTarget(null);
       await loadData();
     } catch (err) {
-      alert('Lỗi xóa: ' + (err.response?.data?.message || err.message));
+      showToast(
+        err.response?.data?.message ||
+          `Không thể xóa mùa vụ "${deleteTarget.name}". Nếu mùa vụ đang có nhật ký canh tác hoặc đợt thu hoạch, bác cần xử lý các bản ghi đó trước.`,
+        'error'
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -374,6 +407,17 @@ export default function SeasonsPage() {
       <Header />
       <main className="seasons-main-content">
         <div className="container">
+          {toast.show && (
+            <div className={`dalat-toast ${toast.type}`}>
+              {toast.type === 'success' ? (
+                <IconCheckCircle size={18} strokeWidth={2.2} />
+              ) : (
+                <IconAlertCircle size={18} strokeWidth={2.2} />
+              )}
+              <span>{toast.message}</span>
+            </div>
+          )}
+
           {/* HERO */}
           <PageHeader
             badge={{ icon: IconCalendar, label: 'QUẢN LÝ MÙA VỤ CANH TÁC' }}
@@ -489,17 +533,35 @@ export default function SeasonsPage() {
 
           {/* SEASONS GRID */}
           {filteredSeasons.length === 0 ? (
-            <div className="materials-table-card">
-              <div className="seasons-empty">
-                <div className="seasons-empty-icon">
-                  <IconCalendar size={32} strokeWidth={2} />
-                </div>
-                <h3>Chưa có mùa vụ nào</h3>
-                <p>
-                  Bấm "Lập mùa vụ mới" để bắt đầu theo dõi chu kỳ canh tác.
-                </p>
-              </div>
-            </div>
+            seasons.length > 0 ? (
+              <EmptyState
+                type="filter"
+                icon={IconSearch}
+                title="Không tìm thấy mùa vụ phù hợp"
+                description="Không có mùa vụ nào khớp với từ khóa tìm kiếm hoặc trạng thái lọc đã chọn."
+                primaryAction={{
+                  label: 'Đặt lại bộ lọc',
+                  onClick: () => {
+                    setSearchTerm('');
+                    setFilterStatus('');
+                    setSelectedFarmId('');
+                  },
+                  icon: IconRotateCw,
+                }}
+              />
+            ) : (
+              <EmptyState
+                type="empty"
+                icon={IconCalendar}
+                title="Chưa có mùa vụ canh tác nào"
+                description="Bác bấm 'Lập mùa vụ mới' để bắt đầu theo dõi lịch xuống giống, bón phân và dự kiến ngày thu hoạch cho từng thửa đất."
+                primaryAction={{
+                  label: 'Lập mùa vụ mới',
+                  onClick: openAddModal,
+                  icon: IconPlus,
+                }}
+              />
+            )
           ) : (
             <div className="seasons-grid">
               {filteredSeasons.map((season) => {
@@ -600,7 +662,7 @@ export default function SeasonsPage() {
                         <button
                           type="button"
                           className="btn-season-delete"
-                          onClick={() => handleDelete(season.id, season.name)}
+                          onClick={() => handleRequestDelete(season)}
                           title="Xóa vụ mùa này"
                         >
                           <IconTrash size={15} strokeWidth={2} />
@@ -1010,6 +1072,27 @@ export default function SeasonsPage() {
           </div>
         </div>
       )}
+
+      {/* HỘP THOẠI XÁC NHẬN XÓA MÙA VỤ CANH TÁC AN TOÀN */}
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Xác nhận xóa mùa vụ canh tác?"
+        description={
+          deleteTarget ? (
+            <>
+              Bác có chắc chắn muốn xóa mùa vụ <strong>"{deleteTarget.name}"</strong>?
+              Toàn bộ thông tin theo dõi chu kỳ sinh trưởng của thửa đất này sẽ được gỡ bỏ khỏi sổ sách.
+            </>
+          ) : null
+        }
+        tip="Lưu ý: Nếu mùa vụ này đang liên kết với các dòng nhật ký phân thuốc hoặc đợt thu hoạch, hệ thống sẽ bảo vệ dữ liệu và không thể xóa trực tiếp."
+        confirmLabel="Xóa mùa vụ này"
+        cancelLabel="Hủy bỏ, giữ lại"
+        variant="danger"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => !isDeleting && setDeleteTarget(null)}
+      />
     </div>
   );
 }

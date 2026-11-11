@@ -39,6 +39,7 @@ import {
   IconLightbulb,
 } from "../../components/icons";
 import { PucCertificateModal } from "../../components/modals";
+import { ConfirmDialog, EmptyState } from "../../components/ui";
 import {
   getPlotMeta,
   savePlotMeta,
@@ -111,6 +112,16 @@ export default function FarmDetailPage() {
   const [showPlotModal, setShowPlotModal] = useState(false);
   const [editingPlot, setEditingPlot] = useState(null);
   const [plotToDelete, setPlotToDelete] = useState(null);
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [isDeletingMember, setIsDeletingMember] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 4000);
+  };
   const [plotForm, setPlotForm] = useState({
     name: "",
     area: "",
@@ -205,7 +216,7 @@ export default function FarmDetailPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert("Kích thước ảnh tối đa là 5MB!");
+      showToast("Kích thước ảnh tối đa là 5MB! Bác vui lòng chọn ảnh có dung lượng nhẹ hơn.", "warning");
       return;
     }
     const reader = new FileReader();
@@ -247,11 +258,17 @@ export default function FarmDetailPage() {
 
   const handleSavePlot = async (e) => {
     e.preventDefault();
-    if (!plotForm.name.trim()) return alert("Vui lòng nhập tên lô trồng!");
+    if (!plotForm.name.trim()) {
+      showToast("Bác vui lòng nhập tên lô trồng!", "warning");
+      return;
+    }
 
     // Chuẩn hóa dấu phẩy thành dấu chấm
     const numArea = Number(String(plotForm.area || "").replace(',', '.'));
-    if (isNaN(numArea) || numArea <= 0) return alert("Vui lòng nhập diện tích lô đất hợp lệ lớn hơn 0!");
+    if (isNaN(numArea) || numArea <= 0) {
+      showToast("Bác vui lòng nhập diện tích lô đất hợp lệ lớn hơn 0!", "warning");
+      return;
+    }
 
     // Tính diện tích quy đổi ra ha để kiểm tra trước
     const plotAreaInHa = plotForm.unit === "m2" ? numArea / 10000 : numArea;
@@ -260,9 +277,11 @@ export default function FarmDetailPage() {
 
     if (otherUsedArea + plotAreaInHa > Number(farm.totalArea) + 0.0001) {
       const maxCanAdd = Math.max(0, Number(farm.totalArea) - otherUsedArea);
-      return alert(
-        `Không thể lưu! Tổng diện tích các lô (${(otherUsedArea + plotAreaInHa).toFixed(2)} ha) vượt quá diện tích nông hộ (${farm.totalArea} ha).\nNông hộ chỉ còn trống tối đa ${maxCanAdd.toFixed(2)} ha (${new Intl.NumberFormat('vi-VN').format(Math.round(maxCanAdd * 10000))} m²).`
+      showToast(
+        `Không thể lưu! Tổng diện tích các lô (${(otherUsedArea + plotAreaInHa).toFixed(2)} ha) vượt quá diện tích nông hộ (${farm.totalArea} ha). Nông hộ chỉ còn trống tối đa ${maxCanAdd.toFixed(2)} ha (${new Intl.NumberFormat('vi-VN').format(Math.round(maxCanAdd * 10000))} m²).`,
+        "warning"
       );
+      return;
     }
 
     setSaving(true);
@@ -294,6 +313,7 @@ export default function FarmDetailPage() {
         saveStoredPlotImage(payload.name, finalImage);
         savePlotMeta(editingPlot.id, metaToSave);
         savePlotMeta(payload.name, metaToSave);
+        showToast(`Đã cập nhật thông tin lô đất "${payload.name}" thành công!`);
       } else {
         const res = await apiCreatePlot(id, payload);
         if (res && res.id) {
@@ -302,11 +322,12 @@ export default function FarmDetailPage() {
         }
         saveStoredPlotImage(payload.name, finalImage);
         savePlotMeta(payload.name, metaToSave);
+        showToast(`Đã thêm mới lô canh tác "${payload.name}" thành công!`);
       }
       setShowPlotModal(false);
       loadFarm();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi lưu lô trồng");
+      showToast(err.response?.data?.message || "Không thể lưu thông tin lô trồng. Bác vui lòng thử lại.", "error");
     } finally {
       setSaving(false);
     }
@@ -320,16 +341,20 @@ export default function FarmDetailPage() {
     if (!plotToDelete) return;
     try {
       await apiDeletePlot(id, plotToDelete.id);
+      showToast(`Đã xóa lô đất "${plotToDelete.name}" thành công.`);
       setPlotToDelete(null);
       loadFarm();
     } catch (err) {
-      alert("Lỗi khi xóa lô trồng: " + (err.response?.data?.message || err.message));
+      showToast("Không thể xóa lô đất: " + (err.response?.data?.message || err.message), "error");
     }
   };
 
   const handleSaveMember = async (e) => {
     e.preventDefault();
-    if (!memberForm.emailOrPhone.trim()) return alert("Vui lòng nhập email hoặc số điện thoại của nông dân!");
+    if (!memberForm.emailOrPhone.trim()) {
+      showToast("Bác vui lòng nhập email hoặc số điện thoại của nông dân!", "warning");
+      return;
+    }
     setSavingMember(true);
     try {
       await apiAddFarmMember(id, memberForm);
@@ -340,21 +365,31 @@ export default function FarmDetailPage() {
         canEditLog: true,
         canManageInventory: true,
       });
+      showToast("Đã thêm thành viên mới vào nông hộ thành công!");
       loadFarm();
     } catch (err) {
-      alert("Lỗi thêm nông dân: " + (err.response?.data?.message || err.message));
+      showToast("Không thể thêm nông dân: " + (err.response?.data?.message || err.message), "error");
     } finally {
       setSavingMember(false);
     }
   };
 
-  const handleDeleteMember = async (memberId, memberName) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa tài khoản nông dân "${memberName || 'thành viên'}" khỏi trang trại này?`)) return;
+  const handleDeleteMember = (memberId, memberName) => {
+    setMemberToDelete({ id: memberId, name: memberName || "thành viên" });
+  };
+
+  const handleConfirmDeleteMember = async () => {
+    if (!memberToDelete) return;
+    setIsDeletingMember(true);
     try {
-      await apiRemoveFarmMember(id, memberId);
+      await apiRemoveFarmMember(id, memberToDelete.id);
+      showToast(`Đã xóa tài khoản "${memberToDelete.name}" khỏi trang trại.`);
+      setMemberToDelete(null);
       loadFarm();
     } catch (err) {
-      alert("Lỗi xóa thành viên: " + (err.response?.data?.message || err.message));
+      showToast("Không thể xóa thành viên: " + (err.response?.data?.message || err.message), "error");
+    } finally {
+      setIsDeletingMember(false);
     }
   };
 
@@ -408,6 +443,15 @@ export default function FarmDetailPage() {
 
   return (
     <div className="farm-detail-page-container">
+      {toast.show && (
+        <div className={`dalat-toast ${toast.type}`} role="status" aria-live="polite">
+          {toast.type === 'success' && <IconCheckCircle size={18} strokeWidth={2.4} />}
+          {toast.type === 'error' && <IconAlertCircle size={18} strokeWidth={2.4} />}
+          {toast.type === 'warning' && <IconAlertTriangle size={18} strokeWidth={2.4} />}
+          <span>{toast.message}</span>
+        </div>
+      )}
+
       <Header />
 
       <main className="farm-detail-content container">
@@ -561,17 +605,16 @@ export default function FarmDetailPage() {
             </div>
 
             {plots.length === 0 ? (
-              <div className="plots-empty-state">
-                <div className="empty-icon-wrap">
-                  <IconSprout size={44} strokeWidth={1.8} />
-                </div>
-                <h3>Chưa có lô trồng nào trong nông hộ này</h3>
-                <p>Phân chia các lô đất (Lô Cà phê, Lô Sầu riêng, Lô Mắc ca) để bắt đầu ghi nhật ký mùa vụ.</p>
-                <button className="add-plot-btn" onClick={openAddModal}>
-                  <IconPlus size={18} strokeWidth={2.4} />
-                  <span>Thêm Lô Đất Đầu Tiên</span>
-                </button>
-              </div>
+              <EmptyState
+                icon={IconSprout}
+                title="Chưa có lô đất nào trong nông hộ này"
+                description="Bác hãy phân chia các lô đất (Lô Cà phê, Lô Sầu riêng, Lô Mắc ca) để bắt đầu theo dõi diện tích và ghi chép nhật ký canh tác."
+                primaryAction={{
+                  label: "Thêm Lô Đất Đầu Tiên",
+                  icon: IconPlus,
+                  onClick: openAddModal,
+                }}
+              />
             ) : (
               <div className="plots-grid-layout">
                 {plots.map((plot) => {
@@ -1355,60 +1398,41 @@ export default function FarmDetailPage() {
         )}
 
         {/* MODAL XÁC NHẬN XÓA LÔ ĐẤT */}
-        {plotToDelete && (
-          <div className="farm-modal-overlay" onClick={() => setPlotToDelete(null)}>
-            <div
-              className="farm-modal-card"
-              style={{ maxWidth: '460px', textAlign: 'center', padding: '2rem' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', color: '#f59e0b' }}>
-                <IconAlertTriangle size={48} strokeWidth={2} />
-              </div>
-              <h3 style={{ margin: '0 0 0.5rem', color: '#0f172a', fontSize: '1.25rem' }}>
-                Xác nhận xóa lô canh tác
-              </h3>
-              <p style={{ color: '#475569', fontSize: '0.95rem', margin: '0 0 1rem', lineHeight: '1.5' }}>
-                Bạn có chắc chắn muốn xóa lô đất <strong>"{plotToDelete.name}"</strong> không?
-              </p>
-              <div
-                style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '8px',
-                  padding: '0.75rem',
-                  color: '#b91c1c',
-                  fontSize: '0.85rem',
-                  marginBottom: '1.5rem',
-                  textAlign: 'left'
-                }}
-              >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <IconAlertCircle size={14} strokeWidth={2.4} />
-                  <strong>Cảnh báo:</strong>
-                </span> Nếu lô này đang có lịch sử mùa vụ hoặc cây trồng, hệ thống sẽ ngăn chặn xóa để bảo vệ dữ liệu nông hộ của bạn.
-              </div>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  style={{ minWidth: '110px' }}
-                  onClick={() => setPlotToDelete(null)}
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  style={{ minWidth: '130px', background: '#dc2626', borderColor: '#b91c1c' }}
-                  onClick={handleConfirmDeletePlot}
-                >
-                  Đồng ý xóa lô
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ConfirmDialog
+          isOpen={Boolean(plotToDelete)}
+          title="Xác nhận xóa lô canh tác"
+          description={
+            plotToDelete ? (
+              <>Bác có chắc chắn muốn xóa lô đất <strong>"{plotToDelete.name}"</strong> khỏi nông hộ không?</>
+            ) : ""
+          }
+          tip="Nếu lô này đang có lịch sử mùa vụ hoặc cây trồng, hệ thống sẽ ngăn chặn xóa để bảo vệ dữ liệu nông hộ của bác."
+          confirmLabel="Xóa lô đất này"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          confirmIcon={IconTrash}
+          onConfirm={handleConfirmDeletePlot}
+          onCancel={() => setPlotToDelete(null)}
+        />
+
+        {/* MODAL XÁC NHẬN XÓA THÀNH VIÊN */}
+        <ConfirmDialog
+          isOpen={Boolean(memberToDelete)}
+          title="Xác nhận xóa thành viên nông hộ"
+          description={
+            memberToDelete ? (
+              <>Bác có chắc chắn muốn xóa tài khoản nông dân <strong>"{memberToDelete.name}"</strong> khỏi nông hộ này không?</>
+            ) : ""
+          }
+          tip="Thành viên này sẽ không còn quyền truy cập vào sổ ghi nhật ký và danh mục vật tư của nông hộ này nữa."
+          confirmLabel="Xóa thành viên"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          isLoading={isDeletingMember}
+          confirmIcon={IconTrash}
+          onConfirm={handleConfirmDeleteMember}
+          onCancel={() => setMemberToDelete(null)}
+        />
 
         {/* MODAL GIẤY CHỨNG NHẬN MÃ SỐ VÙNG TRỒNG PUC */}
         <PucCertificateModal

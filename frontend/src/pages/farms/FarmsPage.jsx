@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { apiGetMyFarms, apiCreateFarm, apiUpdateFarm, apiDeleteFarm } from "../../services/api";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { PageHeader } from "../../components/ui";
+import { PageHeader, ConfirmDialog, EmptyState } from "../../components/ui";
 import {
   IconWarehouse,
   IconPlus,
@@ -17,6 +17,7 @@ import {
   IconEye,
   IconArrowRight,
   IconCheckCircle,
+  IconAlertTriangle,
   IconUpload,
   IconImage,
   IconInfo,
@@ -70,7 +71,15 @@ export default function FarmsPage() {
   const [form, setForm] = useState({ name: "", location: "", totalArea: "", unit: "ha", image: "" });
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [deleteTargetFarm, setDeleteTargetFarm] = useState(null);
+  const [isDeletingFarm, setIsDeletingFarm] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const fileInputRef = useRef(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+  };
 
   useEffect(() => {
     loadFarms();
@@ -91,7 +100,7 @@ export default function FarmsPage() {
   // Lấy vị trí thực tế hiện tại qua GPS trình duyệt
   const handleGetCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("Trình duyệt của bạn không hỗ trợ định vị GPS!");
+      showToast("Trình duyệt không hỗ trợ định vị GPS. Bác có thể nhập địa chỉ vườn thủ công.", "warning");
       return;
     }
 
@@ -140,13 +149,13 @@ export default function FarmsPage() {
       (err) => {
         setLocating(false);
         if (err.code === err.PERMISSION_DENIED) {
-          alert("Bạn đã từ chối quyền truy cập vị trí. Vui lòng bật quyền định vị trên trình duyệt hoặc nhập địa chỉ thủ công.");
+          showToast("Chưa có quyền vị trí. Bác bật định vị GPS trên điện thoại hoặc nhập địa chỉ vườn vào ô nhé.", "warning");
         } else if (err.code === err.POSITION_UNAVAILABLE) {
-          alert("Không thể xác định vị trí hiện tại. Vui lòng kiểm tra kết nối mạng hoặc GPS.");
+          showToast("Không thể bắt sóng GPS lúc này. Bác vui lòng kiểm tra mạng hoặc gõ địa chỉ vườn.", "warning");
         } else if (err.code === err.TIMEOUT) {
-          alert("Quá thời gian lấy vị trí GPS. Vui lòng thử lại hoặc nhập tay.");
+          showToast("Thời gian chờ GPS quá lâu do sóng yếu. Bác nhập địa chỉ vườn vào ô bên dưới nhé.", "warning");
         } else {
-          alert("Lỗi khi lấy vị trí: " + err.message);
+          showToast("Chưa lấy được vị trí GPS: " + err.message, "warning");
         }
       },
       {
@@ -211,7 +220,7 @@ export default function FarmsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert("Kích thước ảnh tối đa là 5MB!");
+      showToast("Kích thước ảnh tối đa là 5MB. Bác vui lòng chọn ảnh dung lượng nhỏ hơn.", "warning");
       return;
     }
     const reader = new FileReader();
@@ -228,9 +237,15 @@ export default function FarmsPage() {
 
   const handleSubmitFarm = async (e) => {
     e.preventDefault();
-    if (!form.name.trim()) return alert("Vui lòng nhập tên nông hộ!");
+    if (!form.name.trim()) {
+      showToast("Bác vui lòng nhập tên nông hộ hoặc vườn!", "warning");
+      return;
+    }
     const areaNum = Number(String(form.totalArea).replace(",", "."));
-    if (isNaN(areaNum) || areaNum <= 0) return alert("Vui lòng nhập diện tích hợp lệ lớn hơn 0!");
+    if (isNaN(areaNum) || areaNum <= 0) {
+      showToast("Bác vui lòng nhập diện tích hợp lệ lớn hơn 0!", "warning");
+      return;
+    }
     setSaving(true);
     try {
       // Nếu người dùng để trống ảnh thì tự lấy ảnh mặc định
@@ -245,6 +260,7 @@ export default function FarmsPage() {
         });
         saveStoredFarmImage(editingFarm.id, finalImage);
         saveStoredFarmImage(form.name.trim(), finalImage);
+        showToast(`Đã cập nhật thông tin nông hộ "${form.name.trim()}" thành công!`);
       } else {
         const res = await apiCreateFarm({
           name: form.name.trim(),
@@ -256,6 +272,7 @@ export default function FarmsPage() {
           saveStoredFarmImage(res.id, finalImage);
         }
         saveStoredFarmImage(form.name.trim(), finalImage);
+        showToast(`Đã thêm mới nông hộ "${form.name.trim()}" thành công!`);
       }
 
       setShowModal(false);
@@ -263,21 +280,40 @@ export default function FarmsPage() {
       setForm({ name: "", location: "", totalArea: "", unit: "ha", image: "" });
       loadFarms();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi lưu nông hộ");
+      showToast(
+        "Không thể lưu thông tin nông hộ: " +
+          (err.response?.data?.message || "Bác vui lòng kiểm tra lại kết nối mạng"),
+        "error"
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id, name, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa nông hộ "${name}"?`)) return;
+  const handleDelete = (id, name, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setDeleteTargetFarm({ id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetFarm) return;
     try {
-      await apiDeleteFarm(id);
+      setIsDeletingFarm(true);
+      await apiDeleteFarm(deleteTargetFarm.id);
+      showToast(`Đã xóa nông hộ "${deleteTargetFarm.name}" thành công.`);
+      setDeleteTargetFarm(null);
       loadFarms();
     } catch (err) {
-      alert("Lỗi khi xóa nông hộ: " + (err.response?.data?.message || err.message));
+      showToast(
+        err.response?.data?.message ||
+          `Không thể xóa nông hộ "${deleteTargetFarm.name}". Nếu nông hộ đang có các thửa đất hoặc mùa vụ, bác cần xử lý các mục đó trước.`,
+        "error"
+      );
+    } finally {
+      setIsDeletingFarm(false);
     }
   };
 
@@ -308,6 +344,17 @@ export default function FarmsPage() {
       <Header />
 
       <main className="farms-main-content container">
+        {toast.show && (
+          <div className={`dalat-toast ${toast.type}`}>
+            {toast.type === 'success' ? (
+              <IconCheckCircle size={18} strokeWidth={2.2} />
+            ) : (
+              <IconAlertTriangle size={18} strokeWidth={2.2} />
+            )}
+            <span>{toast.message}</span>
+          </div>
+        )}
+
         {/* ================= HERO BANNER ================= */}
         <PageHeader
           badge={{ icon: IconWarehouse, label: "QUẢN LÝ NÔNG HỘ & TRANG TRẠI" }}
@@ -382,21 +429,30 @@ export default function FarmsPage() {
             <p>Đang tải danh sách trang trại của bạn...</p>
           </div>
         ) : filteredFarms.length === 0 ? (
-          <div className="farms-empty-state">
-            <div className="empty-icon-wrap">
-              <IconWarehouse size={48} strokeWidth={1.8} />
-            </div>
-            <h3>{searchTerm ? "Không tìm thấy nông hộ phù hợp" : "Bạn chưa có nông hộ nào"}</h3>
-            <p>
-              {searchTerm
-                ? "Thử tìm kiếm với từ khóa khác hoặc xóa bộ lọc."
-                : "Bắt đầu bằng cách thêm trang trại đầu tiên để phân lô đất và ghi nhật ký canh tác."}
-            </p>
-            <button className="farms-btn-primary" onClick={handleOpenAdd}>
-              <IconPlus size={18} strokeWidth={2.4} />
-              <span>Thêm Nông Hộ Đầu Tiên</span>
-            </button>
-          </div>
+          searchTerm ? (
+            <EmptyState
+              type="filter"
+              icon={IconSearch}
+              title="Không tìm thấy nông hộ phù hợp"
+              description="Không có nông hộ hoặc thửa đất nào khớp với từ khóa tìm kiếm của bác."
+              primaryAction={{
+                label: "Xóa tìm kiếm",
+                onClick: () => setSearchTerm(""),
+              }}
+            />
+          ) : (
+            <EmptyState
+              type="empty"
+              icon={IconWarehouse}
+              title="Bác chưa tạo nông hộ nào trong sổ"
+              description="Bác thêm nông hộ đầu tiên để bắt đầu phân lô đất, chia luống và ghi nhật ký mùa vụ."
+              primaryAction={{
+                label: "Thêm Nông Hộ Đầu Tiên",
+                onClick: handleOpenAdd,
+                icon: IconPlus,
+              }}
+            />
+          )
         ) : (
           <section className="farms-cards-grid">
             {filteredFarms.map((farm) => {
@@ -729,6 +785,27 @@ export default function FarmsPage() {
             </div>
           </div>
         )}
+
+        {/* HỘP THOẠI XÁC NHẬN XÓA NÔNG HỘ AN TOÀN */}
+        <ConfirmDialog
+          isOpen={Boolean(deleteTargetFarm)}
+          title="Xác nhận xóa nông hộ / trang trại?"
+          description={
+            deleteTargetFarm ? (
+              <>
+                Bác có chắc chắn muốn xóa nông hộ <strong>"{deleteTargetFarm.name}"</strong>?
+                Mọi thông tin liên quan đến trang trại này sẽ bị gỡ bỏ khỏi hệ thống.
+              </>
+            ) : null
+          }
+          tip="Lưu ý: Nếu nông hộ này đang chứa các thửa đất, lô trồng hoặc mùa vụ, hệ thống sẽ yêu cầu xử lý các lô đất trước để bảo vệ dữ liệu."
+          confirmLabel="Xóa nông hộ này"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          isLoading={isDeletingFarm}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => !isDeletingFarm && setDeleteTargetFarm(null)}
+        />
       </main>
 
       <Footer />

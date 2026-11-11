@@ -24,34 +24,13 @@
   min-width: 0;
 }
 
-/* ── Pill Tag / Kicker Badge ── */
-.dalat-page-header-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--ms-green-light, #eaf6ee);
-  color: var(--ms-green, #137a3a);
-  border: 1px solid var(--ms-green-mid, #c9e8d2);
-  border-radius: var(--radius-sm, 6px);
-  padding: 0.2rem 0.6rem;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 0.4rem;
-  line-height: 1.2;
-}
-
-.dalat-page-header-badge svg {
-  flex-shrink: 0;
-}
-
 /* ── Title & Heading ── */
 .dalat-page-header-title-wrap {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 0.35rem;
+  flex-wrap: wrap;
 }
 
 .dalat-page-header-icon {
@@ -68,6 +47,29 @@
   color: var(--text-h, #172033);
   letter-spacing: -0.015em;
   margin: 0;
+  text-wrap: balance;
+}
+
+/* ── Inline Status Tag (Beside Title) ── */
+.dalat-page-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ms-green-light, #eaf6ee);
+  color: var(--ms-green, #137a3a);
+  border: 1px solid var(--ms-green-mid, #c9e8d2);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-bottom: 0;
+  line-height: 1.25;
+}
+
+.dalat-page-header-badge svg {
+  flex-shrink: 0;
 }
 
 /* ── Subtitle / Description ── */
@@ -75,8 +77,9 @@
   font-size: 0.86rem;
   line-height: 1.5;
   color: var(--text-muted, #64748b);
-  max-width: 680px;
+  max-width: var(--measure-prose, 680px);
   margin: 0;
+  text-wrap: pretty;
 }
 
 /* ── Actions on Right ── */

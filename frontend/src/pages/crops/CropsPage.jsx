@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './CropsPage.css';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { PageHeader } from '../../components/ui';
+import { PageHeader, ConfirmDialog, EmptyState } from '../../components/ui';
 import { useAuth } from '../../context/AuthContext';
 import {
   IconSprout,
@@ -321,6 +321,17 @@ export default function CropsPage() {
   const [seasons, setSeasons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
+  const [deleteTargetCrop, setDeleteTargetCrop] = useState(null);
+  const [blockedCropWarning, setBlockedCropWarning] = useState(null);
+  const [isDeletingCrop, setIsDeletingCrop] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 4000);
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
@@ -450,15 +461,26 @@ export default function CropsPage() {
   }, [crops, searchTerm, selectedCategory]);
 
   // Seed mẫu dữ liệu cây trồng
-  const handleSeed = async () => {
-    if (!window.confirm('Hệ thống sẽ tự động khởi tạo dữ liệu mẫu cây trồng và vật tư phổ biến toàn quốc (Cà phê, Sầu riêng, Mắc ca, Bơ...). Bạn có muốn tiếp tục?')) return;
+  const handleSeed = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleExecuteSeed = async () => {
+    setShowSeedConfirm(false);
     try {
       setSeeding(true);
       await apiSeedLamDong();
       await loadData();
-      alert('Đã khởi tạo thành công danh mục Cây trồng & Chu kỳ sinh trưởng mẫu!');
+      showToast(
+        'Đã khởi tạo thành công danh mục Cây trồng & Chu kỳ sinh trưởng mẫu chuẩn Lâm Đồng!',
+        'success'
+      );
     } catch (err) {
-      alert('Không thể nạp dữ liệu mẫu: ' + (err.response?.data?.message || err.message));
+      showToast(
+        'Không thể nạp dữ liệu mẫu: ' +
+          (err.response?.data?.message || 'Vui lòng kiểm tra lại kết nối mạng'),
+        'error'
+      );
     } finally {
       setSeeding(false);
     }
@@ -563,7 +585,7 @@ export default function CropsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước ảnh tối đa là 5MB!');
+      showToast('Kích thước ảnh tối đa là 5MB. Bác vui lòng chọn ảnh dung lượng nhỏ hơn.', 'warning');
       return;
     }
     const reader = new FileReader();
@@ -600,7 +622,7 @@ export default function CropsPage() {
 
   const handleRemoveStage = (index) => {
     if (formData.stages.length <= 1) {
-      alert('Quy trình sinh trưởng cần có ít nhất 1 giai đoạn!');
+      showToast('Quy trình sinh trưởng cần có ít nhất 1 giai đoạn phát triển.', 'warning');
       return;
     }
     setFormData((prev) => ({
@@ -612,7 +634,10 @@ export default function CropsPage() {
   // Submit form
   const handleSubmitForm = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) return alert('Vui lòng nhập tên cây trồng!');
+    if (!formData.name.trim()) {
+      showToast('Bác vui lòng nhập tên giống cây trồng trước khi lưu.', 'warning');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -622,6 +647,7 @@ export default function CropsPage() {
           name: formData.name.trim(),
           type: formData.type,
         });
+        showToast(`Đã cập nhật thông tin cây trồng "${formData.name.trim()}" thành công!`);
       } else {
         savedCrop = await apiCreateCrop({
           name: formData.name.trim(),
@@ -647,6 +673,7 @@ export default function CropsPage() {
             console.warn('Không thể đồng bộ chu kỳ vào CSDL:', cycleErr);
           }
         }
+        showToast(`Đã thêm mới cây trồng "${formData.name.trim()}" thành công!`);
       }
 
       // Metadata chuyên sâu (Ảnh, Mật độ, Sâu bệnh, Đơn vị, Quy trình sinh trưởng)
@@ -678,25 +705,42 @@ export default function CropsPage() {
       setIsFormOpen(false);
       await loadData();
     } catch (err) {
-      alert('Lỗi lưu cây trồng: ' + (err.response?.data?.message || err.message));
+      showToast(
+        'Không thể lưu cây trồng: ' +
+          (err.response?.data?.message || 'Bác vui lòng kiểm tra lại kết nối mạng'),
+        'error'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Xóa cây trồng
-  const handleDeleteCrop = async (crop) => {
+  // Xóa cây trồng (an toàn, giải thích rõ ràng nếu có mùa vụ liên kết)
+  const handleDeleteCrop = (crop) => {
     const { total, active } = getCropSeasonsStats(crop.id);
     if (total > 0) {
-      alert(`Không thể xóa cây trồng "${crop.name}" vì giống này đang được liên kết với ${total} mùa vụ trong hệ thống${active > 0 ? ` (${active} vụ đang canh tác)` : ''}.\n\nĐể đảm bảo toàn vẹn nhật ký canh tác và sản lượng thu hoạch, bạn cần vào menu "Mùa vụ" để xóa các mùa vụ thuộc giống cây này trước khi xóa cây.`);
+      setBlockedCropWarning({ crop, total, active });
       return;
     }
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa cây trồng "${crop.name}"?`)) return;
+    setDeleteTargetCrop(crop);
+  };
+
+  const handleConfirmDeleteCrop = async () => {
+    if (!deleteTargetCrop) return;
     try {
-      await apiDeleteCrop(crop.id);
+      setIsDeletingCrop(true);
+      await apiDeleteCrop(deleteTargetCrop.id);
+      showToast(`Đã xóa giống cây "${deleteTargetCrop.name}" thành công.`);
+      setDeleteTargetCrop(null);
       await loadData();
     } catch (err) {
-      alert('Không thể xóa: ' + (err.response?.data?.message || err.message));
+      showToast(
+        'Không thể xóa cây trồng: ' +
+          (err.response?.data?.message || 'Bác vui lòng kiểm tra lại kết nối mạng'),
+        'error'
+      );
+    } finally {
+      setIsDeletingCrop(false);
     }
   };
 
@@ -705,6 +749,17 @@ export default function CropsPage() {
       <Header />
 
       <main className="crops-main-content container">
+        {toast.show && (
+          <div className={`dalat-toast ${toast.type}`}>
+            {toast.type === 'success' ? (
+              <IconCheckCircle size={18} strokeWidth={2.2} />
+            ) : (
+              <IconAlertTriangle size={18} strokeWidth={2.2} />
+            )}
+            <span>{toast.message}</span>
+          </div>
+        )}
+
         {/* ================= HERO & HEADER BANNER ================= */}
         <PageHeader
           badge={{ icon: IconLeaf, label: 'ỨNG DỤNG QUẢN LÝ NÔNG NGHIỆP THÔNG MINH' }}
@@ -1588,6 +1643,68 @@ export default function CropsPage() {
             </div>
           </div>
         )}
+
+        {/* MODAL XÁC NHẬN NẠP DỮ LIỆU MẪU CÂY TRỒNG */}
+        <ConfirmDialog
+          isOpen={showSeedConfirm}
+          title="Khởi tạo danh mục Cây trồng & Quy trình mẫu?"
+          description="Hệ thống sẽ nạp danh mục các giống cây trồng chủ lực Tây Nguyên (Cà phê, Sầu riêng, Mắc-ca, Bơ...) kèm theo chu kỳ sinh trưởng chuẩn khoa học vào sổ tay."
+          tip="Dữ liệu mẫu giúp bác có ngay danh mục chuẩn để liên kết với các thửa đất và bắt đầu ghi nhật ký nhanh."
+          confirmLabel="Nạp dữ liệu mẫu ngay"
+          cancelLabel="Hủy bỏ, giữ nguyên"
+          variant="primary"
+          isLoading={seeding}
+          onConfirm={handleExecuteSeed}
+          onCancel={() => !seeding && setShowSeedConfirm(false)}
+        />
+
+        {/* MODAL XÁC NHẬN XÓA CÂY TRỒNG */}
+        <ConfirmDialog
+          isOpen={Boolean(deleteTargetCrop)}
+          title="Xác nhận xóa giống cây trồng?"
+          description={
+            deleteTargetCrop ? (
+              <>
+                Bác có chắc chắn muốn xóa giống cây <strong>"{deleteTargetCrop.name}"</strong>?
+                Toàn bộ dữ liệu về chu kỳ sinh trưởng và đặc tính kỹ thuật của giống cây này sẽ bị gỡ bỏ khỏi danh mục.
+              </>
+            ) : null
+          }
+          tip="Lưu ý: Chỉ có thể xóa các giống cây chưa được gieo trồng trong bất kỳ mùa vụ nào."
+          confirmLabel="Xóa giống cây này"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          isLoading={isDeletingCrop}
+          onConfirm={handleConfirmDeleteCrop}
+          onCancel={() => !isDeletingCrop && setDeleteTargetCrop(null)}
+        />
+
+        {/* MODAL CẢNH BÁO KHÔNG THỂ XÓA CÂY ĐANG CÓ MÙA VỤ */}
+        <ConfirmDialog
+          isOpen={Boolean(blockedCropWarning)}
+          title="Chưa thể xóa giống cây trồng này"
+          description={
+            blockedCropWarning ? (
+              <>
+                Giống cây <strong>"{blockedCropWarning.crop.name}"</strong> đang được liên kết với{' '}
+                <strong>{blockedCropWarning.total} mùa vụ</strong> trong hệ thống
+                {blockedCropWarning.active > 0
+                  ? ` (trong đó có ${blockedCropWarning.active} vụ đang canh tác)`
+                  : ''}
+                .
+                <br />
+                Để đảm bảo toàn vẹn nhật ký canh tác và sản lượng thu hoạch, bác cần vào mục{' '}
+                <strong>"Mùa vụ"</strong> để hoàn tất hoặc điều chỉnh các mùa vụ liên quan trước khi xóa.
+              </>
+            ) : null
+          }
+          confirmLabel="Đã hiểu"
+          cancelLabel="Đóng"
+          variant="warning"
+          confirmIcon={IconAlertTriangle}
+          onConfirm={() => setBlockedCropWarning(null)}
+          onCancel={() => setBlockedCropWarning(null)}
+        />
       </main>
 
       <Footer />

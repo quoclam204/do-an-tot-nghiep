@@ -1469,6 +1469,7 @@
   font-weight: 700;
   color: var(--ms-gray-900);
   margin: 0;
+  text-wrap: balance;
 }
 
 .btn-refresh {
@@ -1987,8 +1988,10 @@
   }
 
   .farming-tag {
-    font-size: 0.7rem !important;
-    padding: 0.16rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.03em !important;
+    padding: 0.18rem 0.55rem !important;
     margin-bottom: 0.25rem !important;
   }
 
@@ -1996,12 +1999,14 @@
     font-size: 1.15rem !important;
     line-height: 1.35 !important;
     margin: 0 0 0.25rem 0 !important;
+    text-wrap: balance !important;
   }
 
   .farming-subtitle {
-    font-size: 0.8rem !important;
+    font-size: 0.82rem !important;
     line-height: 1.45 !important;
-    color: var(--ms-gray-500) !important;
+    color: var(--text-muted, #64748b) !important;
+    text-wrap: pretty !important;
   }
 
   .farming-header-actions {

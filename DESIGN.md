@@ -154,14 +154,17 @@ Bảng màu của DalatAgri lấy cảm hứng từ màu xanh lá thông Tây Ng
 **Character:** Sự kết hợp giữa nét chữ trung tính hiện đại của Inter và tính chuẩn mực công sở của Segoe UI mang lại cảm giác chữ viết rõ ràng, chân phương, không chân, nét chữ đồng đều và các số liệu tiền tệ/sản lượng hiển thị cực kỳ rành mạch.
 
 ### Hierarchy
-- **Display** (Bold 700, clamp(26px, 3.2vw, 38px), line-height 1.2): Tiêu đề chào đón đầu trang chủ và tên nông hộ lớn.
-- **Headline** (Semi-bold 600, 24px–28px, line-height 1.25): Tiêu đề trang chức năng chính (`Nhật Ký Mùa Vụ`, `Quản Lý Vườn & Thửa Đất`).
-- **Title** (Semi-bold 600, 18px–20px, line-height 1.3): Tiêu đề thẻ chức năng, tiêu đề nhóm bảng biểu và modal popup.
-- **Body** (Regular 400, 14px–15px, line-height 1.5, letter-spacing -0.01em): Đoạn văn hướng dẫn, mô tả hoạt động canh tác, nội dung dòng nhật ký (tối đa 70 ký tự mỗi dòng để giữ nhịp đọc thoải mái).
-- **Label** (Bold 700, 11px–12px, letter-spacing 0.03em, uppercase): Nhãn danh mục, huy hiệu hoạt động (BÓN PHÂN, TƯỚI NƯỚC, XỊT THUỐC), nhãn KPI chỉ số.
+- **Display** (`--font-display`: Bold 700, clamp(26px, 3.2vw, 36px), line-height 1.2, letter-spacing -0.02em): Tiêu đề chào đón đầu trang chủ và tên nông hộ lớn.
+- **Headline** (`--font-headline`: Bold 700, clamp(20px, 2.4vw, 28px), line-height 1.25, letter-spacing -0.02em, `text-wrap: balance`): Tiêu đề trang chức năng chính (`Nhật Ký Mùa Vụ`, `Quản Lý Vườn & Thửa Đất`).
+- **Title** (`--font-title`: Semi-bold 600, clamp(17px, 1.9vw, 22px), line-height 1.3, letter-spacing -0.015em, `text-wrap: balance`): Tiêu đề thẻ chức năng, tiêu đề nhóm bảng biểu và modal popup.
+- **Body** (`--font-body`: Regular 400, 14.5px–15px, line-height 1.55, letter-spacing -0.01em, `text-wrap: pretty`, `max-width: 68ch`): Đoạn văn hướng dẫn, mô tả hoạt động canh tác, nội dung dòng nhật ký (tối đa 68 ký tự mỗi dòng để giữ nhịp đọc thoải mái).
+- **Label** (`--font-label`: Bold 700, 12px, letter-spacing 0.035em, uppercase, `text-wrap: balance`): Nhãn danh mục, huy hiệu hoạt động (BÓN PHÂN, TƯỚI NƯỚC, XỊT THUỐC), nhãn KPI chỉ số.
+- **Data & Numerals** (Extra-bold 800, clamp(24px, 2.4vw, 30px), `font-variant-numeric: tabular-nums`, `font-feature-settings: 'tnum' 1, 'cv05' 1`): Con số tài chính, tiền tệ VNĐ, sản lượng kg/tấn và ngày tháng.
 
 ### Named Rules
-**The Big Numeral Rule.** Các con số thống kê tài chính (tiền lời, tổng chi, sản lượng kg) luôn được hiển thị ở kích cỡ 1.5rem (24px) trở lên với độ đậm 700 hoặc 800, đi kèm đơn vị rõ ràng (đ, kg, bao) đặt bên cạnh hoặc phía dưới, không bao giờ để số liệu dính liền gây nhầm lẫn nghìn với triệu.
+**The Big Numeral Rule.** Các con số thống kê tài chính (tiền lời, tổng chi, sản lượng kg) luôn được hiển thị ở kích cỡ 1.5rem (24px) trở lên với độ đậm 700 hoặc 800, kích hoạt `font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1`, đi kèm đơn vị rõ ràng (đ, kg, bao) đặt bên cạnh hoặc phía dưới, không bao giờ để số liệu dính liền gây nhầm lẫn nghìn với triệu.
+
+**The No-Kicker Rule.** Tiêu đề trang tự mang sức nặng chính danh của mình. Huy hiệu trạng thái hoặc thẻ mùa vụ (nếu có) luôn hiển thị nội dòng (inline tag) ngay bên cạnh tiêu đề `h1`, tuyệt đối không thả lơ lửng bên trên như một dòng kicker/eyebrow thừa thãi.
 
 ## Layout
 

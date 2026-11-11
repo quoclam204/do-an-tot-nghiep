@@ -785,7 +785,7 @@
 }
 
 .puc-code-tag {
-  font-family: monospace;
+  font-family: var(--mono);
   font-weight: 700;
   color: #0369a1;
   background: #e0f2fe;

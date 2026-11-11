@@ -35,7 +35,7 @@
   width: 100vw;
   overflow: hidden;
   background: var(--admin-main-bg);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--sans);
   color: var(--admin-text);
 }
 
@@ -337,7 +337,7 @@
   background: #dc2626;
   border-color: #dc2626;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
 }
 
 /* ─── Main Content ─── */
@@ -1271,7 +1271,7 @@
   border-radius: 5px;
   background: #f3f4f6;
   color: #374151;
-  font-family: 'Consolas', monospace;
+  font-family: var(--mono, monospace);
   font-size: 11.5px;
   border: 1px solid var(--admin-border);
 }
@@ -1819,7 +1819,7 @@
 
 .season-item.active {
   background: var(--admin-green-dim);
-  border-left: 3px solid var(--admin-green);
+  border: 1px solid var(--admin-green);
 }
 
 .season-item-name {
@@ -2016,17 +2016,17 @@
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   padding: 24px;
   box-sizing: border-box;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--sans);
 }
 
 .farmer-notice-card {
   background: #ffffff;
-  border-radius: 24px;
-  border: 1px solid #bbf7d0;
-  box-shadow: 0 20px 40px -10px rgba(16, 124, 16, 0.15);
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--ms-green-mid, #c9e8d2);
+  box-shadow: var(--shadow-md, 0 4px 14px rgba(15, 23, 42, 0.07));
   width: 100%;
   max-width: 520px;
-  padding: 48px 36px 36px;
+  padding: 40px 32px 32px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -2034,17 +2034,16 @@
 }
 
 .farmer-notice-icon {
-  font-size: 56px;
-  width: 90px;
-  height: 90px;
+  font-size: 44px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
-  background: #dcfce7;
-  border: 2px solid #86efac;
+  background: var(--ms-green-light, #eaf6ee);
+  border: 1px solid var(--ms-green-mid, #c9e8d2);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(16, 124, 16, 0.12);
 }
 
 .farmer-notice-title {
@@ -2072,23 +2071,24 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 16px 28px;
-  border-radius: 14px;
-  background: #107C10;
+  padding: 14px 24px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--admin-green, #137a3a);
   color: #ffffff;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
+  border: 1px solid var(--admin-green, #137a3a);
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   width: 100%;
-  box-shadow: 0 6px 18px rgba(16, 124, 16, 0.3);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .btn-farmer-back:hover {
-  background: #0d630d;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(16, 124, 16, 0.4);
+  background: var(--admin-green-dark, #0d5c2b);
+  border-color: var(--admin-green-dark, #0d5c2b);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md, 0 4px 14px rgba(15, 23, 42, 0.07));
 }
 
 .farmer-notice-links {

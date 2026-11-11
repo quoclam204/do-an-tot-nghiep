@@ -12,24 +12,32 @@ import {
 export default function OfflineSyncBanner({ onSyncSuccess }) {
   const { isOnline, pendingCount, isSyncing, triggerSync } = useOfflineSync();
   const [syncFeedback, setSyncFeedback] = useState(null);
+  const [syncError, setSyncError] = useState(null);
 
   const handleSyncNow = async () => {
+    setSyncError(null);
     try {
       const res = await triggerSync();
       if (res && res.success) {
-        setSyncFeedback(res.message);
+        setSyncFeedback(res.message || 'Đã đồng bộ toàn bộ nhật ký lên máy chủ thành công!');
+        setSyncError(null);
         setTimeout(() => setSyncFeedback(null), 4000);
         if (onSyncSuccess) onSyncSuccess();
       } else if (res && !res.success) {
-        alert(res.message);
+        setSyncError(
+          res.message ||
+            'Chưa thể gửi dữ liệu lên máy chủ lúc này. Bác yên tâm, số liệu vẫn được lưu an toàn trong máy.'
+        );
       }
     } catch (err) {
-      alert('Lỗi đồng bộ: ' + (err.message || 'Mất kết nối máy chủ'));
+      setSyncError(
+        'Mạng kết nối chập chờn hoặc máy chủ phản hồi chậm. Toàn bộ nhật ký canh tác của bác vẫn lưu an toàn trên máy, hệ thống sẽ tự gửi lại khi có sóng ổn định.'
+      );
     }
   };
 
-  // Nếu trực tuyến và không có bản ghi nào chờ đồng bộ và không có feedback vừa xong -> ẩn đi cho gọn gàng
-  if (isOnline && pendingCount === 0 && !syncFeedback) {
+  // Nếu trực tuyến và không có bản ghi nào chờ đồng bộ và không có feedback/lỗi -> ẩn đi cho gọn gàng
+  if (isOnline && pendingCount === 0 && !syncFeedback && !syncError) {
     return null;
   }
 
@@ -75,7 +83,46 @@ export default function OfflineSyncBanner({ onSyncSuccess }) {
     );
   }
 
-  // 3. Trạng thái có mạng nhưng có bản ghi chờ đồng bộ
+  // 3. Trạng thái lỗi đồng bộ (thông điệp trấn an, giải pháp rõ ràng, không giật popup)
+  if (syncError) {
+    return (
+      <div className="offline-sync-banner-wrap error" role="alert">
+        <div className="sync-banner-left">
+          <div className="sync-banner-icon-box">
+            <IconAlertCircle size={22} strokeWidth={2.2} />
+          </div>
+          <div className="sync-banner-text">
+            <div className="sync-banner-title">
+              <span>Chưa thể gửi dữ liệu lên máy chủ</span>
+            </div>
+            <p className="sync-banner-desc">{syncError}</p>
+          </div>
+        </div>
+        <div className="sync-banner-actions">
+          <button
+            type="button"
+            className={`btn-trigger-sync ${isSyncing ? 'spinning' : ''}`}
+            onClick={handleSyncNow}
+            disabled={isSyncing}
+            title="Bấm để thử gửi lại dữ liệu"
+          >
+            <IconRotateCw size={15} strokeWidth={2.4} />
+            <span>{isSyncing ? 'Đang gửi lại...' : 'Thử gửi lại'}</span>
+          </button>
+          <button
+            type="button"
+            className="btn-dismiss-sync"
+            onClick={() => setSyncError(null)}
+            title="Đóng thông báo lỗi này"
+          >
+            Đóng
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Trạng thái có mạng nhưng có bản ghi chờ đồng bộ
   return (
     <div className="offline-sync-banner-wrap pending">
       <div className="sync-banner-left">

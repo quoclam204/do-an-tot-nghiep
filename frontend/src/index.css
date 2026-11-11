@@ -3,7 +3,7 @@
    Font: Segoe UI · Color: #107C10 · Clean & Flat
 ═══════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* ── Màu chủ đạo ── */
@@ -75,10 +75,31 @@
   --status-indigo-bg: #eef2ff;
   --status-indigo-border: #c7d2fe;
 
-  /* ── Typography ── */
+  /* ── Motion & Timing (The Highland Tactile Feel) ── */
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-decel: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-accel: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --duration-instant: 120ms;
+  --duration-fast: 180ms;
+  --duration-normal: 250ms;
+  --duration-modal: 320ms;
+
+  /* ── Typography Families ── */
   --sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --heading: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --mono: 'Cascadia Code', 'Consolas', ui-monospace, monospace;
+
+  /* ── Sổ Điền Dã: Highland Ledger Typography Scale & Roles ── */
+  --font-display: 700 clamp(1.65rem, 3.2vw, 2.25rem)/1.2 var(--heading);
+  --font-headline: 700 clamp(1.25rem, 2.2vw, 1.55rem)/1.25 var(--heading);
+  --font-title: 600 clamp(1.05rem, 1.8vw, 1.25rem)/1.3 var(--heading);
+  --font-body: 400 0.925rem/1.55 var(--sans);
+  --font-label: 700 0.75rem/1.25 var(--sans);
+  --font-caption: 500 0.8rem/1.4 var(--sans);
+
+  /* ── Reading Measure ── */
+  --measure-prose: 68ch;
+  --measure-compact: 45ch;
 
   font: 14px/1.5 var(--sans);
   letter-spacing: -0.01em;
@@ -139,37 +160,47 @@ input::-ms-clear {
 h1,
 h2,
 h3,
-h4 {
+h4,
+h5,
+h6 {
   font-family: var(--heading);
   font-weight: 600;
   color: var(--text-h);
   margin: 0;
+  text-wrap: balance;
 }
 
 h1 {
-  font-size: 28px;
-  letter-spacing: -0.3px;
-
-  @media (max-width: 1024px) {
-    font-size: 22px;
-  }
+  font-size: clamp(1.35rem, 2.4vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
 h2 {
-  font-size: 20px;
-  letter-spacing: -0.2px;
-
-  @media (max-width: 1024px) {
-    font-size: 17px;
-  }
+  font-size: clamp(1.15rem, 1.9vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
 }
 
 h3 {
-  font-size: 16px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+h4 {
+  font-size: 0.925rem;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 p {
   margin: 0;
+  text-wrap: pretty;
+  max-width: var(--measure-prose, 68ch);
 }
 
 code {
@@ -205,6 +236,19 @@ button {
 
 table {
   width: 100%;
+}
+
+/* ── Tabular & Data Numerals (The Big Numeral Rule) ── */
+.tabular-nums,
+.dalat-numeral,
+.dalat-kpi-value,
+.stat-value,
+.revenue-val,
+.table-val,
+.mhc-metric-val strong,
+table td {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'cv05' 1;
 }
 
 /* ── Themed Browser Surfaces: Selection & Caret ── */
@@ -295,10 +339,6 @@ textarea {
   background: var(--status-earth-bg);
   color: var(--status-earth);
   border-color: var(--status-earth-border);
-}
-*:focus-visible {
-  outline: 2px solid var(--ms-green);
-  outline-offset: 2px;
 }
 
 /* ── Global Button Styles (Microsoft-Green System) ── */
@@ -397,4 +437,98 @@ table tbody tr {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
     border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Sổ Điền Dã: Standard Modal & Feedback Animations ── */
+.dalat-toast {
+  position: fixed;
+  top: 68px;
+  right: 24px;
+  z-index: 9999;
+  padding: 0.85rem 1.35rem;
+  border-radius: var(--radius-md, 10px);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 0.925rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  animation: ledgerModalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dalat-toast.success {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.dalat-toast.error {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.dalat-toast.warning {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+@media (max-width: 540px) {
+  .dalat-toast {
+    top: auto;
+    bottom: 24px;
+    left: 16px;
+    right: 16px;
+    justify-content: center;
+  }
+}
+
+@keyframes ledgerModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ledgerModalSlideUp {
+  from {
+    transform: translateY(12px) scale(0.99);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes ledgerCheckPulse {
+  0% { transform: scale(0.85); opacity: 0.5; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Accessibility: Reduced Motion Alternative ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Preserve essential opacity & color feedback for elder accessibility */
+  button,
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .dalat-kpi-card,
+  .badge-activity,
+  input,
+  select,
+  textarea {
+    transition: opacity 0.05s ease, background-color 0.05s ease, border-color 0.05s ease !important;
+    transform: none !important;
+  }
 }

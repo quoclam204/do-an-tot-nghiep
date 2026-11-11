@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
+import { PageHeader, KpiCard, KpiGrid, ConfirmDialog, EmptyState } from '../../components/ui';
 import {
   IconWarehouse,
   IconPlus,
@@ -115,6 +115,8 @@ export default function InventoryPage() {
 
   // Notification / Toast
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
@@ -287,15 +289,23 @@ export default function InventoryPage() {
   };
 
   // Delete inventory
-  const handleDelete = async (id, name) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa bản ghi tồn kho của "${name}" không?`)) return;
+  const handleDelete = (id, name) => {
+    setItemToDelete({ id, name });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      await apiDeleteInventory(id);
-      showToast('Đã xóa thành công');
+      setIsDeleting(true);
+      await apiDeleteInventory(itemToDelete.id);
+      showToast(`Đã xóa bản ghi tồn kho của "${itemToDelete.name}" thành công.`);
+      setItemToDelete(null);
       loadData();
     } catch (err) {
-      showToast('Lỗi khi xóa bản ghi tồn kho', 'error');
+      showToast(err.response?.data?.message || 'Không thể xóa bản ghi tồn kho. Bác vui lòng thử lại.', 'error');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -420,18 +430,43 @@ export default function InventoryPage() {
             {loading ? (
               <div className="loading-state">Đang tải dữ liệu tồn kho...</div>
             ) : filteredInventories.length === 0 ? (
-              <div className="empty-state">
-                <IconWarehouse size={48} className="empty-icon" />
-                <h3>Chưa có dữ liệu tồn kho</h3>
-                {farms.length === 0 ? (
-                  <p>Tài khoản của bạn chưa thuộc về nông hộ/trang trại nào. Vui lòng tạo nông hộ trong mục <strong>Quản lý &gt; Vườn trại & Phân lô</strong> trước khi quản lý tồn kho.</p>
-                ) : (
-                  <p>Nhấn nút "Nhập kho mới" để bắt đầu theo dõi vật tư của trang trại.</p>
-                )}
-                <button className="btn btn-primary" onClick={handleOpenAdd}>
-                  <IconPlus size={16} /> Nhập kho ngay
-                </button>
-              </div>
+              inventories.length === 0 ? (
+                <EmptyState
+                  icon={IconWarehouse}
+                  title="Chưa có dữ liệu tồn kho vật tư"
+                  description={
+                    farms.length === 0
+                      ? "Tài khoản của bác chưa có nông hộ nào. Bác vui lòng tạo nông hộ trước khi bắt đầu quản lý tồn kho vật tư."
+                      : "Ghi nhận phiếu nhập kho đầu tiên để bắt đầu theo dõi lượng phân bón, hạt giống và thuốc BVTV trong rẫy."
+                  }
+                  primaryAction={
+                    farms.length > 0
+                      ? {
+                          label: "Nhập kho vật tư ngay",
+                          icon: IconPlus,
+                          onClick: handleOpenAdd,
+                        }
+                      : undefined
+                  }
+                  type="empty"
+                />
+              ) : (
+                <EmptyState
+                  icon={IconWarehouse}
+                  title="Không tìm thấy vật tư tồn kho phù hợp"
+                  description="Không có vật tư nào khớp với từ khóa tìm kiếm hoặc bộ lọc nhóm vật tư / nông hộ hiện tại của bác."
+                  primaryAction={{
+                    label: "Đặt lại bộ lọc tìm kiếm",
+                    icon: IconFilter,
+                    onClick: () => {
+                      setSearchTerm('');
+                      setSelectedFarm('');
+                      setSelectedType('ALL');
+                    },
+                  }}
+                  type="filter"
+                />
+              )
             ) : (
               <>
                 {/* Desktop View: Table */}
@@ -895,6 +930,24 @@ export default function InventoryPage() {
             </div>
           </div>
         )}
+        {/* Confirm Dialog Xóa tồn kho */}
+        <ConfirmDialog
+          isOpen={Boolean(itemToDelete)}
+          title="Xác nhận xóa bản ghi tồn kho"
+          description={
+            itemToDelete ? (
+              <>Bác có chắc chắn muốn xóa bản ghi tồn kho của <strong>"{itemToDelete.name}"</strong> không?</>
+            ) : ""
+          }
+          tip="Hành động này sẽ xóa dữ liệu kiểm kê tồn hiện tại của vật tư này trong nông hộ. Lịch sử các đợt bón phân hoặc phun xịt trước đây vẫn được giữ nguyên."
+          confirmLabel="Xóa bản ghi này"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          isLoading={isDeleting}
+          confirmIcon={IconTrash}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setItemToDelete(null)}
+        />
       </main>
 
       <Footer />

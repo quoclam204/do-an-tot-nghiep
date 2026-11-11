@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
+import { PageHeader, KpiCard, KpiGrid, ConfirmDialog, EmptyState } from '../../components/ui';
 import {
   IconPlus,
   IconSearch,
@@ -15,6 +15,7 @@ import {
   IconFileText,
   IconScale,
   IconWarehouse,
+  IconRotateCw,
 } from '../../components/icons';
 import {
   apiGetActivityLogs,
@@ -46,6 +47,8 @@ export default function HarvestPage() {
 
   // Modal Ghi nhận thu hoạch
   const [showAddModal, setShowAddModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [formData, setFormData] = useState({
     cropCycleId: '',
     activityDate: getTodayDateStr(),
@@ -90,7 +93,10 @@ export default function HarvestPage() {
       if (farmRes.status === 'fulfilled') setFarms(farmRes.value || []);
     } catch (err) {
       console.error(err);
-      showToast('Lỗi khi tải dữ liệu thu hoạch', 'error');
+      showToast(
+        'Không thể tải lịch sử thu hoạch. Bác vui lòng kiểm tra kết nối mạng hoặc thử tải lại trang.',
+        'error'
+      );
     } finally {
       setLoading(false);
     }
@@ -196,22 +202,38 @@ export default function HarvestPage() {
         syncStatus: 'SYNCED',
       });
 
-      showToast('Đã ghi nhận đợt thu hoạch thành công!');
+      showToast('Đã ghi nhận đợt thu hoạch thành công vào sổ!');
       setShowAddModal(false);
       loadData();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Lỗi khi ghi nhận thu hoạch', 'error');
+      showToast(
+        err.response?.data?.message ||
+          'Không thể lưu đợt thu hoạch. Bác vui lòng kiểm tra lại thông tin hoặc kết nối mạng.',
+        'error'
+      );
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bác có chắc chắn muốn xóa đợt thu hoạch này không?')) return;
+  const handleRequestDelete = (harvestItem) => {
+    setDeleteTarget(harvestItem);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await apiDeleteActivityLog(id);
-      showToast('Đã xóa đợt thu hoạch thành công');
+      setIsDeleting(true);
+      await apiDeleteActivityLog(deleteTarget.id);
+      showToast('Đã xóa đợt thu hoạch thành công khỏi sổ theo dõi.');
+      setDeleteTarget(null);
       loadData();
     } catch (err) {
-      showToast('Lỗi khi xóa đợt thu hoạch', 'error');
+      showToast(
+        err.response?.data?.message ||
+          'Không thể xóa đợt thu hoạch lúc này. Bác vui lòng kiểm tra lại kết nối mạng.',
+        'error'
+      );
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -346,16 +368,44 @@ export default function HarvestPage() {
 
         {/* Content list */}
         {loading ? (
-          <div className="loading-state">Đang tải lịch sử thu hoạch...</div>
-        ) : filteredHarvests.length === 0 ? (
-          <div className="empty-state">
-            <IconScale size={48} className="empty-icon" />
-            <h3>Chưa có bản ghi thu hoạch nào</h3>
-            <p>Bác nông dân bấm vào nút bên dưới để ghi nhận năng suất và doanh thu của đợt hái này.</p>
-            <button className="btn btn-primary" onClick={handleOpenAddModal}>
-              <IconPlus size={16} /> Ghi nhận đợt đầu tiên
-            </button>
+          <div className="loading-state">
+            <IconRotateCw
+              size={22}
+              className="spinning"
+              style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: 8 }}
+            />
+            Đang tải dữ liệu thu hoạch và doanh thu...
           </div>
+        ) : filteredHarvests.length === 0 ? (
+          harvestLogs.length > 0 ? (
+            <EmptyState
+              type="filter"
+              icon={IconSearch}
+              title="Không tìm thấy đợt thu hoạch phù hợp"
+              description="Không có đợt thu hoạch nào khớp với từ khóa tìm kiếm hoặc vườn/mùa vụ bác đã chọn."
+              primaryAction={{
+                label: 'Đặt lại bộ lọc',
+                onClick: () => {
+                  setSearchTerm('');
+                  setSelectedSeason('');
+                  setSelectedFarm('');
+                },
+                icon: IconRotateCw,
+              }}
+            />
+          ) : (
+            <EmptyState
+              type="empty"
+              icon={IconScale}
+              title="Chưa có đợt thu hoạch nào được ghi sổ"
+              description="Bác ghi nhận sản lượng hái và tiền bán để DalatAgri tự động cộng doanh thu, tính năng suất và tổng kết lời lỗ cho vụ mùa."
+              primaryAction={{
+                label: 'Ghi nhận đợt thu hoạch mới',
+                onClick: handleOpenAddModal,
+                icon: IconPlus,
+              }}
+            />
+          )
         ) : (
           <>
             {/* DESKTOP VIEW: Bảng chi tiết đầy đủ */}
@@ -415,7 +465,7 @@ export default function HarvestPage() {
                         <button
                           className="delete-action-btn"
                           title="Xóa đợt thu này"
-                          onClick={() => handleDelete(item.id)}
+                          onClick={() => handleRequestDelete(item)}
                         >
                           <IconTrash size={16} />
                         </button>
@@ -444,7 +494,7 @@ export default function HarvestPage() {
                       <button
                         className="mhc-delete-btn"
                         title="Xóa đợt thu này"
-                        onClick={() => handleDelete(item.id)}
+                        onClick={() => handleRequestDelete(item)}
                       >
                         <IconTrash size={15} />
                         <span>Xóa</span>
@@ -671,6 +721,35 @@ export default function HarvestPage() {
             </div>
           </div>
         )}
+        {/* HỘP THOẠI XÁC NHẬN XÓA ĐỢT THU HOẠCH AN TOÀN */}
+        <ConfirmDialog
+          isOpen={Boolean(deleteTarget)}
+          title="Xác nhận xóa đợt thu hoạch?"
+          description={
+            deleteTarget ? (
+              <>
+                Bác có chắc chắn muốn xóa đợt thu hoạch giống cây{' '}
+                <strong>{deleteTarget.cropCycle?.crop?.name || 'cây trồng'}</strong> ngày{' '}
+                <strong>{new Date(deleteTarget.activityDate).toLocaleDateString('vi-VN')}</strong>{' '}
+                (Sản lượng:{' '}
+                <strong>
+                  {(Number(deleteTarget.harvestQuantity) || 0).toLocaleString('vi-VN')} kg
+                </strong>
+                {deleteTarget.revenue
+                  ? `, Doanh thu: ${(Number(deleteTarget.revenue) || 0).toLocaleString('vi-VN')} đ`
+                  : ''}
+                )?
+              </>
+            ) : null
+          }
+          tip="Số liệu sản lượng và tiền bán này sẽ được gỡ khỏi sổ sách theo dõi của mùa vụ."
+          confirmLabel="Xóa đợt thu này"
+          cancelLabel="Hủy bỏ, giữ lại"
+          variant="danger"
+          isLoading={isDeleting}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => !isDeleting && setDeleteTarget(null)}
+        />
       </main>
 
       <Footer />

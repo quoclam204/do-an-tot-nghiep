@@ -84,15 +84,15 @@
 }
 
 .filter-chip.active {
-  background: var(--ms-green, #107C10);
+  background: var(--ms-green);
   color: #ffffff;
-  border-color: var(--ms-green, #107C10);
-  box-shadow: 0 2px 5px rgba(16, 124, 16, 0.25);
+  border-color: var(--ms-green);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .filter-chip.active:hover {
-  background: var(--ms-green-dark, #0a5e0a);
-  border-color: var(--ms-green-dark, #0a5e0a);
+  background: var(--ms-green-dark, #0d5c2b);
+  border-color: var(--ms-green-dark, #0d5c2b);
 }
 
 /* ================= SEASONS GRID ================= */
@@ -145,6 +145,7 @@
   color: #0f172a;
   margin: 0;
   line-height: 1.35;
+  text-wrap: balance;
 }
 
 .season-intercrop-tag {

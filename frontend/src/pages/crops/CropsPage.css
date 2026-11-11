@@ -824,15 +824,15 @@
   border-color: #86efac;
   color: #15803d;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.12);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .preset-pill-btn.active {
-  background: var(--ms-green, #107C10);
-  border-color: var(--ms-green, #107C10);
+  background: var(--ms-green, #137a3a);
+  border-color: var(--ms-green, #137a3a);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 2px 5px rgba(16, 124, 16, 0.25);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .preset-pill-icon {
@@ -1242,8 +1242,8 @@
   align-items: center;
   gap: 6px;
   font-weight: 700;
-  background: var(--ms-green, #107C10);
-  border: 1px solid var(--ms-green, #107C10);
+  background: var(--ms-green, #137a3a);
+  border: 1px solid var(--ms-green, #137a3a);
   color: #ffffff;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -1251,8 +1251,8 @@
 }
 
 .drawer-footer .crops-btn-primary:hover {
-  background: var(--ms-green-dark, #0a5e0a);
-  border-color: var(--ms-green-dark, #0a5e0a);
+  background: var(--ms-green-dark, #0d5c2b);
+  border-color: var(--ms-green-dark, #0d5c2b);
 }
 
 /* ================= RESPONSIVE ================= */
@@ -1667,14 +1667,14 @@
 .dropzone-icon {
   width: 52px;
   height: 52px;
-  border-radius: 14px;
+  border-radius: var(--radius-md, 10px);
   background: #ffffff;
   color: #15803d;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 0.75rem auto;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .dropzone-title {
@@ -1810,7 +1810,7 @@
   border-color: #86efac;
   color: #15803d;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.1);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
 .sample-photo-card.active {

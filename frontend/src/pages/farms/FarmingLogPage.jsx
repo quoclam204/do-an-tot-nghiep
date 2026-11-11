@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FarmingLogPage.css';
-import { PageHeader, KpiCard, KpiGrid } from '../../components/ui';
+import { PageHeader, KpiCard, KpiGrid, ConfirmDialog } from '../../components/ui';
 import ReceiptOcrModal from '../../components/modals/ReceiptOcrModal';
 import QuickHarvestModal from '../../components/modals/QuickHarvestModal';
 import CustomTimePicker from '../../components/CustomTimePicker';
@@ -192,6 +192,7 @@ export default function FarmingLogPage() {
 
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [isOcrOpen, setIsOcrOpen] = useState(false);
   const [isHarvestModalOpen, setIsHarvestModalOpen] = useState(false);
   const [editingHarvestLog, setEditingHarvestLog] = useState(null);
@@ -698,15 +699,26 @@ export default function FarmingLogPage() {
   };
 
   // Seed mẫu dữ liệu chuẩn
-  const handleSeedLamDong = async () => {
-    if (!window.confirm('Khởi tạo danh mục Cây trồng, Mùa vụ, Vật tư và Nhật ký mẫu?')) return;
+  const handleSeedLamDong = () => {
+    setShowSeedConfirm(true);
+  };
+
+  const handleExecuteSeedLamDong = async () => {
+    setShowSeedConfirm(false);
     try {
       setSeeding(true);
       await apiSeedLamDong();
-      alert('Đã khởi tạo thành công Cây trồng & Vật tư mẫu!');
+      showToast(
+        'Đã nạp thành công bộ danh mục Cây trồng, Mùa vụ và Vật tư mẫu Lâm Đồng vào sổ!',
+        'success'
+      );
       await loadData();
     } catch (err) {
-      alert('Lỗi nạp dữ liệu mẫu: ' + (err.response?.data?.message || err.message));
+      showToast(
+        'Không thể nạp dữ liệu mẫu: ' +
+          (err.response?.data?.message || 'Bác vui lòng kiểm tra lại kết nối mạng'),
+        'error'
+      );
     } finally {
       setSeeding(false);
     }
@@ -2399,6 +2411,19 @@ export default function FarmingLogPage() {
           </div>
         </div>
       )}
+      {/* MODAL XÁC NHẬN NẠP DỮ LIỆU MẪU LÂM ĐỒNG */}
+      <ConfirmDialog
+        isOpen={showSeedConfirm}
+        title="Khởi tạo danh mục & dữ liệu mẫu Lâm Đồng?"
+        description="Hệ thống sẽ nạp sẵn danh mục giống cây trồng chủ lực Tây Nguyên (Cà phê, Sầu riêng, Bơ...), chu kỳ sinh trưởng chuẩn và các loại phân bón phổ biến vào sổ tay của bác."
+        tip="Dữ liệu mẫu giúp bác làm quen nhanh với quy trình ghi nhật ký canh tác mà không phải nhập liệu thủ công từ đầu."
+        confirmLabel="Nạp dữ liệu mẫu ngay"
+        cancelLabel="Hủy bỏ, giữ nguyên"
+        variant="primary"
+        isLoading={seeding}
+        onConfirm={handleExecuteSeedLamDong}
+        onCancel={() => !seeding && setShowSeedConfirm(false)}
+      />
     </div>
   );
 }

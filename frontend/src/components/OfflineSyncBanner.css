@@ -33,6 +33,18 @@
   color: #166534;
 }
 
+/* 4. Trạng thái lỗi đồng bộ (Error) */
+.offline-sync-banner-wrap.error {
+  background: #fdf3f2;
+  border: 1px solid #fee2e2;
+  color: #991b1b;
+}
+
+.offline-sync-banner-wrap.error .sync-banner-icon-box {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
 .sync-banner-left {
   display: flex;
   align-items: center;
@@ -133,13 +145,17 @@
   border-color: var(--ms-green-dark, #0a5e0a);
 }
 
+.btn-trigger-sync:active {
+  transform: scale(0.975);
+}
+
 .btn-trigger-sync:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
 
 .btn-trigger-sync.spinning svg {
-  animation: spinSync 1s linear infinite;
+  animation: spinSync 0.9s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 @keyframes spinSync {
@@ -161,10 +177,36 @@
   font-weight: 600;
   cursor: pointer;
   opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 .btn-queue-detail:hover {
   opacity: 1;
+}
+
+.btn-queue-detail:active {
+  transform: scale(0.975);
+}
+
+.btn-dismiss-sync {
+  background: transparent;
+  color: currentColor;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.btn-dismiss-sync:hover {
+  opacity: 1;
+}
+
+.btn-dismiss-sync:active {
+  transform: scale(0.975);
 }
 
 /* Badge trạng thái offline trên hàng bảng nhật ký */
@@ -180,4 +222,26 @@
   font-size: 0.72rem;
   font-weight: 700;
   margin-top: 3px;
+}
+
+.badge-offline-pending svg {
+  animation: beaconPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes beaconPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-trigger-sync.spinning svg,
+  .badge-offline-pending svg {
+    animation: none !important;
+  }
 }
