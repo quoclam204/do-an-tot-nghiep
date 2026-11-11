@@ -423,7 +423,7 @@ export default function MaterialsPage() {
                   primaryAction={{
                     label: "Thêm vật tư mới",
                     icon: IconPlus,
-                    onClick: openModal,
+                    onClick: openAddModal,
                   }}
                   type="empty"
                 />
