@@ -766,7 +766,6 @@ export default function MaterialsPage() {
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteConfirmItem(null)}
       />
-      )}
     </div>
   );
 }
