@@ -1,4 +1,4 @@
-/* PWA Install Banner & iOS Modal Styles */
+﻿/* PWA Install Banner & iOS Modal Styles */
 .pwa-install-banner {
   position: fixed;
   bottom: 74px;
@@ -118,10 +118,10 @@
 
 .pwa-dismiss-btn:hover {
   color: #475569;
-  background: #f1f5f9;
+  background: #ffffff;
 }
 
-/* Modal Hướng dẫn iOS */
+/* Modal HÆ°á»›ng dáº«n iOS */
 .pwa-ios-modal-overlay {
   position: fixed;
   inset: 0;
@@ -159,7 +159,7 @@
 }
 
 .pwa-ios-close {
-  background: #f1f5f9;
+  background: #ffffff;
   border: none;
   width: 28px;
   height: 28px;
@@ -215,7 +215,7 @@
   cursor: pointer;
 }
 
-/* Khi trên màn hình máy tính lớn (Desktop), đặt banner ở góc dưới bên phải gọn gàng */
+/* Khi trÃªn mÃ n hÃ¬nh mÃ¡y tÃ­nh lá»›n (Desktop), Ä‘áº·t banner á»Ÿ gÃ³c dÆ°á»›i bÃªn pháº£i gá»n gÃ ng */
 @media (min-width: 769px) {
   .pwa-install-banner {
     bottom: 24px;
@@ -224,3 +224,4 @@
     width: 380px;
   }
 }
+

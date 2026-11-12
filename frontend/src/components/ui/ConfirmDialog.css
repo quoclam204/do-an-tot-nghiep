@@ -148,7 +148,7 @@
 }
 
 .dalat-confirm-btn.cancel:hover {
-  background: var(--surface, #fafafa);
+  background: #ffffff;
   border-color: #94a3b8;
 }
 

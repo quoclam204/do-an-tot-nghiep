@@ -1,10 +1,10 @@
-.custom-time-picker-container {
+﻿.custom-time-picker-container {
   position: relative;
   width: 100%;
   font-family: inherit;
 }
 
-/* ── Ô hiển thị chính (gọn gàng, trên 1 dòng duy nhất) ── */
+/* â”€â”€ Ã” hiá»ƒn thá»‹ chÃ­nh (gá»n gÃ ng, trÃªn 1 dÃ²ng duy nháº¥t) â”€â”€ */
 .custom-time-input-box {
   display: flex;
   align-items: center;
@@ -104,7 +104,7 @@
   }
 }
 
-/* ── BẢNG DROPDOWN NHỎ GỌN, TINH TẾ ── */
+/* â”€â”€ Báº¢NG DROPDOWN NHá»Ž Gá»ŒN, TINH Táº¾ â”€â”€ */
 .custom-time-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -131,11 +131,11 @@
   }
 }
 
-/* Tabs lọc ca (1 dòng 4 nút vừa vặn) */
+/* Tabs lá»c ca (1 dÃ²ng 4 nÃºt vá»«a váº·n) */
 .dropdown-filter-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   padding: 3px;
   gap: 2px;
@@ -160,7 +160,7 @@
 }
 
 .filter-tab:hover {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #1e293b;
 }
 
@@ -171,12 +171,12 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* Tiêu đề 2 cột */
+/* TiÃªu Ä‘á» 2 cá»™t */
 .dropdown-columns-header {
   display: grid;
   grid-template-columns: 60% 40%;
   text-align: center;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   padding: 5px 0;
   font-size: 0.7rem;
@@ -185,7 +185,7 @@
   letter-spacing: 0.5px;
 }
 
-/* Thân 2 cột */
+/* ThÃ¢n 2 cá»™t */
 .dropdown-columns-body {
   display: grid;
   grid-template-columns: 60% 40%;
@@ -212,7 +212,7 @@
   border-right: 1px solid #f1f5f9;
 }
 
-/* Dòng từng giờ */
+/* DÃ²ng tá»«ng giá» */
 .hour-item {
   display: flex;
   align-items: center;
@@ -246,7 +246,7 @@
   color: #64748b;
 }
 
-/* Dòng từng phút */
+/* DÃ²ng tá»«ng phÃºt */
 .minute-item {
   padding: 6px 0;
   text-align: center;
@@ -268,13 +268,13 @@
   font-weight: 700;
 }
 
-/* Chân bảng chọn */
+/* ChÃ¢n báº£ng chá»n */
 .dropdown-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 6px 8px;
-  background: #f8fafc;
+  background: #ffffff;
   border-top: 1px solid #e2e8f0;
 }
 
@@ -310,6 +310,6 @@
 }
 
 .btn-footer-done:hover {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #0f172a;
 }

@@ -1,6 +1,6 @@
-/* ══════════════════════════════════════════════════════
-   PucCertificateModal.css — Hồ Sơ Mã Số Vùng Trồng Xuất Khẩu
-   ══════════════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PucCertificateModal.css â€” Há»“ SÆ¡ MÃ£ Sá»‘ VÃ¹ng Trá»“ng Xuáº¥t Kháº©u
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .puc-modal-overlay {
   position: fixed;
@@ -33,7 +33,7 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ── Modal Header ── */
+/* â”€â”€ Modal Header â”€â”€ */
 .puc-modal-header {
   display: flex;
   align-items: center;
@@ -126,7 +126,7 @@
   background: #334155;
 }
 
-/* ── Document Container ── */
+/* â”€â”€ Document Container â”€â”€ */
 .puc-certificate-document {
   padding: 2.5rem 3rem;
   overflow-y: auto;
@@ -136,7 +136,7 @@
   line-height: 1.5;
 }
 
-/* ── National Header ── */
+/* â”€â”€ National Header â”€â”€ */
 .puc-doc-national-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -188,7 +188,7 @@
   letter-spacing: 0.5px;
 }
 
-/* ── PUC Showcase Box ── */
+/* â”€â”€ PUC Showcase Box â”€â”€ */
 .puc-code-showcase-box {
   background: #f0fdf4;
   border: 2px dashed #059669;
@@ -260,7 +260,7 @@
   font-family: sans-serif;
 }
 
-/* ── Section Styles ── */
+/* â”€â”€ Section Styles â”€â”€ */
 .puc-info-section {
   margin-bottom: 2rem;
 }
@@ -310,7 +310,7 @@
 .text-blue { color: #0284c7; }
 .text-gray { color: #64748b; }
 
-/* ── Logs Table ── */
+/* â”€â”€ Logs Table â”€â”€ */
 .puc-log-table {
   width: 100%;
   border-collapse: collapse;
@@ -326,14 +326,14 @@
 }
 
 .puc-log-table th {
-  background: #f8fafc;
+  background: #ffffff;
   font-weight: bold;
   color: #1e293b;
 }
 
 .puc-mat-tag {
   display: inline-block;
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 2px 6px;
   border-radius: 2px;
   font-size: 0.82rem;
@@ -360,7 +360,7 @@
   font-family: sans-serif;
 }
 
-/* ── Signature Block ── */
+/* â”€â”€ Signature Block â”€â”€ */
 .puc-signature-block {
   display: flex;
   justify-content: space-between;
@@ -441,7 +441,7 @@
   padding: 1px 4px;
 }
 
-/* ── In ấn Print Mode ── */
+/* â”€â”€ In áº¥n Print Mode â”€â”€ */
 @media print {
   body * {
     visibility: hidden;
@@ -471,3 +471,4 @@
     padding: 1cm;
   }
 }
+

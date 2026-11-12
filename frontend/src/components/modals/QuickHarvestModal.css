@@ -1,4 +1,4 @@
-/* Modal Ghi Nhận Thu Hoạch Nhanh - DalatAgri */
+﻿/* Modal Ghi Nháº­n Thu Hoáº¡ch Nhanh - DalatAgri */
 .harvest-modal-overlay {
   position: fixed;
   inset: 0;
@@ -185,7 +185,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f1f5f9;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #475569;
   border-radius: 8px;
@@ -204,7 +204,7 @@
   color: #047857;
 }
 
-/* Wrap unit (kg, đ/kg) */
+/* Wrap unit (kg, Ä‘/kg) */
 .harvest-input-unit-wrap {
   position: relative;
   display: flex;
@@ -224,9 +224,9 @@
   pointer-events: none;
 }
 
-/* Khung tính nhẩm tiền to rõ */
+/* Khung tÃ­nh nháº©m tiá»n to rÃµ */
 .harvest-revenue-preview-box {
-  background: #f8fafc;
+  background: #ffffff;
   border: 2px dashed #10b981;
   border-radius: 12px;
   padding: 1rem 1.15rem;
@@ -303,7 +303,7 @@
 }
 
 .harvest-btn-cancel {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #64748b;
   padding: 0.7rem 1.25rem;
@@ -348,7 +348,7 @@
   cursor: not-allowed;
 }
 
-/* ── CUSTOM SELECT MÙA VỤ & LÔ ĐẤT (ĐƠN GIẢN, PHONG CÁCH NÔNG DÂN) ── */
+/* â”€â”€ CUSTOM SELECT MÃ™A Vá»¤ & LÃ” Äáº¤T (ÄÆ N GIáº¢N, PHONG CÃCH NÃ”NG DÃ‚N) â”€â”€ */
 .harvest-custom-select-wrap {
   position: relative;
   width: 100%;
@@ -436,7 +436,7 @@
   font-style: italic;
 }
 
-/* Từng dòng lựa chọn: đơn giản, 1 dòng */
+/* Tá»«ng dÃ²ng lá»±a chá»n: Ä‘Æ¡n giáº£n, 1 dÃ²ng */
 .harvest-dropdown-option {
   padding: 8px 12px;
   font-size: 0.94rem;
@@ -448,10 +448,10 @@
 }
 
 .harvest-dropdown-option:hover {
-  background-color: #f3f4f6;
+  background-color: #ffffff;
 }
 
-/* Dòng đang được chọn: Màu sắc giống hệt ảnh số 2 (Nền xám than, chữ trắng) */
+/* DÃ²ng Ä‘ang Ä‘Æ°á»£c chá»n: MÃ u sáº¯c giá»‘ng há»‡t áº£nh sá»‘ 2 (Ná»n xÃ¡m than, chá»¯ tráº¯ng) */
 .harvest-dropdown-option.selected {
   background-color: #606468;
   color: #ffffff;
@@ -465,7 +465,7 @@
   text-overflow: ellipsis;
 }
 
-/* ── TỐI ƯU HIỂN THỊ TRÊN MOBILE (TẤT CẢ KÍCH THƯỚC MÀN HÌNH NHỎ) ── */
+/* â”€â”€ Tá»I Æ¯U HIá»‚N THá»Š TRÃŠN MOBILE (Táº¤T Cáº¢ KÃCH THÆ¯á»šC MÃ€N HÃŒNH NHá»Ž) â”€â”€ */
 @media (max-width: 540px) {
   .harvest-modal-overlay {
     padding: 0.5rem;
@@ -517,3 +517,4 @@
     padding: 0.75rem;
   }
 }
+

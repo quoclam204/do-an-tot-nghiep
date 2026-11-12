@@ -1,10 +1,10 @@
-/* HarvestPage.css - Thân thiện cho nông dân & Tối ưu hiển thị Mobile */
+﻿/* HarvestPage.css - ThÃ¢n thiá»‡n cho nÃ´ng dÃ¢n & Tá»‘i Æ°u hiá»ƒn thá»‹ Mobile */
 
 .harvest-page-wrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-primary, #f8fafc);
+  background-color: #f3f7f4;
   color: var(--text-primary, #1e293b);
 }
 
@@ -14,7 +14,7 @@
   padding-bottom: 2rem;
 }
 
-/* ── Toast Thông Báo (Chuẩn DalatAgri: Phải trên PC, Giữa trên Mobile) ── */
+/* â”€â”€ Toast ThÃ´ng BÃ¡o (Chuáº©n DalatAgri: Pháº£i trÃªn PC, Giá»¯a trÃªn Mobile) â”€â”€ */
 .harvest-toast {
   position: fixed;
   top: 68px;
@@ -54,7 +54,7 @@
   border: 1.5px solid #fecaca;
 }
 
-/* ── Top Bar ── */
+/* â”€â”€ Top Bar â”€â”€ */
 .harvest-add-btn {
   font-weight: 600;
   padding: 0.65rem 1.25rem;
@@ -62,7 +62,7 @@
   box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 
-/* ── KPI Stats Cards ── */
+/* â”€â”€ KPI Stats Cards â”€â”€ */
 .harvest-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -128,7 +128,7 @@
   margin-left: 6px;
 }
 
-/* ── Filter Bar ── */
+/* â”€â”€ Filter Bar â”€â”€ */
 .harvest-filter-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -203,7 +203,7 @@
   border-color: #059669;
 }
 
-/* ── Visibility Switch (Desktop vs Mobile) ── */
+/* â”€â”€ Visibility Switch (Desktop vs Mobile) â”€â”€ */
 .desktop-view {
   display: block;
 }
@@ -212,7 +212,7 @@
   display: none;
 }
 
-/* ── Desktop Table ── */
+/* â”€â”€ Desktop Table â”€â”€ */
 .table-responsive {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -229,7 +229,7 @@
 }
 
 .harvest-table th {
-  background-color: #f8fafc;
+  background-color: #ffffff;
   padding: 0.8rem 0.65rem;
   font-size: 0.78rem;
   font-weight: 700;
@@ -260,7 +260,7 @@
 }
 
 .harvest-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: #ffffff;
 }
 
 .plot-name {
@@ -333,7 +333,7 @@
   border-color: #fca5a5;
 }
 
-/* ── Modal Ghi Nhận Thu Hoạch (Gọn gàng & Trực quan) ── */
+/* â”€â”€ Modal Ghi Nháº­n Thu Hoáº¡ch (Gá»n gÃ ng & Trá»±c quan) â”€â”€ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -369,7 +369,7 @@
 
 .modal-header {
   padding: 0.9rem 1.25rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -519,7 +519,7 @@
   padding: 0.55rem 1.1rem;
   border-radius: 7px;
   font-size: 0.9rem;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
   border: 1px solid #cbd5e1;
 }
@@ -544,7 +544,7 @@
   border-color: var(--ms-green-dark, #0d5c2b) !important;
 }
 
-/* ── Empty & Loading ── */
+/* â”€â”€ Empty & Loading â”€â”€ */
 .empty-state {
   text-align: center;
   padding: 3.5rem 1.5rem;
@@ -573,7 +573,7 @@
 }
 
 /* ==========================================================
-   ── MOBILE RESPONSIVE CHO NÔNG DÂN (MÀN HÌNH <= 768px) ──
+   â”€â”€ MOBILE RESPONSIVE CHO NÃ”NG DÃ‚N (MÃ€N HÃŒNH <= 768px) â”€â”€
    ========================================================== */
 @media (max-width: 768px) {
   .harvest-main {
@@ -581,7 +581,7 @@
     padding-bottom: 85px !important;
   }
 
-  /* Toast ở giữa trên mobile */
+  /* Toast á»Ÿ giá»¯a trÃªn mobile */
   .harvest-toast {
     top: 58px !important;
     left: 50% !important;
@@ -609,7 +609,7 @@
     font-size: 1rem !important;
   }
 
-  /* KPI Cards chuyển sang 2x2 grid */
+  /* KPI Cards chuyá»ƒn sang 2x2 grid */
   .harvest-stats-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 0.65rem !important;
@@ -641,7 +641,7 @@
     font-size: 1.1rem !important;
   }
 
-  /* Bộ lọc xếp dọc dễ dùng ngón tay */
+  /* Bá»™ lá»c xáº¿p dá»c dá»… dÃ¹ng ngÃ³n tay */
   .harvest-filter-card {
     flex-direction: column !important;
     gap: 0.65rem !important;
@@ -666,7 +666,7 @@
     font-size: 0.9rem !important;
   }
 
-  /* Ẩn bảng ngang trên desktop - Hiện danh sách Thẻ trên Mobile */
+  /* áº¨n báº£ng ngang trÃªn desktop - Hiá»‡n danh sÃ¡ch Tháº» trÃªn Mobile */
   .desktop-view {
     display: none !important;
   }
@@ -677,7 +677,7 @@
     gap: 0.75rem;
   }
 
-  /* ── Mobile Harvest Card: Đơn giản, rõ ràng, trực quan ── */
+  /* â”€â”€ Mobile Harvest Card: ÄÆ¡n giáº£n, rÃµ rÃ ng, trá»±c quan â”€â”€ */
   .mobile-harvest-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -689,7 +689,7 @@
     gap: 0.65rem;
   }
 
-  /* Hàng trên: Ngày thu hoạch + Nút xóa */
+  /* HÃ ng trÃªn: NgÃ y thu hoáº¡ch + NÃºt xÃ³a */
   .mhc-top-row {
     display: flex;
     justify-content: space-between;
@@ -700,7 +700,7 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #f1f5f9;
+    background: #ffffff;
     color: #334155;
     padding: 0.3rem 0.65rem;
     border-radius: 6px;
@@ -726,7 +726,7 @@
     background: #fef2f2;
   }
 
-  /* Cây trồng & Vườn / Lô trồng */
+  /* CÃ¢y trá»“ng & VÆ°á»n / LÃ´ trá»“ng */
   .mhc-crop-row {
     display: flex;
     align-items: center;
@@ -753,12 +753,12 @@
     color: #1e293b;
   }
 
-  /* Lưới 3 số liệu: Sản lượng - Đơn giá - Tiền thu được */
+  /* LÆ°á»›i 3 sá»‘ liá»‡u: Sáº£n lÆ°á»£ng - ÄÆ¡n giÃ¡ - Tiá»n thu Ä‘Æ°á»£c */
   .mhc-metrics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1.3fr;
     gap: 0.5rem;
-    background: #f8fafc;
+    background: #ffffff;
     border: 1px solid #edf2f7;
     border-radius: 8px;
     padding: 0.65rem 0.75rem;
@@ -816,7 +816,7 @@
     font-size: 1.1rem;
   }
 
-  /* Ghi chú & Thương lái */
+  /* Ghi chÃº & ThÆ°Æ¡ng lÃ¡i */
   .mhc-notes-row {
     display: flex;
     align-items: flex-start;
@@ -839,7 +839,7 @@
     word-break: break-word;
   }
 
-  /* Modal trên di động: Gọn gàng, vừa vặn màn hình */
+  /* Modal trÃªn di Ä‘á»™ng: Gá»n gÃ ng, vá»«a váº·n mÃ n hÃ¬nh */
   .harvest-modal-card {
     max-width: 95vw !important;
     max-height: 94vh !important;

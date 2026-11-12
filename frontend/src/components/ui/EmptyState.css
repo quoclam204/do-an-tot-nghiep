@@ -1,4 +1,4 @@
-/* ── DalatAgri: Reusable Highland Ledger Empty State ── */
+﻿/* â”€â”€ DalatAgri: Reusable Highland Ledger Empty State â”€â”€ */
 .dalat-empty-state {
   display: flex;
   flex-direction: column;
@@ -20,13 +20,13 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  background: var(--surface-raised, #f8fafc);
+  background: #ffffff;
   color: var(--text-muted, #64748b);
   border: 1px solid var(--border-light, #e8e8e8);
 }
 
 .dalat-empty-state.filter .dalat-empty-icon-wrap {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .dalat-empty-btn-secondary:hover {
-  background: var(--surface, #fafafa);
+  background: #ffffff;
   border-color: #94a3b8;
 }
 

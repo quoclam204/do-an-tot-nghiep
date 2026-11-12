@@ -1,9 +1,9 @@
-/* ================= SEASONS PAGE CSS (ĐỒNG BỘ DESIGN SYSTEM) ================= */
+﻿/* ================= SEASONS PAGE CSS (Äá»’NG Bá»˜ DESIGN SYSTEM) ================= */
 .seasons-page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--ms-gray-100);
+  background-color: #f3f7f4;
   color: var(--ms-gray-900);
   font-family: inherit;
 }
@@ -78,7 +78,7 @@
 }
 
 .filter-chip:hover {
-  background: #f8fafc;
+  background: #ffffff;
   border-color: #94a3b8;
   color: #0f172a;
 }
@@ -149,7 +149,7 @@
 }
 
 .season-intercrop-tag {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
   font-size: 0.75rem;
   font-weight: 600;
@@ -158,7 +158,7 @@
   white-space: nowrap;
 }
 
-/* Status Badge - Nhẹ nhàng, dễ phân biệt */
+/* Status Badge - Nháº¹ nhÃ ng, dá»… phÃ¢n biá»‡t */
 .season-status-badge {
   font-size: 0.8rem;
   font-weight: 600;
@@ -177,7 +177,7 @@
 }
 
 .status-completed {
-  background: #f8fafc;
+  background: #ffffff;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
@@ -188,7 +188,7 @@
   border: 1px solid #fde68a;
 }
 
-/* Danh sách thông tin mùa vụ: Dạng dòng rõ ràng, không hộp lồng hộp, không màu mè */
+/* Danh sÃ¡ch thÃ´ng tin mÃ¹a vá»¥: Dáº¡ng dÃ²ng rÃµ rÃ ng, khÃ´ng há»™p lá»“ng há»™p, khÃ´ng mÃ u mÃ¨ */
 .season-info-list {
   display: flex;
   flex-direction: column;
@@ -228,7 +228,7 @@
   font-weight: 700;
 }
 
-/* Tiến độ mùa vụ: Thanh trượt tinh tế, mộc mạc */
+/* Tiáº¿n Ä‘á»™ mÃ¹a vá»¥: Thanh trÆ°á»£t tinh táº¿, má»™c máº¡c */
 .season-progress-section {
   display: flex;
   flex-direction: column;
@@ -260,7 +260,7 @@
   color: #15803d;
 }
 
-/* Nút hành động phía dưới thẻ */
+/* NÃºt hÃ nh Ä‘á»™ng phÃ­a dÆ°á»›i tháº» */
 .season-card-actions {
   display: flex;
   justify-content: space-between;
@@ -309,7 +309,7 @@
 }
 
 .btn-season-edit:hover {
-  background: #f8fafc;
+  background: #ffffff;
   border-color: #94a3b8;
 }
 
@@ -548,7 +548,7 @@
   background-color: #fff;
 }
 
-/* ================= CUSTOM SELECT (CHỐNG TRÀN VIỀN MOBILE) ================= */
+/* ================= CUSTOM SELECT (CHá»NG TRÃ€N VIá»€N MOBILE) ================= */
 .custom-select-wrapper {
   position: relative;
   width: 100%;
@@ -719,7 +719,7 @@
 }
 
 .seasons-modal .btn-modal-cancel:hover {
-  background: #f3f4f6;
+  background: #ffffff;
   border-color: #d1d5db;
 }
 
@@ -921,7 +921,7 @@
     gap: 0.85rem;
   }
 
-  /* Chống zoom tự động trên iOS Safari khi chạm vào ô input/select */
+  /* Chá»‘ng zoom tá»± Ä‘á»™ng trÃªn iOS Safari khi cháº¡m vÃ o Ã´ input/select */
   .seasons-modal .modal-field input,
   .seasons-modal .modal-field select,
   .custom-select-trigger {
@@ -971,7 +971,7 @@
   }
 }
 
-/* ── Xen Canh (Intercropping) Tag & Button ── */
+/* â”€â”€ Xen Canh (Intercropping) Tag & Button â”€â”€ */
 .season-intercrop-tag {
   font-size: 0.72rem;
   font-weight: 700;
@@ -1005,7 +1005,7 @@
   color: #14532d;
 }
 
-/* ── Finance Modal Styles ── */
+/* â”€â”€ Finance Modal Styles â”€â”€ */
 .seasons-modal.finance-modal {
   max-width: 800px;
   width: 95%;
@@ -1139,7 +1139,7 @@
 }
 
 .finance-table th {
-  background: #f8fafc;
+  background: #ffffff;
   padding: 0.65rem 0.85rem;
   text-align: left;
   font-weight: 600;
@@ -1191,7 +1191,7 @@
     font-size: 0.95rem !important;
   }
 
-  /* 4 KPI Cards chuyển thành lưới 2x2 */
+  /* 4 KPI Cards chuyá»ƒn thÃ nh lÆ°á»›i 2x2 */
   .seasons-stats-grid {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.65rem !important;
@@ -1206,7 +1206,7 @@
     font-size: 1.35rem !important;
   }
 
-  /* Bộ lọc chip và thanh tìm kiếm */
+  /* Bá»™ lá»c chip vÃ  thanh tÃ¬m kiáº¿m */
   .seasons-filter-bar {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -1240,7 +1240,7 @@
     width: 100% !important;
   }
 
-  /* Lưới thẻ mùa vụ */
+  /* LÆ°á»›i tháº» mÃ¹a vá»¥ */
   .seasons-grid {
     grid-template-columns: 1fr !important;
     gap: 0.85rem !important;
@@ -1282,7 +1282,7 @@
     padding: 0.65rem !important;
   }
 
-  /* Modal mùa vụ trên di động: Bottom Sheet */
+  /* Modal mÃ¹a vá»¥ trÃªn di Ä‘á»™ng: Bottom Sheet */
   .seasons-modal-overlay {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -1307,7 +1307,7 @@
     min-height: 44px !important;
   }
 
-  /* Modal Báo cáo tài chính vụ mùa */
+  /* Modal BÃ¡o cÃ¡o tÃ i chÃ­nh vá»¥ mÃ¹a */
   .finance-kpi-grid {
     grid-template-columns: 1fr !important;
     gap: 0.65rem !important;

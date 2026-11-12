@@ -1,8 +1,8 @@
-/* ═══════════════════════════════════════════════
-   AccountPage.css — Trang quản lý tài khoản
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   AccountPage.css â€” Trang quáº£n lÃ½ tÃ i khoáº£n
    DalatAgri Design System (Microsoft-inspired)
-   Font: Segoe UI / Inter · Color: #107C10 · Clean & Flat
-═══════════════════════════════════════════════ */
+   Font: Segoe UI / Inter Â· Color: #107C10 Â· Clean & Flat
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -13,8 +13,8 @@
     --ms-green-mid: #c9e8d2;
     --ms-green-hover: #f3faf5;
 
-    --ms-gray-50: #fafafa;
-    --ms-gray-100: #f5f5f5;
+    --ms-gray-50: #ffffff;
+    --ms-gray-100: #f3f7f4;
     --ms-gray-200: #e8e8e8;
     --ms-gray-300: #d1d1d1;
     --ms-gray-500: #767676;
@@ -24,13 +24,14 @@
     --radius-sm: 6px;
 }
 
-/* ── Layout ─────────────────────────────────── */
+/* â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .account-main {
     width: 100%;
     max-width: none;
     margin: 0 auto;
     padding: 1rem clamp(16px, 2.4vw, 36px) 2rem;
     min-height: calc(100vh - 140px);
+    background: #f3f7f4;
 }
 
 .account-layout {
@@ -40,7 +41,7 @@
     align-items: start;
 }
 
-/* ── Sidebar ─────────────────────────────────── */
+/* â”€â”€ Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .account-sidebar {
     background: #ffffff;
     border-radius: var(--radius-sm);
@@ -168,7 +169,7 @@
     color: #ffffff !important;
 }
 
-/* ── Tab content ────────────────────────────── */
+/* â”€â”€ Tab content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .account-content {
     min-height: 500px;
 }
@@ -201,9 +202,9 @@
     margin: 0;
 }
 
-/* ═══════════════════════════════════════════════
-   HERO BANNER & CARDS (Theo phong cách hình ảnh)
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   HERO BANNER & CARDS (Theo phong cÃ¡ch hÃ¬nh áº£nh)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .farms-hero-banner {
     background: #ffffff;
     padding: 1.25rem 1.5rem;
@@ -319,7 +320,7 @@
     min-width: 180px;
 }
 
-/* ── Buttons (Theo mẫu nút ảnh: vuông bo nhẹ 4px, xanh #107C10) ── */
+/* â”€â”€ Buttons (Theo máº«u nÃºt áº£nh: vuÃ´ng bo nháº¹ 4px, xanh #107C10) â”€â”€ */
 .farms-btn-primary {
     background: var(--ms-green);
     color: #ffffff;
@@ -413,9 +414,9 @@
     background: var(--ms-gray-100);
 }
 
-/* ═══════════════════════════════════════════════
-   Thẻ Hồ Sơ Nông Hộ (Unified Card)
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   Tháº» Há»“ SÆ¡ NÃ´ng Há»™ (Unified Card)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .farmer-profile-card {
     background: #ffffff;
     border: 1px solid var(--ms-gray-200);
@@ -424,7 +425,7 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* 1. Khu vực Avatar & Thông tin tiêu đề */
+/* 1. Khu vá»±c Avatar & ThÃ´ng tin tiÃªu Ä‘á» */
 .farmer-avatar-section {
     display: flex;
     align-items: center;
@@ -492,14 +493,14 @@
     margin: 0 0 0.875rem;
 }
 
-/* Nút thao tác ảnh đại diện */
+/* NÃºt thao tÃ¡c áº£nh Ä‘áº¡i diá»‡n */
 .farmer-avatar-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
 }
 
-/* Thanh xác nhận xem trước ảnh mới */
+/* Thanh xÃ¡c nháº­n xem trÆ°á»›c áº£nh má»›i */
 .farmer-preview-bar {
     display: flex;
     align-items: center;
@@ -547,14 +548,14 @@
     border: 1px solid #fecaca;
 }
 
-/* Đường phân cách nhẹ */
+/* ÄÆ°á»ng phÃ¢n cÃ¡ch nháº¹ */
 .farmer-divider {
     height: 1px;
     background: var(--ms-gray-200);
     margin: 1.5rem 0;
 }
 
-/* 2. Phần form thông tin */
+/* 2. Pháº§n form thÃ´ng tin */
 .farmer-form-section {
     width: 100%;
 }
@@ -668,7 +669,7 @@
     font-weight: 600;
 }
 
-/* ── Role badge ─────────────────────────────── */
+/* â”€â”€ Role badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .role-badge {
     display: inline-block;
     padding: 0.2rem 0.7rem;
@@ -697,7 +698,7 @@
     border: 1px solid #fde68a;
 }
 
-/* ── Section card ────────────────────────────── */
+/* â”€â”€ Section card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .section-card {
     background: #ffffff;
     border-radius: 16px;
@@ -715,7 +716,7 @@
     border-bottom: 1px solid #f3f4f6;
 }
 
-/* ── Profile form ────────────────────────────── */
+/* â”€â”€ Profile form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .profile-form {
     display: flex;
     flex-direction: column;
@@ -754,7 +755,7 @@
     font-size: 0.9rem;
     font-family: var(--sans);
     color: #111827;
-    background: #f9fafb;
+    background: #ffffff;
     transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
 }
@@ -765,7 +766,7 @@
     box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
-/* ── Info list ──────────────────────────────── */
+/* â”€â”€ Info list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .info-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -797,7 +798,7 @@
     margin: 0;
 }
 
-/* ── Status dot / pill ───────────────────────── */
+/* â”€â”€ Status dot / pill â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .status-dot {
     display: inline-block;
     width: 8px;
@@ -831,7 +832,7 @@
     color: #dc2626;
 }
 
-/* ── Farms Grid ─────────────────────────────── */
+/* â”€â”€ Farms Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .farms-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -924,10 +925,10 @@
     font-weight: 500;
 }
 
-/* ── Empty state ────────────────────────────── */
+/* â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .empty-state-box {
     text-align: center;
-    background: #f9fafb;
+    background: #ffffff;
     border-radius: 16px;
     border: 2px dashed #d1fae5;
     padding: 3rem 2rem;
@@ -951,7 +952,7 @@
     margin: 0 0 1.5rem;
 }
 
-/* ── Admin Users Table ───────────────────────── */
+/* â”€â”€ Admin Users Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .search-bar-wrapper {
     position: relative;
     display: flex;
@@ -972,7 +973,7 @@
     border-radius: 10px;
     font-size: 0.9rem;
     font-family: var(--sans);
-    background: #f9fafb;
+    background: #ffffff;
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -993,7 +994,7 @@
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 600;
-    background: #f3f4f6;
+    background: #ffffff;
     color: #374151;
 }
 
@@ -1017,7 +1018,7 @@
 }
 
 .users-table thead th {
-    background: #f9fafb;
+    background: #ffffff;
     padding: 0.75rem 1rem;
     text-align: left;
     font-size: 0.75rem;
@@ -1039,7 +1040,7 @@
 }
 
 .users-table tbody tr:hover {
-    background: #f9fafb;
+    background: #ffffff;
 }
 
 .users-table tbody tr.row-inactive {
@@ -1129,7 +1130,7 @@
     font-size: 0.9rem;
 }
 
-/* ── Buttons ────────────────────────────────── */
+/* â”€â”€ Buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .btn-primary {
     padding: 0.6rem 1.1rem;
     background: var(--ms-green);
@@ -1167,14 +1168,14 @@
 }
 
 .btn-ghost:hover {
-    background: #f3f4f6;
+    background: #ffffff;
 }
 
 .btn-icon {
     width: 32px;
     height: 32px;
     border: none;
-    background: #f3f4f6;
+    background: #ffffff;
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.875rem;
@@ -1203,7 +1204,7 @@
     align-items: center;
     justify-content: center;
     transition: background 0.15s;
-    background: #f3f4f6;
+    background: #ffffff;
 }
 
 .btn-action.btn-warn:hover {
@@ -1218,7 +1219,7 @@
     background: #fee2e2;
 }
 
-/* ── Modal ──────────────────────────────────── */
+/* â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1282,7 +1283,7 @@
     width: 30px;
     height: 30px;
     border: none;
-    background: #f3f4f6;
+    background: #ffffff;
     border-radius: 50%;
     font-size: 1.1rem;
     cursor: pointer;
@@ -1311,7 +1312,7 @@
     margin-top: 0.25rem;
 }
 
-/* ── Feedback ──────────────────────────────── */
+/* â”€â”€ Feedback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .feedback-success {
     padding: 0.6rem 0.875rem;
     background: #f0fdf4;
@@ -1332,7 +1333,7 @@
     font-weight: 500;
 }
 
-/* ── Responsive ─────────────────────────────── */
+/* â”€â”€ Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 @media (max-width: 900px) {
     .account-layout {
         grid-template-columns: 1fr;
@@ -1453,7 +1454,7 @@
     }
 
     .farmer-input {
-        font-size: 16px !important; /* Tránh zoom ngoài ý muốn trên iOS */
+        font-size: 16px !important; /* TrÃ¡nh zoom ngoÃ i Ã½ muá»‘n trÃªn iOS */
         height: 48px;
     }
 
@@ -1500,7 +1501,7 @@
     }
 }
 
-/* ── SVG Icon Helper Styles ── */
+/* â”€â”€ SVG Icon Helper Styles â”€â”€ */
 .farm-icon {
     width: 36px;
     height: 36px;

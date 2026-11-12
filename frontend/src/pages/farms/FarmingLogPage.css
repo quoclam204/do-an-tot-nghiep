@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════
-   FarmingLogPage.css — Microsoft-style redesign
-═══════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FarmingLogPage.css â€” Microsoft-style redesign
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .farming-log-container {
   position: relative;
   padding: 0.5rem 0 2rem;
@@ -8,6 +8,7 @@
   flex-direction: column;
   gap: 1rem;
   animation: pageSmoothFade 0.2s ease-out;
+  background: #f3f7f4;
 }
 
 @keyframes pageSmoothFade {
@@ -19,7 +20,7 @@
   }
 }
 
-/* ── Thông báo to rõ, có nút Hoàn tác cho bà con nông dân ── */
+/* â”€â”€ ThÃ´ng bÃ¡o to rÃµ, cÃ³ nÃºt HoÃ n tÃ¡c cho bÃ  con nÃ´ng dÃ¢n â”€â”€ */
 .farming-toast {
   position: fixed;
   top: 68px;
@@ -109,7 +110,7 @@
   }
 }
 
-/* Trên mobile: xuất hiện ở chính giữa màn hình */
+/* TrÃªn mobile: xuáº¥t hiá»‡n á»Ÿ chÃ­nh giá»¯a mÃ n hÃ¬nh */
 @media (max-width: 768px) {
   .farming-toast {
     top: 58px;
@@ -152,7 +153,7 @@
   }
 }
 
-/* ── Header Controls (Passed to PageHeader actions) ── */
+/* â”€â”€ Header Controls (Passed to PageHeader actions) â”€â”€ */
 .farming-header-actions {
   display: flex;
   gap: 0.65rem;
@@ -270,7 +271,7 @@
   border-color: var(--ms-green-dark);
 }
 
-/* ── KPI Ledger Section ── */
+/* â”€â”€ KPI Ledger Section â”€â”€ */
 .farming-kpi-section {
   display: flex;
   flex-direction: column;
@@ -278,7 +279,7 @@
   margin-top: 0.25rem;
 }
 
-/* ── KPI Header Row (Nút chi tiết trên đầu bên phải) ── */
+/* â”€â”€ KPI Header Row (NÃºt chi tiáº¿t trÃªn Ä‘áº§u bÃªn pháº£i) â”€â”€ */
 .kpi-header-row {
   display: flex;
   align-items: center;
@@ -298,7 +299,7 @@
   text-transform: uppercase;
 }
 
-/* ── KPI Cards ── */
+/* â”€â”€ KPI Cards â”€â”€ */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -465,7 +466,7 @@
   transform: translateY(-1px);
 }
 
-/* ── Charts Section: Tối giản, cân đối, dễ hiểu cho nông dân ── */
+/* â”€â”€ Charts Section: Tá»‘i giáº£n, cÃ¢n Ä‘á»‘i, dá»… hiá»ƒu cho nÃ´ng dÃ¢n â”€â”€ */
 .charts-section {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -574,7 +575,7 @@
   text-align: right;
 }
 
-/* ── Main Layout: Form ở trên, Lịch Sử Nhật Ký ở dưới kéo dài ── */
+/* â”€â”€ Main Layout: Form á»Ÿ trÃªn, Lá»‹ch Sá»­ Nháº­t KÃ½ á»Ÿ dÆ°á»›i kÃ©o dÃ i â”€â”€ */
 .main-content-grid {
   display: flex;
   flex-direction: column;
@@ -616,7 +617,7 @@
   margin: 0;
 }
 
-/* ── Thông tin Nông trại đang ghi chép: Tối giản, chuẩn màu DalatAgri (#137a3a) ── */
+/* â”€â”€ ThÃ´ng tin NÃ´ng tráº¡i Ä‘ang ghi chÃ©p: Tá»‘i giáº£n, chuáº©n mÃ u DalatAgri (#137a3a) â”€â”€ */
 .current-farm-bar {
   display: flex;
   align-items: center;
@@ -678,7 +679,7 @@
   gap: 0.85rem;
 }
 
-/* ── Hàng 3 Cột Thời Gian: Ngày Thực Hiện, Ca Làm Việc, Giờ Thực Hiện ── */
+/* â”€â”€ HÃ ng 3 Cá»™t Thá»i Gian: NgÃ y Thá»±c Hiá»‡n, Ca LÃ m Viá»‡c, Giá» Thá»±c Hiá»‡n â”€â”€ */
 .farming-form .farming-time-row,
 .farming-time-row,
 .form-row.farming-time-row,
@@ -756,7 +757,7 @@
   margin-bottom: 0.35rem;
 }
 
-/* ── Form Label Row with Action Button ── */
+/* â”€â”€ Form Label Row with Action Button â”€â”€ */
 .form-label-row {
   display: flex;
   justify-content: space-between;
@@ -889,7 +890,7 @@
   box-shadow: 0 0 0 2px rgba(19, 122, 58, 0.15);
 }
 
-/* ── Custom Select Dropdown (Chống tràn viền trên Desktop và Mobile) ── */
+/* â”€â”€ Custom Select Dropdown (Chá»‘ng trÃ n viá»n trÃªn Desktop vÃ  Mobile) â”€â”€ */
 .custom-select-wrapper {
   position: relative;
   width: 100%;
@@ -935,7 +936,7 @@
 }
 
 .custom-select-trigger.disabled {
-  background: #f8fafc;
+  background: #ffffff;
   cursor: not-allowed;
   opacity: 0.85;
 }
@@ -1038,14 +1039,14 @@
 }
 
 .custom-select-option:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .custom-select-option.selected {
-  background: #f1f5f9;
+  background: #ffffff;
 }
 
-/* ── Đơn giản: hiển thị vụ mùa và dòng phụ trang trại, lô đất ── */
+/* â”€â”€ ÄÆ¡n giáº£n: hiá»ƒn thá»‹ vá»¥ mÃ¹a vÃ  dÃ²ng phá»¥ trang tráº¡i, lÃ´ Ä‘áº¥t â”€â”€ */
 .season-select-item {
   width: 100%;
   box-sizing: border-box;
@@ -1079,7 +1080,7 @@
   line-height: 1.3;
 }
 
-/* ── Standard Select Item (dùng cho Vật tư trong kho) ── */
+/* â”€â”€ Standard Select Item (dÃ¹ng cho Váº­t tÆ° trong kho) â”€â”€ */
 .standard-select-item {
   width: 100%;
   display: flex;
@@ -1122,7 +1123,7 @@
   font-size: 0.85rem;
 }
 
-/* ── Quick Today Date Input ── */
+/* â”€â”€ Quick Today Date Input â”€â”€ */
 .date-input-wrap {
   display: flex;
   gap: 8px;
@@ -1172,7 +1173,7 @@
   transform: translateY(1px);
 }
 
-/* ── Currency Input Wrap (VND) ── */
+/* â”€â”€ Currency Input Wrap (VND) â”€â”€ */
 .currency-input-wrap {
   position: relative;
   display: flex;
@@ -1232,7 +1233,7 @@
   font-weight: 700;
 }
 
-/* ── Mục vật tư tinh gọn (không lồng thẻ hộp) ── */
+/* â”€â”€ Má»¥c váº­t tÆ° tinh gá»n (khÃ´ng lá»“ng tháº» há»™p) â”€â”€ */
 .form-section-clean {
   padding: 0.85rem 0 0.25rem;
   border-top: 1px solid var(--ms-gray-200);
@@ -1261,7 +1262,7 @@
   font-style: italic;
 }
 
-/* ── Progressive Disclosure Accordion: Nhân công, chi phí khác & ghi chú ── */
+/* â”€â”€ Progressive Disclosure Accordion: NhÃ¢n cÃ´ng, chi phÃ­ khÃ¡c & ghi chÃº â”€â”€ */
 .form-advanced-accordion {
   border: 1px solid var(--ms-gray-200);
   border-radius: var(--radius-sm, 6px);
@@ -1279,7 +1280,7 @@
   width: 100%;
   min-height: 42px;
   padding: 10px 14px;
-  background: #f8fafc;
+  background: #ffffff;
   border: none;
   display: flex;
   justify-content: space-between;
@@ -1292,7 +1293,7 @@
 }
 
 .btn-accordion-toggle:hover {
-  background: #f1f5f9;
+  background: #ffffff;
 }
 
 .btn-accordion-toggle.is-open {
@@ -1344,7 +1345,7 @@
 }
 
 .badge-optional {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #64748b;
   border: 1px solid #cbd5e1;
 }
@@ -1436,6 +1437,11 @@
   font-family: var(--sans);
 }
 
+.btn-submit-log-save {
+  align-self: flex-start;
+  min-width: 180px;
+}
+
 .btn-submit-log:hover {
   background: var(--ms-green-dark);
   border-color: var(--ms-green-dark);
@@ -1447,7 +1453,7 @@
   transform: none !important;
 }
 
-/* ── Table Card ── */
+/* â”€â”€ Table Card â”€â”€ */
 .table-header-row {
   display: flex;
   justify-content: space-between;
@@ -1670,7 +1676,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #f8fafc;
+  background: #ffffff;
   color: #475569;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
@@ -1683,7 +1689,7 @@
 }
 
 .btn-text-breakdown:hover {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #0f172a;
   border-color: #94a3b8;
 }
@@ -1712,7 +1718,7 @@
   background: #fdd;
 }
 
-/* ── Desktop vs Mobile Log Displays ── */
+/* â”€â”€ Desktop vs Mobile Log Displays â”€â”€ */
 .desktop-table-only {
   display: block;
 }
@@ -1721,7 +1727,7 @@
   display: none !important;
 }
 
-/* Thẻ Card Nhật Ký trên Mobile */
+/* Tháº» Card Nháº­t KÃ½ trÃªn Mobile */
 .mobile-logs-cards-list {
   display: flex;
   flex-direction: column;
@@ -1741,7 +1747,7 @@
 }
 
 .mobile-log-card:active {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .mobile-card-header {
@@ -1887,7 +1893,7 @@
   flex-wrap: wrap;
   gap: 6px;
   padding: 6px 8px;
-  background: #f8fafc;
+  background: #ffffff;
   border-radius: 6px;
 }
 
@@ -1954,12 +1960,12 @@
   padding: 2rem 1rem;
   color: #94a3b8;
   font-size: 0.85rem;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px dashed #cbd5e1;
   border-radius: 8px;
 }
 
-/* ── Responsive ── */
+/* â”€â”€ Responsive â”€â”€ */
 @media (max-width: 1024px) {
   .charts-section {
     grid-template-columns: 1fr;
@@ -2177,7 +2183,7 @@
     min-width: 580px !important;
   }
 
-  /* Ẩn bảng table truyền thống trên mobile, hiện danh sách thẻ card trực quan */
+  /* áº¨n báº£ng table truyá»n thá»‘ng trÃªn mobile, hiá»‡n danh sÃ¡ch tháº» card trá»±c quan */
   .desktop-table-only {
     display: none !important;
   }
@@ -2207,11 +2213,11 @@
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    IMPECCABLE POLISH: DESTRUCTIVE ACTION MODAL, LOADING STATES & TACTILE TOUCH
-   ══════════════════════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── Modal xác nhận xóa an toàn (Destructive Action Dialog) ── */
+/* â”€â”€ Modal xÃ¡c nháº­n xÃ³a an toÃ n (Destructive Action Dialog) â”€â”€ */
 .modal-backdrop-faded {
   position: fixed;
   inset: 0;
@@ -2299,7 +2305,7 @@
 
 .btn-modal-cancel {
   padding: 9px 18px;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #334155;
   border: 1px solid #cbd5e1;
   border-radius: var(--radius-sm, 6px);
@@ -2360,7 +2366,7 @@
   }
 }
 
-/* ── Trạng thái đang tải dữ liệu (Chống chớp nháy Empty State giả) ── */
+/* â”€â”€ Tráº¡ng thÃ¡i Ä‘ang táº£i dá»¯ liá»‡u (Chá»‘ng chá»›p nhÃ¡y Empty State giáº£) â”€â”€ */
 .table-loading-container,
 .mobile-loading-container {
   display: flex;
@@ -2374,7 +2380,7 @@
 }
 
 .mobile-loading-container {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px dashed #cbd5e1;
   border-radius: 8px;
 }
@@ -2389,7 +2395,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Tabular Numerals (Chống co giãn layout số tiền & số cân) ── */
+/* â”€â”€ Tabular Numerals (Chá»‘ng co giÃ£n layout sá»‘ tiá»n & sá»‘ cÃ¢n) â”€â”€ */
 .kpi-value,
 .cost-main-value,
 .farming-table td:nth-child(5),
@@ -2400,7 +2406,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Phản hồi xúc giác bấm (Tactile Motion Response) ── */
+/* â”€â”€ Pháº£n há»“i xÃºc giÃ¡c báº¥m (Tactile Motion Response) â”€â”€ */
 .btn-submit-log,
 .btn-open-harvest-header,
 .btn-open-ocr,
@@ -2425,7 +2431,7 @@
   transform: scale(0.92);
 }
 
-/* ── Thanh cuộn tinh gọn thân thiện ── */
+/* â”€â”€ Thanh cuá»™n tinh gá»n thÃ¢n thiá»‡n â”€â”€ */
 .table-responsive::-webkit-scrollbar,
 .custom-select-dropdown::-webkit-scrollbar {
   height: 6px;
@@ -2434,7 +2440,7 @@
 
 .table-responsive::-webkit-scrollbar-track,
 .custom-select-dropdown::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #ffffff;
   border-radius: 3px;
 }
 

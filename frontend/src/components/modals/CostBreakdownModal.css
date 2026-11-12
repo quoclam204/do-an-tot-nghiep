@@ -1,4 +1,4 @@
-.simple-modal-backdrop {
+﻿.simple-modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -33,7 +33,7 @@
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .simple-modal-title {
@@ -102,7 +102,7 @@
 }
 
 .simple-breakdown-table th {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
   font-weight: 600;
   padding: 8px 10px;
@@ -142,7 +142,7 @@
 
 /* TOTAL BOX */
 .simple-total-box {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 0.85rem 1rem;
@@ -176,7 +176,7 @@
 .simple-modal-footer {
   padding: 0.75rem 1.25rem;
   border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: #ffffff;
   display: flex;
   justify-content: flex-end;
 }
@@ -233,3 +233,4 @@
     width: 100%;
   }
 }
+

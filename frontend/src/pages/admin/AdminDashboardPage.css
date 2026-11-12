@@ -1,10 +1,10 @@
-/* ============================================================
-   DalatAgri Admin Portal — Full CSS
+﻿/* ============================================================
+   DalatAgri Admin Portal â€” Full CSS
    2-column layout: Sidebar (fixed) + Main Content (scrollable)
    Color system: Green #107C10 primary + Dark surface
    ============================================================ */
 
-/* ─── CSS Variables ─── */
+/* â”€â”€â”€ CSS Variables â”€â”€â”€ */
 :root {
   --admin-green: #107C10;
   --admin-green-light: #138B13;
@@ -13,9 +13,9 @@
   --admin-sidebar-collapsed-w: 64px;
   --admin-sidebar-bg: #0f1117;
   --admin-sidebar-border: rgba(255, 255, 255, 0.07);
-  --admin-main-bg: #f3f4f6;
+  --admin-main-bg: #f3f7f4;
   --admin-surface: #ffffff;
-  --admin-surface-hover: #f9fafb;
+  --admin-surface-hover: #ffffff;
   --admin-border: #e5e7eb;
   --admin-text: #111827;
   --admin-text-muted: #6b7280;
@@ -28,7 +28,7 @@
   --transition: 0.2s ease;
 }
 
-/* ─── Shell Layout ─── */
+/* â”€â”€â”€ Shell Layout â”€â”€â”€ */
 .admin-shell {
   display: flex;
   height: 100vh;
@@ -39,7 +39,7 @@
   color: var(--admin-text);
 }
 
-/* ─── Sidebar ─── */
+/* â”€â”€â”€ Sidebar â”€â”€â”€ */
 .admin-sidebar {
   width: var(--admin-sidebar-w);
   min-width: var(--admin-sidebar-w);
@@ -340,7 +340,7 @@
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
 }
 
-/* ─── Main Content ─── */
+/* â”€â”€â”€ Main Content â”€â”€â”€ */
 .admin-main {
   flex: 1;
   display: flex;
@@ -450,7 +450,7 @@
   box-sizing: border-box;
 }
 
-/* ─── Panel Shared Components ─── */
+/* â”€â”€â”€ Panel Shared Components â”€â”€â”€ */
 
 .panel-content {
   display: flex;
@@ -835,7 +835,7 @@
   color: #6b7280;
 }
 
-/* ─── Toolbar ─── */
+/* â”€â”€â”€ Toolbar â”€â”€â”€ */
 .panel-toolbar {
   display: flex;
   align-items: center;
@@ -1049,7 +1049,7 @@
 }
 
 .btn-xs.gray {
-  background: #f3f4f6;
+  background: #ffffff;
   color: #6b7280;
 }
 
@@ -1068,7 +1068,7 @@
   justify-content: center;
 }
 
-/* ─── Table ─── */
+/* â”€â”€â”€ Table â”€â”€â”€ */
 .panel-table-container {
   overflow-x: auto;
 }
@@ -1080,7 +1080,7 @@
 }
 
 .panel-table th {
-  background: #f9fafb;
+  background: #ffffff;
   padding: 10px 14px;
   text-align: left;
   font-size: 11px;
@@ -1100,7 +1100,7 @@
 }
 
 .panel-table tr:hover td {
-  background: #f9fafb;
+  background: #ffffff;
 }
 
 .panel-table tr.row-deleted td {
@@ -1212,7 +1212,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: #f3f4f6;
+  background: #ffffff;
   color: var(--admin-text-muted);
 }
 
@@ -1256,7 +1256,7 @@
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  background: #f3f4f6;
+  background: #ffffff;
   color: var(--admin-text-muted);
 }
 
@@ -1269,7 +1269,7 @@
   display: inline-block;
   padding: 2px 7px;
   border-radius: 5px;
-  background: #f3f4f6;
+  background: #ffffff;
   color: #374151;
   font-family: var(--mono, monospace);
   font-size: 11.5px;
@@ -1327,7 +1327,7 @@
   cursor: pointer;
 }
 
-/* ─── Modal ─── */
+/* â”€â”€â”€ Modal â”€â”€â”€ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1404,7 +1404,7 @@
 }
 
 .modal-close:hover {
-  background: #f3f4f6;
+  background: #ffffff;
   color: var(--admin-text);
 }
 
@@ -1501,7 +1501,7 @@
   cursor: not-allowed;
 }
 
-/* ─── Farm Detail ─── */
+/* â”€â”€â”€ Farm Detail â”€â”€â”€ */
 .detail-header {
   display: flex;
   align-items: flex-start;
@@ -1540,7 +1540,7 @@
   border: 1px solid var(--admin-border);
   border-radius: 9px;
   padding: 12px 14px;
-  background: #fafafa;
+  background: #ffffff;
 }
 
 .plot-card-header {
@@ -1579,7 +1579,7 @@
   font-weight: 600;
   padding: 1px 6px;
   border-radius: 10px;
-  background: #f3f4f6;
+  background: #ffffff;
 }
 
 .cycle-status.active {
@@ -1587,7 +1587,7 @@
   color: #166534;
 }
 
-/* ─── Sync Panel ─── */
+/* â”€â”€â”€ Sync Panel â”€â”€â”€ */
 .sync-status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1663,7 +1663,7 @@
 
 .sync-bar {
   height: 4px;
-  background: #f3f4f6;
+  background: #ffffff;
   border-radius: 2px;
   overflow: hidden;
 }
@@ -1713,7 +1713,7 @@
 
 .sync-progress-bar {
   height: 10px;
-  background: #f3f4f6;
+  background: #ffffff;
   border-radius: 5px;
   display: flex;
   overflow: hidden;
@@ -1775,7 +1775,7 @@
   background: #dc2626;
 }
 
-/* ─── Reports Panel ─── */
+/* â”€â”€â”€ Reports Panel â”€â”€â”€ */
 .panel-two-col {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -1889,7 +1889,7 @@
   padding: 0;
 }
 
-/* ─── Security Panel ─── */
+/* â”€â”€â”€ Security Panel â”€â”€â”€ */
 .sys-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1933,7 +1933,7 @@
   margin-bottom: 3px;
 }
 
-/* ─── Notification Panel ─── */
+/* â”€â”€â”€ Notification Panel â”€â”€â”€ */
 .help-list {
   list-style: none;
   padding: 0;
@@ -1951,7 +1951,7 @@
   color: var(--admin-text-muted);
 }
 
-/* ─── Spin animation ─── */
+/* â”€â”€â”€ Spin animation â”€â”€â”€ */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -1966,7 +1966,7 @@
   animation: spin 1s linear infinite;
 }
 
-/* ─── Responsive ─── */
+/* â”€â”€â”€ Responsive â”€â”€â”€ */
 @media (max-width: 900px) {
   .admin-sidebar {
     width: var(--admin-sidebar-collapsed-w) !important;
@@ -2006,7 +2006,7 @@
   }
 }
 
-/* ─── Thông báo thân thiện cho nông dân khi vào nhầm trang Admin ─── */
+/* â”€â”€â”€ ThÃ´ng bÃ¡o thÃ¢n thiá»‡n cho nÃ´ng dÃ¢n khi vÃ o nháº§m trang Admin â”€â”€â”€ */
 .farmer-notice-screen {
   min-height: 100vh;
   width: 100vw;

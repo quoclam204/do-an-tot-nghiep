@@ -1,11 +1,11 @@
-/* ═══════════════════════════════════════════════
-   FarmDetailPage.css — Microsoft-style redesign
-═══════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FarmDetailPage.css â€” Microsoft-style redesign
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .farm-detail-page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--ms-gray-100);
+  background-color: #f3f7f4;
   color: var(--ms-gray-900);
   font-family: var(--sans);
 }
@@ -16,7 +16,7 @@
   padding-bottom: 2rem;
 }
 
-/* ── Breadcrumb ── */
+/* â”€â”€ Breadcrumb â”€â”€ */
 .breadcrumb-bar {
   display: flex;
   align-items: center;
@@ -43,7 +43,7 @@
 .breadcrumb-sep { color: var(--ms-gray-300); }
 .breadcrumb-current { color: var(--ms-gray-500); font-weight: 500; }
 
-/* ── Summary Header ── */
+/* â”€â”€ Summary Header â”€â”€ */
 .farm-summary-header {
   background: #ffffff;
   border: 1px solid var(--ms-gray-200);
@@ -146,7 +146,7 @@
   border-color: var(--ms-green-dark);
 }
 
-/* ── Allocation Card ── */
+/* â”€â”€ Allocation Card â”€â”€ */
 .farm-allocation-card {
   background: var(--ms-gray-50);
   border: 1px solid var(--ms-gray-200);
@@ -249,7 +249,7 @@
   margin-top: 0.25rem;
 }
 
-/* ── Plots List Section ── */
+/* â”€â”€ Plots List Section â”€â”€ */
 .plots-list-section { margin-top: 0.75rem; }
 
 .plots-section-title-row {
@@ -471,7 +471,7 @@
   text-decoration: underline;
 }
 
-/* ── PLOT MODAL IMAGE STYLES ── */
+/* â”€â”€ PLOT MODAL IMAGE STYLES â”€â”€ */
 .farm-image-group {
   background: var(--ms-gray-50);
   border: 1px solid var(--ms-gray-200);
@@ -676,7 +676,7 @@
   object-fit: cover;
 }
 
-/* ── Empty & Loading ── */
+/* â”€â”€ Empty & Loading â”€â”€ */
 .plots-empty-state {
   background: #ffffff;
   border: 1px dashed var(--ms-gray-300);
@@ -724,7 +724,7 @@
   font-size: 0.875rem;
 }
 
-/* ── Unit Switch Styles ── */
+/* â”€â”€ Unit Switch Styles â”€â”€ */
 .form-label-with-unit {
   display: flex;
   justify-content: space-between;
@@ -817,9 +817,9 @@
   border-color: #fdd;
 }
 
-/* ── Gợi ý mẫu Lô Đất (Preset Suggestions) ── */
+/* â”€â”€ Gá»£i Ã½ máº«u LÃ´ Äáº¥t (Preset Suggestions) â”€â”€ */
 .location-suggestions {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0fdf4 100%);
+  background: #f3f7f4;
   border: 1px solid #dcfce7;
   border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
@@ -903,7 +903,7 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  background: #f1f5f9;
+  background: #ffffff;
   color: var(--ms-gray-600);
   display: flex;
   align-items: center;
@@ -968,7 +968,7 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Mobile ── */
+/* â”€â”€ Mobile â”€â”€ */
 @media (max-width: 768px) {
   .farm-detail-content { padding-top: 1rem; padding-bottom: 90px !important; }
   .farm-summary-header { padding: 1.1rem; gap: 1rem; margin-bottom: 1.1rem; }
@@ -993,7 +993,7 @@
   }
 }
 
-/* ── Tab Navigation ── */
+/* â”€â”€ Tab Navigation â”€â”€ */
 .farm-detail-nav-tabs {
   display: flex;
   gap: 0.75rem;
@@ -1039,7 +1039,7 @@
   border-radius: 3px 3px 0 0;
 }
 
-/* ── Members Grid Layout ── */
+/* â”€â”€ Members Grid Layout â”€â”€ */
 .members-list-section {
   margin-bottom: 2.5rem;
 }
@@ -1203,9 +1203,9 @@
   border-color: var(--ms-green-dark);
 }
 
-/* ── Member Permissions Group & Cards ── */
+/* â”€â”€ Member Permissions Group & Cards â”€â”€ */
 .member-permissions-group {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 1rem;
@@ -1253,7 +1253,7 @@
 
 .permission-option-card:hover {
   border-color: #94a3b8;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .permission-option-card.active {
@@ -1317,7 +1317,7 @@
   color: #15803d;
 }
 
-/* ── MOBILE RESPONSIVE ── */
+/* â”€â”€ MOBILE RESPONSIVE â”€â”€ */
 @media (max-width: 768px) {
   .farm-detail-content {
     padding-top: 1rem !important;
@@ -1376,9 +1376,9 @@
   }
 }
 
-/* ═══════════════════════════════════════════════
-   PUC & CAPEX STYLES (MÃ SỐ VÙNG TRỒNG & KHẤU HAO)
-   ═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   PUC & CAPEX STYLES (MÃƒ Sá» VÃ™NG TRá»’NG & KHáº¤U HAO)
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 .plot-puc-row {
   display: flex;
@@ -1439,9 +1439,9 @@
   color: #ffffff;
 }
 
-/* ── CapEx Box trên Card Lô Đất ── */
+/* â”€â”€ CapEx Box trÃªn Card LÃ´ Äáº¥t â”€â”€ */
 .plot-capex-card-box {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 8px 10px;
@@ -1486,11 +1486,11 @@
   transition: width 0.3s ease;
 }
 
-/* ── Modal Tabs cho Lô Đất ── */
+/* â”€â”€ Modal Tabs cho LÃ´ Äáº¥t â”€â”€ */
 .plot-modal-tabs-bar {
   display: flex;
   gap: 4px;
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 4px;
   border-radius: 8px;
   margin-bottom: 1.25rem;
@@ -1601,4 +1601,3 @@
   gap: 5px;
   color: #334155;
 }
-

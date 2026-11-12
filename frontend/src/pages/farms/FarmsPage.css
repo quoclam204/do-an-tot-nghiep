@@ -1,11 +1,11 @@
-/* ═══════════════════════════════════════════════
-   FarmsPage.css — Microsoft-style redesign
-═══════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   FarmsPage.css â€” Microsoft-style redesign
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 .farms-page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--ms-gray-100);
+  background-color: #f3f7f4;
   color: var(--ms-gray-900);
   font-family: var(--sans);
 }
@@ -16,7 +16,7 @@
   padding-bottom: 2rem;
 }
 
-/* ── HERO BANNER & STATS (REPLACED BY SHARED PageHeader) ── */
+/* â”€â”€ HERO BANNER & STATS (REPLACED BY SHARED PageHeader) â”€â”€ */
 .farms-quick-stats {
   display: flex;
   gap: 0.6rem;
@@ -97,7 +97,7 @@
   border-color: var(--ms-green-dark);
 }
 
-/* ── CONTROLS BAR ── */
+/* â”€â”€ CONTROLS BAR â”€â”€ */
 .farms-controls-bar {
   display: flex;
   justify-content: space-between;
@@ -178,7 +178,7 @@
   font-size: 0.875rem;
 }
 
-/* ── FARMS CARDS GRID ── */
+/* â”€â”€ FARMS CARDS GRID â”€â”€ */
 .farms-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -302,7 +302,7 @@
 }
 
 .farm-plots-preview-box {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px dashed #cbd5e1;
   border-radius: var(--radius-sm, 6px);
   padding: 0.5rem 0.65rem;
@@ -430,7 +430,7 @@
   background: #fdd;
 }
 
-/* ── FARM IMAGE UPLOAD & PRESET STYLES ── */
+/* â”€â”€ FARM IMAGE UPLOAD & PRESET STYLES â”€â”€ */
 .farm-image-group {
   background: var(--ms-gray-50);
   border: 1px solid var(--ms-gray-200);
@@ -635,7 +635,7 @@
   object-fit: cover;
 }
 
-/* ── LOADING & EMPTY STATES ── */
+/* â”€â”€ LOADING & EMPTY STATES â”€â”€ */
 .farms-loading-state,
 .farms-empty-state {
   background: #ffffff;
@@ -684,7 +684,7 @@
   line-height: 1.5;
 }
 
-/* ── MODAL ── */
+/* â”€â”€ MODAL â”€â”€ */
 .farm-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -981,7 +981,7 @@
   border-color: var(--ms-green-dark);
 }
 
-/* ── RESPONSIVE ── */
+/* â”€â”€ RESPONSIVE â”€â”€ */
 @media (max-width: 768px) {
   .farms-main-content {
     padding-bottom: 90px !important;

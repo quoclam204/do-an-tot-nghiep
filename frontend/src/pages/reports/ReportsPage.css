@@ -1,9 +1,9 @@
-/* ================= REPORTS PAGE CSS (THÂN THIỆN NÔNG DÂN & TỐI ƯU MOBILE) ================= */
+﻿/* ================= REPORTS PAGE CSS (THÃ‚N THIá»†N NÃ”NG DÃ‚N & Tá»I Æ¯U MOBILE) ================= */
 .reports-page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8fafc;
+  background-color: #f3f7f4;
   color: var(--ms-gray-900, #0f172a);
   font-family: inherit;
 }
@@ -95,7 +95,7 @@
   transform: translateY(-1px);
 }
 
-/* ================= BÁO CÁO TỔNG KẾT VỤ MÙA ================= */
+/* ================= BÃO CÃO Tá»”NG Káº¾T Vá»¤ MÃ™A ================= */
 .season-summary-card {
   background: #ffffff;
   border-radius: 14px;
@@ -126,7 +126,7 @@
 }
 
 .season-status-pill {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
   padding: 2px 8px;
   border-radius: 999px;
@@ -168,7 +168,7 @@
 }
 
 .season-stat-box {
-  background: #f8fafc;
+  background: #ffffff;
   border-radius: 10px;
   padding: 1rem;
   border: 1px solid #e2e8f0;
@@ -195,7 +195,7 @@
   line-height: 1.5;
 }
 
-/* ================= KPI HEADER & GRID (KHÔNG MÀU MÈ, GỌN GÀNG CHO NÔNG DÂN) ================= */
+/* ================= KPI HEADER & GRID (KHÃ”NG MÃ€U MÃˆ, Gá»ŒN GÃ€NG CHO NÃ”NG DÃ‚N) ================= */
 .kpi-header-row {
   display: flex;
   align-items: center;
@@ -268,7 +268,7 @@
   transform: translateY(-1px);
 }
 
-/* ── KPI Cards: Nền trắng sạch sẽ, viền mảnh thanh lịch, cùng chiều cao ── */
+/* â”€â”€ KPI Cards: Ná»n tráº¯ng sáº¡ch sáº½, viá»n máº£nh thanh lá»‹ch, cÃ¹ng chiá»u cao â”€â”€ */
 .reports-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -322,7 +322,7 @@
   flex-shrink: 0;
 }
 
-/* Icon nhận diện màu nhã nhặn, không màu mè */
+/* Icon nháº­n diá»‡n mÃ u nhÃ£ nháº·n, khÃ´ng mÃ u mÃ¨ */
 .kpi-icon-expense {
   background: #fff7ed;
   color: #c2410c;
@@ -381,7 +381,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: #f8fafc;
+  background: #ffffff;
   color: #475569;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
@@ -394,12 +394,12 @@
 }
 
 .btn-card-detail-link:hover {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #0f172a;
   border-color: #cbd5e1;
 }
 
-/* Badge trạng thái Lãi / Lỗ mộc mạc cho nông dân */
+/* Badge tráº¡ng thÃ¡i LÃ£i / Lá»— má»™c máº¡c cho nÃ´ng dÃ¢n */
 .badge-kpi-status {
   display: inline-flex;
   align-items: center;
@@ -602,7 +602,7 @@
   letter-spacing: 0.03em;
   color: #475569;
   padding: 0.85rem 1.15rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
@@ -616,7 +616,7 @@
 
 .reports-usage-table tbody tr:hover,
 .reports-history-table tbody tr:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .reports-usage-table tbody tr:last-child td,
@@ -624,7 +624,7 @@
   border-bottom: none;
 }
 
-/* ================= CAPEX REPORT SECTION (VỐN ĐẦU TƯ CÂY LÂU NĂM) ================= */
+/* ================= CAPEX REPORT SECTION (Vá»N Äáº¦U TÆ¯ CÃ‚Y LÃ‚U NÄ‚M) ================= */
 .capex-report-section {
   background: #ffffff;
   border-radius: 14px;
@@ -677,7 +677,7 @@
   max-width: 780px;
 }
 
-/* 4 Thẻ chỉ số CapEx: Nền xám nhạt thanh lịch */
+/* 4 Tháº» chá»‰ sá»‘ CapEx: Ná»n xÃ¡m nháº¡t thanh lá»‹ch */
 .capex-cards-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -686,7 +686,7 @@
 }
 
 .capex-stat-card {
-  background: #f8fafc;
+  background: #ffffff;
   padding: 1rem;
   border-radius: 10px;
   border: 1px solid #e2e8f0;
@@ -716,7 +716,7 @@
   line-height: 1.4;
 }
 
-/* Thanh chỉ dẫn cuộn ngang cho mobile */
+/* Thanh chá»‰ dáº«n cuá»™n ngang cho mobile */
 .mobile-table-scroll-hint {
   display: none;
   background: var(--ms-green-light, #e8f5e8);
@@ -746,7 +746,7 @@
 
 .capex-plots-table th {
   padding: 10px 12px;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1.5px solid #e2e8f0;
   text-align: left;
   color: #475569;
@@ -763,7 +763,7 @@
 }
 
 .capex-plots-table tbody tr:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .table-sub-dim {
@@ -988,7 +988,7 @@
 }
 
 .btn-export-main:hover {
-  background: #f8fafc !important;
+  background: #ffffff !important;
   border-color: #94a3b8 !important;
   color: #0f172a !important;
 }
@@ -1049,7 +1049,7 @@
 }
 
 .export-dropdown-item:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .export-dropdown-item:active {
@@ -1105,7 +1105,7 @@
   line-height: 1.3;
 }
 
-/* ================= TỐI ƯU TOÀN DIỆN CHO MOBILE & TABLET ================= */
+/* ================= Tá»I Æ¯U TOÃ€N DIá»†N CHO MOBILE & TABLET ================= */
 @media (max-width: 1024px) {
   .reports-kpi-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -1277,12 +1277,12 @@
   }
 }
 
-/* ═══════════════════════════════════════════════
-   CHẾ ĐỘ XUẤT / IN BÁO CÁO (PRINT / LƯU PDF)
-═══════════════════════════════════════════════ */
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   CHáº¾ Äá»˜ XUáº¤T / IN BÃO CÃO (PRINT / LÆ¯U PDF)
+â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 @media print {
 
-  /* Ẩn các thành phần điều hướng, bộ lọc và phân trang không cần thiết khi in */
+  /* áº¨n cÃ¡c thÃ nh pháº§n Ä‘iá»u hÆ°á»›ng, bá»™ lá»c vÃ  phÃ¢n trang khÃ´ng cáº§n thiáº¿t khi in */
   header,
   footer,
   .reports-filter-card,

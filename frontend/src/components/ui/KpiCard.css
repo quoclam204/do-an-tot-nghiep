@@ -1,9 +1,9 @@
-/* ═══════════════════════════════════════════════════════════
-   KpiCard.css — DalatAgri Design System (Highland Ledger)
-   The Big Numeral Rule · Semantic Status Colors · Tactile Feel
-   ═══════════════════════════════════════════════════════════ */
+﻿/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+   KpiCard.css â€” DalatAgri Design System (Highland Ledger)
+   The Big Numeral Rule Â· Semantic Status Colors Â· Tactile Feel
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ── KPI Grid Container ── */
+/* â”€â”€ KPI Grid Container â”€â”€ */
 .dalat-kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -12,7 +12,7 @@
   box-sizing: border-box;
 }
 
-/* ── KPI Card Base ── */
+/* â”€â”€ KPI Card Base â”€â”€ */
 .dalat-kpi-card {
   background: var(--bg, #ffffff);
   border: 1px solid var(--border-light, #e8e8e8);
@@ -41,7 +41,7 @@
   transform: scale(0.975);
 }
 
-/* ── Top Row: Label & Icon ── */
+/* â”€â”€ Top Row: Label & Icon â”€â”€ */
 .dalat-kpi-top-row {
   display: flex;
   justify-content: space-between;
@@ -74,7 +74,7 @@
   transform: scale(1.08);
 }
 
-/* ── Middle: Big Numeral ── */
+/* â”€â”€ Middle: Big Numeral â”€â”€ */
 .dalat-kpi-value-row {
   display: flex;
   align-items: baseline;
@@ -98,7 +98,7 @@
   margin-left: 2px;
 }
 
-/* ── Subtext & Footer ── */
+/* â”€â”€ Subtext & Footer â”€â”€ */
 .dalat-kpi-footer {
   display: flex;
   justify-content: space-between;
@@ -119,7 +119,7 @@
   flex-shrink: 0;
 }
 
-/* ── Semantic Variants ── */
+/* â”€â”€ Semantic Variants â”€â”€ */
 /* Green: Highland Pine Green */
 .dalat-kpi-card.variant-green {
   border-color: #c9e8d2;
@@ -191,7 +191,7 @@
   background: #ffffff;
 }
 .dalat-kpi-card.variant-neutral .dalat-kpi-icon-wrap {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 .dalat-kpi-card.variant-neutral .dalat-kpi-value {
@@ -203,3 +203,4 @@
   border-width: 1.5px;
   box-shadow: 0 2px 8px rgba(110, 62, 174, 0.08);
 }
+

@@ -1,9 +1,9 @@
-/* ================= MATERIALS PAGE CSS (ĐỒNG BỘ DESIGN SYSTEM) ================= */
+﻿/* ================= MATERIALS PAGE CSS (Äá»’NG Bá»˜ DESIGN SYSTEM) ================= */
 .materials-page-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--ms-gray-100);
+  background-color: #f3f7f4;
   color: var(--ms-gray-900);
   font-family: inherit;
 }
@@ -170,7 +170,7 @@
   letter-spacing: 0.04em;
   color: #6b7280;
   padding: 0.85rem 1.25rem;
-  background: #f8fdf9;
+  background: #ffffff;
   border-bottom: 1.5px solid #e5f3ea;
   white-space: nowrap;
 }
@@ -328,7 +328,7 @@
   align-items: center;
   padding: 1.1rem 1.4rem;
   border-bottom: 1.5px solid #edf2f7;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .modal-header h3 {
@@ -427,7 +427,7 @@
   gap: 0.65rem;
   padding: 1rem 1.4rem;
   border-top: 1.5px solid #edf2f7;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .btn-modal-cancel {
@@ -443,7 +443,7 @@
 }
 
 .btn-modal-cancel:hover {
-  background: #f3f4f6;
+  background: #ffffff;
   border-color: #d1d5db;
 }
 
@@ -504,7 +504,7 @@
   margin: 0 auto;
 }
 
-/* ================= FORM MODAL GỌN GÀNG, ĐẸP MẮT ================= */
+/* ================= FORM MODAL Gá»ŒN GÃ€NG, Äáº¸P Máº®T ================= */
 .modal-select {
   width: 100%;
   cursor: pointer;
@@ -540,7 +540,7 @@
   white-space: nowrap;
 }
 
-/* Hiển thị giá tự động chạy mượt mà bên dưới ô nhập */
+/* Hiá»ƒn thá»‹ giÃ¡ tá»± Ä‘á»™ng cháº¡y mÆ°á»£t mÃ  bÃªn dÆ°á»›i Ã´ nháº­p */
 .live-price-preview {
   display: flex;
   align-items: center;
@@ -598,7 +598,7 @@
   font-size: 0.76rem;
   color: #64748b;
   line-height: 1.45;
-  background: #f8fafc;
+  background: #ffffff;
   padding: 0.55rem 0.85rem;
   border-radius: 8px;
   border: 1px dashed #cbd5e1;

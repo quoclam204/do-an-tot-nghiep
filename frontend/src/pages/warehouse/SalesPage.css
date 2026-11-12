@@ -1,4 +1,4 @@
-.sales-page { min-height: 100vh; padding: 1rem 0 2rem; background: var(--bg, #f8faf9); }
+﻿.sales-page { min-height: 100vh; padding: 1rem 0 2rem; background: var(--bg, #f8faf9); }
 .sales-container { width: 100%; max-width: none; margin: 0 auto; padding: 0 24px; }
 .sales-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .sales-header h1 { font-size: 1.8rem; color: #1a3a2a; margin: 0; }
@@ -29,7 +29,7 @@
   background: var(--ms-green-dark);
   border-color: var(--ms-green-dark);
 }
-.btn-secondary { background: #f1f5f3; color: #4a5c4f; border: 1px solid #d1d9d4; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: .9rem; }
+.btn-secondary { background: #ffffff; color: #4a5c4f; border: 1px solid #d1d9d4; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 500; font-size: .9rem; }
 .btn-danger { background: linear-gradient(135deg, #dc2626, #b91c1c); color: white; border: none; padding: .6rem 1.2rem; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: .9rem; }
 .btn-edit { background: #e0f2fe; color: #0284c7; border: none; padding: .4rem .8rem; border-radius: 8px; cursor: pointer; font-size: .85rem; }
 .btn-delete { background: #fef2f2; color: #dc2626; border: none; padding: .4rem .8rem; border-radius: 8px; cursor: pointer; font-size: .85rem; }
@@ -43,7 +43,7 @@
 .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .alert button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: inherit; }
 
-.inline-form { background: #f8faf9; border: 1px solid #e5ece7; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
+.inline-form { background: #ffffff; border: 1px solid #e5ece7; border-radius: 12px; padding: 1.2rem; margin-bottom: 1rem; }
 .inline-form h3 { margin: 0 0 .8rem; font-size: 1rem; color: #1a3a2a; }
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem; margin-bottom: .8rem; }
 .form-grid label, .inline-form > label { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; font-weight: 500; color: #4a5c4f; }
@@ -51,7 +51,7 @@
 .form-actions { display: flex; gap: .5rem; margin-top: .8rem; }
 
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-.product-card { background: #f8faf9; border: 1px solid #e5ece7; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: .5rem; transition: all .2s; }
+.product-card { background: #ffffff; border: 1px solid #e5ece7; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: .5rem; transition: all .2s; }
 .product-card:hover { border-color: #bbf7d0; box-shadow: 0 4px 12px rgba(22,163,74,.08); }
 .product-info h3 { margin: 0 0 .3rem; font-size: 1rem; color: #1a3a2a; }
 .product-price { font-size: 1.1rem; font-weight: 700; color: #16a34a; margin: 0; }
@@ -63,7 +63,7 @@
 .invoice-form { display: flex; flex-direction: column; gap: 1rem; }
 .invoice-form h3 { margin: .5rem 0; font-size: 1rem; color: #1a3a2a; }
 .invoice-items { display: flex; flex-direction: column; gap: .5rem; }
-.invoice-item-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; background: #f8faf9; padding: .7rem; border-radius: 10px; border: 1px solid #e5ece7; }
+.invoice-item-row { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; background: #ffffff; padding: .7rem; border-radius: 10px; border: 1px solid #e5ece7; }
 .invoice-item-row select { flex: 2; min-width: 180px; padding: .5rem; border: 1px solid #d1d9d4; border-radius: 8px; font-size: .9rem; }
 .invoice-item-row input { flex: 1; min-width: 90px; padding: .5rem; border: 1px solid #d1d9d4; border-radius: 8px; font-size: .9rem; }
 .item-subtotal { font-weight: 600; color: #16a34a; min-width: 120px; text-align: right; }
@@ -82,7 +82,7 @@
 .stat-card.accent strong { color: #16a34a; }
 
 .invoices-list { display: flex; flex-direction: column; gap: .8rem; }
-.invoice-card { background: #f8faf9; border: 1px solid #e5ece7; border-radius: 12px; padding: 1rem; transition: all .2s; }
+.invoice-card { background: #ffffff; border: 1px solid #e5ece7; border-radius: 12px; padding: 1rem; transition: all .2s; }
 .invoice-card:hover { border-color: #bbf7d0; }
 .invoice-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: .4rem; }
 .invoice-header-row strong { font-size: 1rem; color: #1a3a2a; }
@@ -109,7 +109,7 @@
 .print-header { text-align: center; border-bottom: 2px solid #1a3a2a; padding-bottom: .8rem; margin-bottom: 1rem; }
 .print-header h2 { margin: 0; color: #1a3a2a; }
 .print-header p { margin: .2rem 0; font-size: .9rem; }
-.print-customer { margin-bottom: 1rem; padding: .5rem; background: #f8faf9; border-radius: 8px; }
+.print-customer { margin-bottom: 1rem; padding: .5rem; background: #ffffff; border-radius: 8px; }
 .print-customer p { margin: .2rem 0; font-size: .9rem; }
 .print-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
 .print-table th { background: #1a3a2a; color: white; padding: .5rem; text-align: left; font-size: .85rem; }
@@ -138,3 +138,4 @@
   .invoice-item-row select, .invoice-item-row input { min-width: auto; }
   .item-subtotal { text-align: left; }
 }
+

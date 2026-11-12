@@ -1,4 +1,4 @@
-/* Financial Explanation Modal - DalatAgri (Clean & Farmer-Friendly) */
+﻿/* Financial Explanation Modal - DalatAgri (Clean & Farmer-Friendly) */
 .explain-modal-overlay {
   position: fixed;
   inset: 0;
@@ -52,7 +52,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.1rem 1.4rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -65,7 +65,7 @@
 .explain-header-icon {
   width: 40px;
   height: 40px;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #334155;
   border-radius: 8px;
   display: flex;
@@ -122,9 +122,9 @@
   gap: 1.1rem;
 }
 
-/* Summary Banner (Lớn, rõ ràng, không màu mè) */
+/* Summary Banner (Lá»›n, rÃµ rÃ ng, khÃ´ng mÃ u mÃ¨) */
 .detail-summary-banner {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
   padding: 1rem 1.2rem;
@@ -211,7 +211,7 @@
 .detail-table th {
   text-align: left;
   padding: 0.5rem 0.6rem;
-  background: #f8fafc;
+  background: #ffffff;
   color: #475569;
   font-weight: 600;
   border-bottom: 1.5px solid #e2e8f0;
@@ -233,7 +233,7 @@
 
 /* Profit Calculation Card */
 .detail-calc-card {
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 1rem 1.1rem;
@@ -280,7 +280,7 @@
 /* Footer */
 .explain-modal-footer {
   padding: 0.9rem 1.4rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
@@ -300,7 +300,8 @@
 }
 
 .explain-btn-close-footer:hover {
-  background: #f1f5f9;
+  background: #ffffff;
   border-color: #94a3b8;
   color: #0f172a;
 }
+

@@ -1,5 +1,5 @@
-/* ============================================================
-   DalatAgri Admin Portal — PanelOverview Styles (Interactive Charts)
+﻿/* ============================================================
+   DalatAgri Admin Portal â€” PanelOverview Styles (Interactive Charts)
    ============================================================ */
 
 .overview-page-wrapper {
@@ -8,7 +8,7 @@
   gap: 24px;
 }
 
-/* ── Header Toolbar ── */
+/* â”€â”€ Header Toolbar â”€â”€ */
 .overview-header-bar {
   display: flex;
   align-items: center;
@@ -47,7 +47,7 @@
 
 .view-tabs {
   display: flex;
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 3px;
   border-radius: 8px;
   gap: 2px;
@@ -94,12 +94,12 @@
 }
 
 .btn-refresh:hover {
-  background: #f8fafc;
+  background: #ffffff;
   border-color: #cbd5e1;
   color: #107C10;
 }
 
-/* ── KPI Grid ── */
+/* â”€â”€ KPI Grid â”€â”€ */
 .overview-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -163,7 +163,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 
@@ -184,7 +184,7 @@
   gap: 4px;
 }
 
-/* ── Charts Grid ── */
+/* â”€â”€ Charts Grid â”€â”€ */
 .overview-charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
@@ -260,7 +260,7 @@
   font-weight: 700;
   padding: 3px 9px;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #475569;
 }
 
@@ -283,7 +283,7 @@
   justify-content: center;
 }
 
-/* ── Donut Chart Layout & Center Text ── */
+/* â”€â”€ Donut Chart Layout & Center Text â”€â”€ */
 .donut-chart-container {
   display: flex;
   align-items: center;
@@ -340,7 +340,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
-  background: #f8fafc;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   transition: all 0.18s ease;
@@ -392,7 +392,7 @@
   border-radius: 4px;
 }
 
-/* ── Custom Recharts Tooltip ── */
+/* â”€â”€ Custom Recharts Tooltip â”€â”€ */
 .custom-chart-tooltip {
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(8px);
@@ -435,7 +435,7 @@
   margin-left: auto;
 }
 
-/* ── Status Health Card ── */
+/* â”€â”€ Status Health Card â”€â”€ */
 .account-health-container {
   display: flex;
   flex-direction: column;
@@ -508,7 +508,7 @@
 .health-bar-fill.pending { background: #f97316; }
 .health-bar-fill.inactive { background: #ef4444; }
 
-/* ── Table Section ── */
+/* â”€â”€ Table Section â”€â”€ */
 .overview-table-card {
   background: #ffffff;
   border: 1px solid var(--admin-border);
@@ -534,7 +534,7 @@
   gap: 8px;
 }
 
-/* ── Table & Badge Styles ── */
+/* â”€â”€ Table & Badge Styles â”€â”€ */
 .panel-table {
   width: 100%;
   border-collapse: collapse;
@@ -542,7 +542,7 @@
 }
 
 .panel-table th {
-  background: #f8fafc;
+  background: #ffffff;
   color: #475569;
   font-size: 11.5px;
   font-weight: 700;
@@ -565,7 +565,7 @@
 }
 
 .panel-table tr:hover td {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .user-cell {
@@ -624,4 +624,5 @@
     flex-direction: column;
   }
 }
+
 

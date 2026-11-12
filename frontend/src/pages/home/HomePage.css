@@ -6,7 +6,7 @@
 .elder-home-page {
   font-family: var(--sans);
   color: var(--text);
-  background-color: #ffffff;
+  background-color: #f3f7f4;
   line-height: 1.5;
   font-size: 15px;
   overflow-x: clip;
@@ -15,7 +15,7 @@
 /* ─── HERO SECTION ─── */
 .elder-hero {
   padding: 40px 0 48px;
-  background: #ffffff;
+  background: #f3f7f4;
   border-bottom: 1px solid var(--ms-gray-200);
 }
 
@@ -232,7 +232,7 @@
 /* ─── 4 Ô CHỨC NĂNG CHÍNH (CARDS) ─── */
 .elder-features-section {
   padding: 56px 0 64px;
-  background: var(--ms-gray-50);
+  background: #ffffff;
   border-top: 1px solid var(--ms-gray-200);
 }
 
@@ -391,7 +391,7 @@
 /* ─── 3 BƯỚC SỬ DỤNG ─── */
 .elder-steps-section {
   padding: 56px 0 64px;
-  background: #ffffff;
+  background: #f3f7f4;
   border-top: 1px solid var(--ms-gray-200);
 }
 
@@ -454,7 +454,7 @@
 /* ─── SO SÁNH ─── */
 .elder-comparison-section {
   padding: 56px 0 64px;
-  background: var(--ms-gray-50);
+  background: #ffffff;
   border-top: 1px solid var(--ms-gray-200);
 }
 
@@ -560,7 +560,7 @@
 /* ─── FAQ ─── */
 .elder-faq-section {
   padding: 56px 0 64px;
-  background: #ffffff;
+  background: #f3f7f4;
   border-top: 1px solid var(--ms-gray-200);
 }
 
@@ -609,7 +609,7 @@
 /* ─── KHUNG HỖ TRỢ KỸ THUẬT (ĐƠN GIẢN, ĐỒNG BỘ MÀU XANH DALATAGRI) ─── */
 .elder-support-section {
   padding: 40px 0 52px;
-  background: var(--ms-gray-50);
+  background: #ffffff;
   border-top: 1px solid var(--ms-gray-200);
 }
 
@@ -617,10 +617,11 @@
   background: #ffffff;
   border: 1px solid var(--ms-green-mid);
   border-radius: var(--radius-md);
-  padding: 24px 28px;
-  display: flex;
+  padding: 18px 22px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
   box-shadow: var(--shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.05));
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -649,19 +650,19 @@
 }
 
 .support-title {
-  font-size: 1.15em !important;
+  font-size: 1.05em !important;
   font-weight: 700 !important;
   color: var(--ms-gray-900) !important;
-  margin: 0 0 6px !important;
+  margin: 0 0 4px !important;
   line-height: 1.35;
 }
 
 .support-desc {
-  font-size: 0.9em;
+  font-size: 0.875em;
   color: var(--ms-gray-600);
   line-height: 1.5;
-  margin: 0 0 10px;
-  max-width: 650px;
+  margin: 0 0 8px;
+  max-width: 760px;
 }
 
 .support-contact-row {
@@ -716,8 +717,14 @@
 .support-action-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
+}
+
+.support-action-group .elder-btn {
+  min-height: 40px;
+  padding: 9px 14px;
+  font-size: 0.85em;
 }
 
 /* Nút gọi: Xanh nhạt viền xanh chuẩn bảng màu */
@@ -768,10 +775,15 @@
   }
 
   .support-card {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
     padding: 22px 20px;
     gap: 18px;
+  }
+
+  .support-content {
+    width: 100%;
   }
 
   .support-action-group {
@@ -846,6 +858,7 @@
   }
 
   .support-card {
+    display: flex;
     padding: 18px 16px;
     border-left-width: 4px;
     gap: 14px;

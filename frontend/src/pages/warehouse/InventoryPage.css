@@ -1,10 +1,10 @@
-/* InventoryPage.css */
+﻿/* InventoryPage.css */
 
 .inventory-page-wrapper {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-primary, #f8fafc);
+  background-color: #f3f7f4;
   color: var(--text-primary, #1e293b);
 }
 
@@ -145,7 +145,7 @@
 }
 
 .tab-btn:hover {
-  background-color: #f1f5f9;
+  background-color: #ffffff;
   color: #1e293b;
 }
 
@@ -180,7 +180,7 @@
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.95rem;
-  background-color: #f8fafc;
+  background-color: #ffffff;
 }
 
 .search-icon {
@@ -232,7 +232,7 @@
 }
 
 .inventory-table th {
-  background-color: #f8fafc;
+  background-color: #ffffff;
   padding: 0.85rem 1rem;
   font-size: 0.85rem;
   font-weight: 600;
@@ -250,7 +250,7 @@
 }
 
 .inventory-table tbody tr:hover {
-  background-color: #f8fafc;
+  background-color: #ffffff;
 }
 
 .item-name-cell {
@@ -274,7 +274,7 @@
 .badge-phan_bon { background-color: #e0f2fe; color: #0369a1; }
 .badge-thuoc_bvtv { background-color: #fef3c7; color: #92400e; }
 .badge-giong { background-color: #dcfce7; color: #15803d; }
-.badge-khac { background-color: #f1f5f9; color: #475569; }
+.badge-khac { background-color: #ffffff; color: #475569; }
 
 .stock-quantity {
   display: flex;
@@ -307,7 +307,7 @@
 .status-out { background-color: #fef2f2; color: #b91c1c; }
 
 .activity-badge {
-  background-color: #f1f5f9;
+  background-color: #ffffff;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
   font-size: 0.8rem;
@@ -371,7 +371,7 @@
 
 .modal-header {
   padding: 1.25rem 1.5rem;
-  background: #f8fafc;
+  background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   justify-content: space-between;
@@ -404,7 +404,7 @@
 }
 
 .modal-desc {
-  background: #f1f5f9;
+  background: #ffffff;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   font-size: 0.9rem;
@@ -536,7 +536,7 @@
 }
 
 .custom-select-option:hover {
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .custom-select-option.selected {
@@ -629,7 +629,7 @@
   to { transform: scale(1); opacity: 1; }
 }
 
-/* ── Desktop vs Mobile Switcher ── */
+/* â”€â”€ Desktop vs Mobile Switcher â”€â”€ */
 .mobile-view {
   display: none !important;
 }
@@ -637,7 +637,7 @@
   display: block;
 }
 
-/* ── Mobile Responsive for Inventory (< 768px) ── */
+/* â”€â”€ Mobile Responsive for Inventory (< 768px) â”€â”€ */
 @media (max-width: 768px) {
   .desktop-view {
     display: none !important;
@@ -764,7 +764,7 @@
     font-size: 0.88rem;
   }
 
-  /* ── Mobile Inventory Card Style ── */
+  /* â”€â”€ Mobile Inventory Card Style â”€â”€ */
   .mobile-inventory-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -817,7 +817,7 @@
     gap: 6px;
     font-size: 0.85rem;
     color: #334155;
-    background: #f8fafc;
+    background: #ffffff;
     padding: 0.35rem 0.65rem;
     border-radius: 6px;
     border: 1px solid #f1f5f9;
@@ -832,7 +832,7 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
-    background: #f8fafc;
+    background: #ffffff;
     border: 1px solid #edf2f7;
     border-radius: 8px;
     padding: 0.6rem 0.75rem;
@@ -922,7 +922,7 @@
     color: #dc2626;
   }
 
-  /* ── Mobile Usage History Card Style ── */
+  /* â”€â”€ Mobile Usage History Card Style â”€â”€ */
   .mobile-history-card {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -958,7 +958,7 @@
   .mobile-history-card .mhc-stats {
     display: flex;
     justify-content: space-between;
-    background: #f8fafc;
+    background: #ffffff;
     padding: 0.45rem 0.75rem;
     border-radius: 6px;
     font-size: 0.82rem;
@@ -973,12 +973,12 @@
     font-size: 0.78rem;
     color: #475569;
     font-style: italic;
-    background: #f1f5f9;
+    background: #ffffff;
     padding: 0.35rem 0.6rem;
     border-radius: 6px;
   }
 
-  /* ── Modal Native Bottom-Sheet on Mobile ── */
+  /* â”€â”€ Modal Native Bottom-Sheet on Mobile â”€â”€ */
   .modal-backdrop {
     padding: 0 !important;
     align-items: flex-end !important;
@@ -1084,19 +1084,19 @@
   font-weight: 600;
 }
 
-/* ── Đơn vị hint trên nhãn ── */
+/* â”€â”€ ÄÆ¡n vá»‹ hint trÃªn nhÃ£n â”€â”€ */
 .unit-hint {
   color: #16a34a;
   font-weight: 600;
   font-size: 0.85rem;
 }
 
-/* ── Ô hiển thị Đơn giá cố định (Read-only) ── */
+/* â”€â”€ Ã” hiá»ƒn thá»‹ ÄÆ¡n giÃ¡ cá»‘ Ä‘á»‹nh (Read-only) â”€â”€ */
 .readonly-price-box {
   display: flex;
   align-items: center;
   gap: 6px;
-  background-color: #f8fafc;
+  background-color: #ffffff;
   border: 1.5px solid #cbd5e1;
   border-radius: 8px;
   padding: 0 0.85rem;
@@ -1117,7 +1117,7 @@
   font-size: 0.82rem;
 }
 
-/* ── Thẻ Tổng giá trị nhập kho (Tự động tính) ── */
+/* â”€â”€ Tháº» Tá»•ng giÃ¡ trá»‹ nháº­p kho (Tá»± Ä‘á»™ng tÃ­nh) â”€â”€ */
 .total-calculation-card {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border: 1.5px solid #86efac;
@@ -1191,7 +1191,7 @@
   color: #14532d;
 }
 
-/* ── Thông báo to rõ, đơn giản cho bà con nông dân ── */
+/* â”€â”€ ThÃ´ng bÃ¡o to rÃµ, Ä‘Æ¡n giáº£n cho bÃ  con nÃ´ng dÃ¢n â”€â”€ */
 .inventory-toast {
   position: fixed;
   top: 68px;
@@ -1235,7 +1235,7 @@
   }
 }
 
-/* Trên mobile: xuất hiện ở chính giữa màn hình */
+/* TrÃªn mobile: xuáº¥t hiá»‡n á»Ÿ chÃ­nh giá»¯a mÃ n hÃ¬nh */
 @media (max-width: 768px) {
   .inventory-toast {
     top: 58px;
@@ -1263,7 +1263,7 @@
   }
 }
 
-/* ── History Tab & Badges Styling ── */
+/* â”€â”€ History Tab & Badges Styling â”€â”€ */
 .history-header {
   margin-bottom: 1.25rem;
 }
@@ -1286,7 +1286,7 @@
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 700;
-  background: #f1f5f9;
+  background: #ffffff;
   color: #334155;
   white-space: nowrap;
 }
@@ -1304,7 +1304,7 @@
 }
 
 .activity-badge.badge-lam_co {
-  background: #f3f4f6;
+  background: #ffffff;
   color: #4b5563;
   border: 1px solid #e5e7eb;
 }
@@ -1358,7 +1358,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  background: #f8fafc;
+  background: #ffffff;
   padding: 8px 12px;
   border-radius: 6px;
   margin-bottom: 8px;

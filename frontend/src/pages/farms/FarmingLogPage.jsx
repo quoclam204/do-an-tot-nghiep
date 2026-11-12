@@ -1961,18 +1961,18 @@ export default function FarmingLogPage() {
             ) : (
               <button
                 type="submit"
-                className="btn-submit-log"
+                className="btn-submit-log btn-submit-log-save"
                 disabled={submitting}
               >
                 {submitting ? (
                   <>
                     <IconRotateCw size={18} strokeWidth={2.4} className="spin-fast" />
-                    <span>{editingLogId ? 'Đang cập nhật nhật ký...' : 'Đang lưu nhật ký & hạch toán...'}</span>
+                    <span>{editingLogId ? 'Đang lưu thay đổi...' : 'Đang lưu nhật ký...'}</span>
                   </>
                 ) : (
                   <>
                     <IconCheckCircle size={18} strokeWidth={2.4} />
-                    <span>{editingLogId ? 'Lưu Thay Đổi Nhật Ký Canh Tác' : 'Lưu Nhật Ký & Hạch Toán Dòng Tiền'}</span>
+                    <span>{editingLogId ? 'Lưu thay đổi' : 'Lưu nhật ký'}</span>
                   </>
                 )}
               </button>
