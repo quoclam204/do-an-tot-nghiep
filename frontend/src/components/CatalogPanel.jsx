@@ -189,7 +189,6 @@ function CatalogPanel({ user, initialTab = "crops" }) {
     <section className="panel catalog-panel">
       <div className="panel-heading">
         <div>
-          <p className="eyebrow">04 / DANH MỤC</p>
           <h2>Dữ liệu nền sản xuất</h2>
           <p className="catalog-subtitle">
             Thiết lập một lần, dùng xuyên suốt mùa vụ.

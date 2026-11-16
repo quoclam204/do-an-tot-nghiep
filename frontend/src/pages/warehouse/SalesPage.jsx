@@ -206,7 +206,6 @@ export default function SalesPage() {
         <div className="sales-container">
           <div className="sales-header">
             <div>
-              <p className="eyebrow">BÁN HÀNG & HÓA ĐƠN</p>
               <h1>Quản lý bán hàng</h1>
             </div>
             <select className="farm-select" value={selectedFarmId} onChange={e => setSelectedFarmId(e.target.value)}>

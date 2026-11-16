@@ -13,7 +13,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: var(--bg-surface, #f3f7f4);
 }
 
 /* ── CONTAINER ── */
@@ -110,6 +110,25 @@
   color: var(--ms-green);
   border-bottom-color: var(--ms-green);
   font-weight: 600;
+}
+
+/* Admin nav link — uses info blue to signal elevated access */
+.nav .admin-nav-link {
+  color: var(--status-info, #1d6fb8);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nav .admin-nav-link:hover {
+  color: #1558a0;
+  background: var(--status-info-bg, #eff6ff);
+}
+
+.nav .admin-nav-link.active-nav-link {
+  color: var(--status-info, #1d6fb8);
+  border-bottom-color: var(--status-info, #1d6fb8);
 }
 
 /* Nav Dropdown */
@@ -304,6 +323,40 @@
   gap: 8px;
 }
 
+/* ── Offline / Pending sync status badge ── */
+.header-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid;
+  margin-right: 6px;
+  transition: opacity 0.15s;
+  cursor: default;
+  background: none;
+}
+
+.header-status-badge.offline {
+  border-color: var(--status-warning-border, #fcd34d);
+  background: var(--status-warning-bg, #fffbeb);
+  color: var(--status-warning, #b45309);
+}
+
+.header-status-badge.pending {
+  border-color: var(--status-info-border, #93c5fd);
+  background: var(--status-info-bg, #eff6ff);
+  color: var(--status-info, #1d6fb8);
+  cursor: pointer;
+}
+
+.header-status-badge.pending:hover {
+  opacity: 0.85;
+}
+
 .login-btn {
   padding: 5px 16px;
   background: transparent;
@@ -406,6 +459,9 @@
   font-family: inherit;
   transition: all 0.15s;
   height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .logout-btn-hdr:hover {
@@ -443,14 +499,6 @@
   margin-bottom: 24px;
 }
 
-.eyebrow {
-  color: var(--ms-green) !important;
-  font-size: 11px !important;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 6px !important;
-}
 
 .page-intro h1 {
   margin: 0 0 6px;
@@ -629,6 +677,9 @@
   font: inherit;
   font-weight: 600;
   border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .primary-button {
@@ -879,7 +930,7 @@
 ══════════════════════════════════════════ */
 .footer {
   width: 100%;
-  background: #fff;
+  background: var(--bg-surface, #f3f7f4);
   border-top: 1px solid var(--ms-gray-200);
   color: var(--ms-gray-600);
   margin-top: auto;
@@ -1079,6 +1130,9 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    padding: 16px;
+    flex: 1;
+    overflow-y: auto;
   }
 
   .mobile-nav-link {
@@ -1098,6 +1152,34 @@
   .mobile-nav-link.active {
     background: var(--ms-green-light);
     color: var(--ms-green);
+  }
+
+  /* Admin link in mobile drawer — info blue */
+  .mobile-nav-admin-link {
+    color: var(--status-info, #1d6fb8);
+    font-weight: 600;
+  }
+
+  .mobile-nav-admin-link:hover,
+  .mobile-nav-admin-link.active {
+    background: var(--status-info-bg, #eff6ff);
+    color: #1558a0;
+  }
+
+  /* Logout button in mobile drawer — danger red */
+  .mobile-nav-logout-btn {
+    background: var(--status-danger-bg, #fef2f2);
+    color: var(--status-danger, #dc2626);
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .mobile-nav-logout-btn:hover {
+    background: #fde8e8;
+    color: #b91c1c;
   }
 
   .mobile-nav-group-title {
@@ -1871,6 +1953,17 @@
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+
+  .mobile-drawer-user-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-h, #1e293b);
+  }
+
+  .mobile-drawer-user-role {
+    font-size: 12px;
+    color: var(--ms-green, #137a3a);
   }
 }
 

@@ -2,7 +2,6 @@
 .sales-container { width: 100%; max-width: none; margin: 0 auto; padding: 0 24px; }
 .sales-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
 .sales-header h1 { font-size: 1.8rem; color: #1a3a2a; margin: 0; }
-.sales-header .eyebrow { font-size: .75rem; text-transform: uppercase; letter-spacing: 2px; color: #16a34a; font-weight: 600; margin-bottom: .25rem; }
 .farm-select { padding: .6rem 1rem; border-radius: 10px; border: 1px solid #d1d9d4; background: white; font-size: .95rem; min-width: 200px; }
 
 .sales-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e5ece7; padding-bottom: 0; }

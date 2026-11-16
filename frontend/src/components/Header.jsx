@@ -180,8 +180,7 @@ function Header() {
             {user?.role === 'ADMIN' && (
               <Link
                 to="/admin"
-                className={isActive('/admin') ? 'active-nav-link' : ''}
-                style={{ color: '#2563eb', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                className={`admin-nav-link ${isActive('/admin') ? 'active-nav-link' : ''}`}
               >
                 <IconShield size={16} strokeWidth={2.2} />
                 <span>Quản trị</span>
@@ -197,20 +196,6 @@ function Header() {
                 className={`header-status-badge ${!isOnline ? 'offline' : 'pending'}`}
                 onClick={isOnline && pendingCount > 0 ? triggerSync : undefined}
                 title={!isOnline ? 'Đang ở chế độ ngoại tuyến ngoài vườn' : `Có ${pendingCount} bản ghi chờ đồng bộ - Bấm để đồng bộ ngay`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  fontSize: '0.74rem',
-                  fontWeight: '700',
-                  border: !isOnline ? '1px solid #fcd34d' : '1px solid #93c5fd',
-                  background: !isOnline ? '#fffbeb' : '#eff6ff',
-                  color: !isOnline ? '#b45309' : '#1d4ed8',
-                  cursor: isOnline && pendingCount > 0 ? 'pointer' : 'default',
-                  marginRight: '6px',
-                }}
               >
                 {!isOnline ? (
                   <>
@@ -235,7 +220,6 @@ function Header() {
                 <button
                   className="logout-btn-hdr"
                   onClick={handleLogout}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <IconLogOut size={15} />
                   <span>Đăng xuất</span>
@@ -246,7 +230,6 @@ function Header() {
                 <Link
                   className="login-btn"
                   to="/login"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <IconLogIn size={15} />
                   <span>Đăng nhập</span>
@@ -254,7 +237,6 @@ function Header() {
                 <Link
                   className="register-btn"
                   to="/register"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
                   <IconUserPlus size={15} />
                   <span>Đăng ký</span>
@@ -296,13 +278,13 @@ function Header() {
                 <div className="mobile-drawer-user">
                   <UserAvatar user={user} size={42} className="user-avatar-hdr" />
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{user.fullName}</div>
-                    <div style={{ fontSize: '12px', color: '#15803d' }}>{user.role === 'ADMIN' ? 'Quản trị viên' : 'Chủ nông hộ'}</div>
+                    <div className="mobile-drawer-user-name">{user.fullName}</div>
+                    <div className="mobile-drawer-user-role">{user.role === 'ADMIN' ? 'Quản trị viên' : 'Chủ nông hộ'}</div>
                   </div>
                 </div>
               ) : null}
 
-              <div className="mobile-nav-list" style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+              <div className="mobile-nav-list">
                 <Link
                   to="/"
                   className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`}
@@ -361,8 +343,7 @@ function Header() {
                     {user.role === 'ADMIN' && (
                       <Link
                         to="/admin"
-                        className={`mobile-nav-link ${isActive('/admin') ? 'active' : ''}`}
-                        style={{ color: '#2563eb', fontWeight: 600 }}
+                        className={`mobile-nav-link mobile-nav-admin-link ${isActive('/admin') ? 'active' : ''}`}
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         <IconShield size={18} />
@@ -371,8 +352,7 @@ function Header() {
                     )}
                     <button
                       type="button"
-                      className="mobile-nav-link"
-                      style={{ background: '#fef2f2', color: '#dc2626', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', marginTop: '8px' }}
+                      className="mobile-nav-link mobile-nav-logout-btn"
                       onClick={handleLogout}
                     >
                       <IconLogOut size={18} />

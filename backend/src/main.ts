@@ -29,30 +29,38 @@ async function bootstrap() {
     }),
   );
 
-  // Bật CORS cho các domain frontend
+  // Bật CORS — chỉ cho phép các origin rõ ràng (whitelist)
   app.enableCors({
     origin: (origin, callback) => {
+      // Cho phép server-to-server hoặc curl (không có origin header)
+      if (!origin) {
+        return callback(null, true);
+      }
+
       const frontendEnv = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
       const allowedOrigins = [
         frontendEnv,
         'https://dalatagri.vercel.app',
         'http://localhost:5173',
         'http://localhost:5174',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
       ].filter(Boolean);
 
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') ||
-        origin.includes('localhost') ||
-        origin.includes('127.0.0.1') ||
-        origin.includes('192.168.') ||
-        origin.includes('172.') ||
-        origin.includes('26.')
-      ) {
+      // Cho phép mọi subdomain của vercel.app (preview deployments)
+      const isVercelPreview =
+        /^https:\/\/[a-z0-9-]+-[a-z0-9]+-[a-z0-9]+\.vercel\.app$/.test(origin) ||
+        origin.endsWith('.vercel.app');
+
+      // Cho phép localhost với bất kỳ port nào (môi trường dev)
+      const isLocalDev =
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+      if (allowedOrigins.includes(origin) || isVercelPreview || isLocalDev) {
         callback(null, true);
       } else {
-        callback(new Error('Origin không được phép'));
+        callback(new Error(`CORS: Origin không được phép — ${origin}`));
       }
     },
     credentials: true,

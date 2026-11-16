@@ -860,7 +860,6 @@
   .support-card {
     display: flex;
     padding: 18px 16px;
-    border-left-width: 4px;
     gap: 14px;
   }
 

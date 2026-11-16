@@ -276,9 +276,8 @@ export default function OfflineDashboardPage() {
             >
               ×
             </button>
-            <p className="eyebrow">TÀI KHOẢN DALATAGRI</p>
             <h2>
-              {authMode === "login" ? "Chào mừng trở lại" : "Tạo tài khoản mới"}
+              {authMode === "login" ? "Chào mừng trở lại — DalatAgri" : "Tạo tài khoản DalatAgri"}
             </h2>
             {authMode === "register" && (
               <label>
@@ -338,7 +337,6 @@ export default function OfflineDashboardPage() {
       <main className="main container">
         <section className="page-intro">
           <div>
-            <p className="eyebrow">BẢNG ĐIỀU KHIỂN NÔNG HỘ</p>
             <h1>Nhật ký canh tác, rõ từng mùa vụ.</h1>
             <p className="intro-copy">
               Ghi lại hoạt động, vật tư và chi phí ngay cả khi ngoài vùng phủ sóng.
@@ -378,7 +376,6 @@ export default function OfflineDashboardPage() {
           <form className="panel log-form" onSubmit={handleSubmit}>
             <div className="panel-heading">
               <div>
-                <p className="eyebrow">01 / NHẬT KÝ</p>
                 <h2>Ghi hoạt động mới</h2>
               </div>
               <span className="panel-mark">+</span>
@@ -475,7 +472,7 @@ export default function OfflineDashboardPage() {
                 placeholder="Thời tiết, tình trạng cây, công việc cần theo dõi..."
               />
             </label>
-            <button className="primary-button" type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <button className="primary-button" type="submit">
               Lưu nhật ký <IconArrowRight size={16} />
             </button>
           </form>
@@ -483,7 +480,6 @@ export default function OfflineDashboardPage() {
           <section className="panel report-panel">
             <div className="panel-heading">
               <div>
-                <p className="eyebrow">02 / BÁO CÁO</p>
                 <h2>Hiệu quả theo khu đất</h2>
               </div>
               <span className="period">Mùa hiện tại</span>
@@ -576,14 +572,12 @@ export default function OfflineDashboardPage() {
         <section className="panel activity-panel">
           <div className="panel-heading">
             <div>
-              <p className="eyebrow">03 / LỊCH SỬ</p>
               <h2>Hoạt động gần đây</h2>
             </div>
             <button
               className="sync-button"
               onClick={syncLogs}
               disabled={!isOnline || pendingCount === 0}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
             >
               <IconRotateCw size={14} /> Đồng bộ {pendingCount ? `(${pendingCount})` : ""}
             </button>
